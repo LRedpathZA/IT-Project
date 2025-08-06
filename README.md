@@ -1,7 +1,8 @@
 # IT-Project
+
 Our group project
 
->[!Tip]
+> [!Tip]
 > We will update this ReadMe once we get the project breakdown.
 > This is just rough notes, will clean this up soon :)
 
@@ -12,9 +13,11 @@ Each client has a dashboard/profile of which they can check the status of their 
 Push Notifications whenever a change occurs on the client pool
 Users:
 Client
-* Requests services like backwash or adding extra chemicals
-* Request Cleaning staff
-Cleaning Staff
 
+- Requests services like backwash or adding extra chemicals
+- Request Cleaning staff
+  Cleaning Staff
 
 System may Recommend certain actions to be taken based on the current <i>Health</i> of the pool.
+
+Bleeehhh
