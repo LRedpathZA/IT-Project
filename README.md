@@ -1,6 +1,6 @@
 # The Ripple Effect presents SplashScreen
 
-A web and mobile platform designed to help residential pool owners in South Africa maintain their pools efficiently while reducing water waste, lowering costs, and connecting them with trusted local service providers.
+A mobile platform designed to help residential pool owners in South Africa maintain their pools efficiently while reducing water waste, lowering costs, and connecting them with trusted local service providers.
 
 ---
 
@@ -304,13 +304,7 @@ erDiagram
 
 ## Contributing
 
-We welcome contributions from the community!  
-
-- Fork the repository.  
-- Create a new branch for your feature or bug fix.  
-- Submit a pull request describing your changes and improvements.  
-- Ensure your code adheres to Java and Android best practices and is properly tested.  
-
+*Not Applicable for now.*
 ---
 
 ## License
