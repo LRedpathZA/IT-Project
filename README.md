@@ -3,6 +3,9 @@
 A mobile platform designed to help residential pool owners in South Africa maintain their pools efficiently while reducing water waste, lowering costs, and connecting them with trusted local service providers.
 
 ---
+![alt text](Images/Header.jpg)
+
+---
 
 ## Table of Contents
 1. [Project Overview](#project-overview)
