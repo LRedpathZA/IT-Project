@@ -42,10 +42,10 @@ jobs:
 
       - name: Run Bulk Issue Creator Script
         run: |
+          cd bulk-issue-creator
           bundle exec ./bin/bulk-issue-creator \
             --csv-path ../${{ github.event.inputs.csv_path }} \
             --template-path ../${{ github.event.inputs.template_path }} \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
             --write ${{ github.event.inputs.write_mode }} \
             --comment ${{ github.event.inputs.comment_mode }}
-        working-directory: bulk-issue-creator
