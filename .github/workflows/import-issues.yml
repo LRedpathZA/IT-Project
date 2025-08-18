@@ -1,17 +1,44 @@
-name: Import Issues from CSV
+name: Create Issues from CSV
 
 on:
   workflow_dispatch:
+    inputs:
+      csv_path:
+        description: 'Path to the CSV file'
+        required: true
+        default: 'cleaned_tasks.csv'
+      template_path:
+        description: 'Path to the issue template file'
+        required: true
+        default: 'issue_template.md'
+      write_mode:
+        description: 'Set to "true" to create issues, or "false" for a dry run'
+        required: true
+        default: 'false'
+      comment_mode:
+        description: 'Set to "true" to create comments instead of issues'
+        required: true
+        default: 'false'
 
 jobs:
-  create_issues:
+  bulk-create:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Create issues from CSV
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0'
+          bundler-cache: true # Installs gems specified in Gemfile.lock
+
+      - name: Run Bulk Issue Creator
+        id: create-issues
         uses: benbalter/bulk-issue-creator@v1
         with:
-          csv_path: 'cleaned_tasks.csv'
-          template_path: 'issue_template.md'
+          csv_path: ${{ github.event.inputs.csv_path }}
+          template_path: ${{ github.event.inputs.template_path }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          write: ${{ github.event.inputs.write_mode }}
+          comment: ${{ github.event.inputs.comment_mode }}
