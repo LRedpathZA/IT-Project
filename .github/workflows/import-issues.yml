@@ -7,18 +7,6 @@ on:
         description: 'Path to the CSV file'
         required: true
         default: 'cleaned_tasks.csv'
-      template_path:
-        description: 'Path to the issue template file'
-        required: true
-        default: 'issue_template.md'
-      write_mode:
-        description: 'Set to "true" to create issues, or "false" for a dry run'
-        required: true
-        default: 'false'
-      comment_mode:
-        description: 'Set to "true" to create comments instead of issues'
-        required: true
-        default: 'false'
 
 jobs:
   bulk-create:
@@ -27,11 +15,36 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Run Bulk Issue Creator
-        uses: benbalter/bulk-issue-creator@v1
-        with:
-          csv_path: ${{ github.event.inputs.csv_path }}
-          template_path: ${{ github.event.inputs.template_path }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          write: ${{ github.event.inputs.write_mode }}
-          comment: ${{ github.event.inputs.comment_mode }}
+      - name: Install csvkit
+        run: sudo apt-get install -y csvkit
+
+      - name: Create Issues from CSV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          CSV_PATH: ${{ github.event.inputs.csv_path }}
+        run: |
+          echo "Processing $CSV_PATH..."
+          # Skip header, read each row
+          tail -n +2 "$CSV_PATH" | while IFS=, read -r title body labels assignees
+          do
+            echo "Creating issue: $title"
+            
+            # Build labels/assignees if present
+            label_arg=""
+            assignee_arg=""
+            if [ ! -z "$labels" ]; then
+              label_arg="--label $(echo $labels | tr -d '"')"
+            fi
+            if [ ! -z "$assignees" ]; then
+              assignee_arg="--assignee $(echo $assignees | tr -d '"')"
+            fi
+
+            # Create the issue
+            gh issue create \
+              --repo "$REPO" \
+              --title "$title" \
+              --body "$body" \
+              $label_arg \
+              $assignee_arg
+          done
