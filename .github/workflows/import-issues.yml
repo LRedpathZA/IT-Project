@@ -13,7 +13,7 @@ jobs:
         uses: github-actions-for-issues/import-issues-from-csv@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          csv_file_path: cleaned_tasks.csv
+          csv_file_path: tasks.csv
           issue_title_column: 'Task Name'
           issue_body_columns: 'Task Content,Due Date Text,Status'
           issue_labels: 'imported-task'
