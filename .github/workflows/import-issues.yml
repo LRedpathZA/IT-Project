@@ -24,28 +24,14 @@ jobs:
   bulk-create:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout your repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Checkout bulk-issue-creator
-        uses: actions/checkout@v4
+      - name: Run Bulk Issue Creator
+        uses: benbalter/bulk-issue-creator@v1
         with:
-          repository: benbalter/bulk-issue-creator
-          path: bulk-issue-creator
-
-      - name: Set up Ruby and Install Dependencies
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.0'
-          bundler-cache: true
-          working-directory: bulk-issue-creator
-
-      - name: Run Bulk Issue Creator Script
-        run: |
-          cd bulk-issue-creator
-          bundle exec ./bin/bulk-issue-creator \
-            --csv-path ../${{ github.event.inputs.csv_path }} \
-            --template-path ../${{ github.event.inputs.template_path }} \
-            --github-token ${{ secrets.GITHUB_TOKEN }} \
-            --write ${{ github.event.inputs.write_mode }} \
-            --comment ${{ github.event.inputs.comment_mode }}
+          csv_path: ${{ github.event.inputs.csv_path }}
+          template_path: ${{ github.event.inputs.template_path }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          write: ${{ github.event.inputs.write_mode }}
+          comment: ${{ github.event.inputs.comment_mode }}
