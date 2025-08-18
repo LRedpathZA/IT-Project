@@ -9,15 +9,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Import CSV to GitHub Issues
-        id: import_issues
-        uses: dkersch/github-issue-from-csv@v1.1
+        uses: github-actions-for-issues/import-issues-from-csv@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          csv_path: 'tasks.csv'
-          title_column: 'Task Name'
-          body_columns: 'Task Content'
-          due_date_column: 'Due Date Text'
-          status_column: 'Status'
-          repo: ${{ github.repository }}
+          csv_file_path: cleaned_tasks.csv
+          issue_title_column: 'Task Name'
+          issue_body_columns: 'Task Content,Due Date Text,Status'
+          issue_labels: 'imported-task'
