@@ -4,16 +4,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  import:
+  create_issues:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Import CSV to GitHub Issues
-        uses: github-actions-for-issues/import-issues-from-csv@v1
+      - name: Create issues from CSV
+        uses: benbalter/bulk-issue-creator@v1
         with:
+          csv_path: 'cleaned_tasks.csv'
+          template_path: 'issue_template.md'
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          csv_file_path: tasks.csv
-          issue_title_column: 'Task Name'
-          issue_body_columns: 'Task Content,Due Date Text,Status'
-          issue_labels: 'imported-task'
