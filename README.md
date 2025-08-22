@@ -10,17 +10,18 @@ A mobile platform designed to help residential pool owners in South Africa maint
 ## Table of Contents
 1. [Project Overview](#project-overview)
 2. [Problem Domain](#problem-domain)
-3. [Objectives](#objectives)
-4. [Features](#features)
-5. [System Architecture](#system-architecture)
-6. [Database Design](#database-design)
-7. [Workflow](#workflow)
-8. [Technology Stack](#technology-stack)
-9. [Installation](#installation)
-10. [Usage](#usage)
-11. [Contributing](#contributing)
-12. [License](#license)
-13. [Future Enhancements](#future-enhancements)
+3. [Project Members](#project-members)
+4. [Objectives](#objectives)
+5. [Features](#features)
+6. [System Architecture](#system-architecture)
+7. [Database Design](#database-design)
+8. [Workflow](#workflow)
+9. [Technology Stack](#technology-stack)
+10. [Installation](#installation)
+11. [Usage](#usage)
+12. [Contributing](#contributing)
+13. [License](#license)
+14. [Future Enhancements](#future-enhancements)
 
 ---
 
@@ -50,6 +51,23 @@ Key challenges include:
 
 ---
 
+### Project Members
+
+This project was completed by the following group members:
+
+- **Line Redpath**  
+  <img src="https://github.com/LRedpathZA.png" width="100" /><br>
+   GitHub Profile: [Line's GitHub](https://github.com/LRedpathZA)  
+
+- **Juanette Viljoen**  
+  <img src="https://github.com/JuanetteRViljoen.png" width="100" /><br>
+   GitHub Profile: [Juanette's GitHub](https://github.com/JuanetteRViljoen)  
+
+- **Tinotenda Mhedziso**  
+  <img src="https://github.com/Passion-Over-Pain.png" width="100" /><br>
+  GitHub Profile: [Tino's GitHub](https://github.com/Passion-Over-Pain)
+
+---
 ## Objectives
 
 - Provide a locally tailored, DIY pool maintenance tool.
