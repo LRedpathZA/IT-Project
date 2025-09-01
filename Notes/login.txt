@@ -1,0 +1,54 @@
+Proposed Activity Structure
+You will have three main activities that govern the user's journey:
+
+SplashActivity: This is the entry point of your app, as you mentioned. Its XML layout will be a simple screen with your logo. The Java code for this activity will check if a user is already authenticated with Firebase.
+
+Logic:
+
+If the user is logged in, navigate directly to MainActivity.
+
+If not, navigate to LoginAndRegistrationActivity.
+
+This prevents the user from having to log in every time they open the app.
+
+LoginAndRegistrationActivity: This will be the main hub for all non-authenticated users. The XML layout for this activity will contain fragments or toggleable views for different authentication options.
+
+XML Layout: This single layout will include two key sections. One for logging in and another for signing up. You can show/hide these sections with a button click.
+
+UI Elements (both sections):
+
+EditText for Email
+
+EditText for Password
+
+Button for "Login" or "Sign Up"
+
+TextView for "Forgot Password?"
+
+TextView or Button to switch between "Sign Up" and "Login" views.
+
+MainActivity: This will be the user's main dashboard after they log in. This activity will serve as a container for all the other fragments that make up your app's features.
+
+XML Layout: This layout will be the framework of your app, likely containing a BottomNavigationView or a DrawerLayout (for a navigation drawer) to switch between different features. It will also have a FrameLayout which will display the different fragments.
+
+Mapping Activities to Your Workflow & Features
+Here's how you can map your key entities and features to screens (fragments) within the MainActivity:
+
+Pools: A PoolsFragment to show a list of the user's pools. The XML for this will have a RecyclerView to display each pool. Clicking a pool will open a PoolDetailFragment to view its specific data.
+
+Maintenance & Readings: A MaintenanceFragment or WaterReadingsFragment will allow users to input data. This would include EditText fields for pH, chlorine, etc., and buttons to save the readings.
+
+Marketplace: A MarketplaceFragment to display a list of ServiceProviders and their ServicesOffered and Products. The XML would use a RecyclerView with different item layouts for services and products. Tapping on a service provider would open a ServiceProviderDetailFragment to view their profile, reviews, and booking options.
+
+Alerts & Notifications: A dedicated NotificationsFragment to display Notifications and LoadSheddingSchedule alerts. The XML would use a RecyclerView to show a list of all alerts.
+
+Visualizing the Flow
+This approach creates a clean, logical flow that makes development and future maintenance easier.
+
+New User Flow:
+
+SplashActivity (checks login) -> LoginAndRegistrationActivity (user signs up) -> MainActivity (user is logged in, sees their dashboard) -> AddPoolFragment (user adds their first pool) -> PoolsFragment (user sees their newly added pool)
+
+Returning User Flow:
+
+SplashActivity (checks login) -> MainActivity (user is logged in, goes straight to their dashboard) -> PoolsFragment (user sees their list of pools)
