@@ -16,7 +16,12 @@ public class AuthenticationActivity extends AppCompatActivity {
                 .replace(R.id.fragment_container, new LoginFragment())
                 .commit();
     }
-
+    public void showBusinessFragment() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, new BusinessSignupFragment())
+                .addToBackStack(null) // Allows the user to press the back button
+                .commit();
+    }
     public void showSignupFragment() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new SignupFragment())
@@ -30,4 +35,5 @@ public class AuthenticationActivity extends AppCompatActivity {
                 .addToBackStack(null)
                 .commit();
     }
+
 }
