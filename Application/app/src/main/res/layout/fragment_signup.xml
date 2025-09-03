@@ -112,7 +112,7 @@
         android:id="@+id/termsCheckbox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="I accept the policy and terms"
+        android:text="I accept the terms of service"
         android:textColor="@android:color/darker_gray"
         android:layout_marginTop="12dp"
         android:layout_marginStart="32dp"
