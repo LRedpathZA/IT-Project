@@ -6,7 +6,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class AuthenticationActivity extends AppCompatActivity {
-
+    // TODO: Find a good fragment transition animation then use: .setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,7 +25,7 @@ public class AuthenticationActivity extends AppCompatActivity {
     public void showSignupFragment() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new SignupFragment())
-                .addToBackStack(null) // Allows the user to press the back button
+                .addToBackStack(null)
                 .commit();
     }
 

@@ -43,14 +43,17 @@
         android:layout_marginHorizontal="32dp"
         app:layout_constraintTop_toBottomOf="@id/signupHeading"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:boxStrokeColor="@color/PrimaryColour"
+        app:hintTextColor="@color/white">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/companyNameEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Company Name"
-            android:inputType="textPersonName"/>
+            android:inputType="textPersonName"
+            />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -62,14 +65,17 @@
         android:layout_marginHorizontal="32dp"
         app:layout_constraintTop_toBottomOf="@id/companyNameLayout"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:boxStrokeColor="@color/PrimaryColour"
+        app:hintTextColor="@color/white">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/emailEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Email Address"
-            android:inputType="textEmailAddress"/>
+            android:inputType="textEmailAddress"
+           />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -81,7 +87,9 @@
         android:layout_marginHorizontal="32dp"
         app:layout_constraintTop_toBottomOf="@id/emailLayout"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:boxStrokeColor="@color/PrimaryColour"
+        app:hintTextColor="@color/white">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/phoneEditText"
@@ -101,14 +109,17 @@
         app:passwordToggleEnabled="true"
         app:layout_constraintTop_toBottomOf="@id/phoneLayout"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:boxStrokeColor="@color/PrimaryColour"
+        app:hintTextColor="@color/white">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/passwordEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Password"
-            android:inputType="textPassword"/>
+            android:inputType="textPassword"
+            />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -120,14 +131,17 @@
         android:layout_marginHorizontal="32dp"
         app:layout_constraintTop_toBottomOf="@id/passwordLayout"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:boxStrokeColor="@color/PrimaryColour"
+        app:hintTextColor="@color/white">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/certificationEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Certification Details (e.g., PSA Certified)"
-            android:inputType="text"/>
+            android:hint="Certification Details (e.g. NSPI Certified)"
+            android:inputType="text"
+           />
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button
