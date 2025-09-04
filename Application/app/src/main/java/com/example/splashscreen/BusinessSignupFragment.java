@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -68,7 +68,12 @@ public class BusinessSignupFragment extends Fragment {
             String location = locationEditText.getText().toString().trim();
 
             if (businessName.isEmpty() || email.isEmpty() || password.isEmpty() || location.isEmpty()) {
-                Toast.makeText(getContext(), "Please fill in all fields.", Toast.LENGTH_SHORT).show();
+                NotificationHelper.showNotification(
+                        getView(),
+                        "Missing information",
+                        "Please fill in all the fields to continue.",
+                        NotificationHelper.NotificationType.ERROR
+                );
             } else {
                 createBusinessUser(businessName, email, password, location);
             }
@@ -87,7 +92,12 @@ public class BusinessSignupFragment extends Fragment {
                         }
                     } else {
                         Log.e("BusinessSignupFragment", "Authentication failed: " + task.getException().getMessage());
-                        Toast.makeText(getContext(), "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        NotificationHelper.showNotification(
+                                getView(),
+                                "Sign up failed",
+                                task.getException().getMessage(),
+                                NotificationHelper.NotificationType.ERROR
+                        );
                     }
                 });
     }
@@ -103,7 +113,12 @@ public class BusinessSignupFragment extends Fragment {
         db.collection("users").document(firebaseUser.getUid())
                 .set(businessData)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "Business registration request successful.", Toast.LENGTH_SHORT).show();
+                    NotificationHelper.showNotification(
+                            getView(),
+                            "Business registration request",
+                            "Successfully sent, we will be in tough shortly.",
+                            NotificationHelper.NotificationType.ERROR
+                    );
                     Intent intent = new Intent(getContext(), MainActivity.class);
                     startActivity(intent);
                     if (getActivity() != null) {
@@ -112,7 +127,12 @@ public class BusinessSignupFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> {
                     Log.e("BusinessSignupFragment", "Error saving business data to Firestore: " + e.getMessage());
-                    Toast.makeText(getContext(), "Failed to save business data: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    NotificationHelper.showNotification(
+                            getView(),
+                            "Business registration request",
+                            "Error while signing up.",
+                            NotificationHelper.NotificationType.ERROR
+                    );
                 });
     }
 }
