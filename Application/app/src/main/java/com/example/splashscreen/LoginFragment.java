@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -62,7 +61,12 @@ public class LoginFragment extends Fragment {
             String password = passwordEditText.getText().toString().trim();
 
             if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(getContext(), "Please fill in all fields.", Toast.LENGTH_SHORT).show();
+                NotificationHelper.showNotification(
+                        getView(),
+                        "Missing information",
+                        "Please fill in all the fields to continue.",
+                        NotificationHelper.NotificationType.ERROR
+                );
             } else {
                 loginUser(email, password);
             }
@@ -77,7 +81,12 @@ public class LoginFragment extends Fragment {
                     if (task.isSuccessful()) {
                         // Login successful
                         FirebaseUser user = auth.getCurrentUser();
-                        Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_SHORT).show();
+                        NotificationHelper.showNotification(
+                                getView(),
+                                "Login successful",
+                                "Welcome back to SplashScreen.",
+                                NotificationHelper.NotificationType.ERROR
+                        );
 
                         // Navigate to the MainActivity
                         Intent intent = new Intent(getContext(), MainActivity.class);
@@ -87,7 +96,12 @@ public class LoginFragment extends Fragment {
                         }
                     } else {
                         // Login failed, show an error message
-                        Toast.makeText(getContext(), "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        NotificationHelper.showNotification(
+                                getView(),
+                                "Login failed",
+                                "Authentication issue: " + task.getException().getMessage(),
+                                NotificationHelper.NotificationType.ERROR
+                        );
                     }
                 });
     }

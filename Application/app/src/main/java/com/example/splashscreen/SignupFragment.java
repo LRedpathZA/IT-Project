@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -72,12 +71,23 @@ public class SignupFragment extends Fragment {
             String email = emailEditText.getText().toString().trim();
             String password = passwordEditText.getText().toString().trim();
 
+
             if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(getContext(), "Please fill in all fields.", Toast.LENGTH_SHORT).show();
+                NotificationHelper.showNotification(
+                        getView(),
+                        "Missing Information",
+                        "Please fill in all fields to sign up.",
+                        NotificationHelper.NotificationType.ERROR
+                );
             }
             else if(!termsCheckbox.isChecked())
             {
-                Toast.makeText(getContext(), "You have not agreed to the Terms of Service. Please check the box to continue.", Toast.LENGTH_SHORT).show();
+                NotificationHelper.showNotification(
+                        getView(),
+                        "Missing Agreement",
+                        "You have not agreed to the terms of service. Check the box to continue.",
+                        NotificationHelper.NotificationType.ERROR
+                );
             }
             else {
                 createUser(name, email, password);
@@ -114,7 +124,12 @@ public class SignupFragment extends Fragment {
                     } else {
                         // Handle authentication failure :(
                         Log.e("SignupFragment", "Authentication failed: " + task.getException().getMessage());
-                        Toast.makeText(getContext(), "Authentication failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        NotificationHelper.showNotification(
+                                getView(),
+                                "Authentication failed",
+                                task.getException().getMessage(),
+                                NotificationHelper.NotificationType.ERROR
+                        );
                     }
                 });
     }
@@ -130,7 +145,12 @@ public class SignupFragment extends Fragment {
         db.collection("users").document(firebaseUser.getUid())
                 .set(user)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "Sign up successful!", Toast.LENGTH_SHORT).show();
+                    NotificationHelper.showNotification(
+                            getView(),
+                            "Account creation success",
+                            "The account under " + name + " was successfully created.",
+                            NotificationHelper.NotificationType.ERROR
+                    );
                     // Navigate to the next activity (e.g., MainActivity)
                     Intent intent = new Intent(getContext(), MainActivity.class);
                     startActivity(intent);
@@ -140,7 +160,12 @@ public class SignupFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> {
                     Log.e("SignupFragment", "Error saving user to Firestore: " + e.getMessage());
-                    Toast.makeText(getContext(), "Failed to save user data: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    NotificationHelper.showNotification(
+                            getView(),
+                            "Error while saving",
+                            "Failed to save" + e.getMessage(),
+                            NotificationHelper.NotificationType.ERROR
+                    );
                 });
     }
 

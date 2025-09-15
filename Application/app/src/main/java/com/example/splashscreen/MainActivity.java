@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
                 if (document.exists()) {
                     // Get the username from the document
                     String username = document.getString("name");
-                    // You now have the username, you can display it or pass it to other fragments
+                    // We now have the username, we can display it or pass it to other fragments
                      welcomeText.setText("Welcome, " + username + "!");
                 } else {
                     Log.d("MainActivity", "No such document");
