@@ -1,0 +1,188 @@
+classDiagram
+    class User {
+        +int user_id
+        +string email
+        +string password
+        +string name
+        +string phone
+        +string address
+        +updateProfile()
+        +viewProfile()
+    }
+
+    class PoolOwner {
+        +registerPool()
+        +managePools()
+        +recordWaterQuality()
+        +receiveAlerts()
+        +scheduleBooking()
+        +purchaseProducts()
+    }
+    
+    class ServiceProvider {
+        +createProfile()
+        +listServicesAndProducts()
+        +manageBookings()
+        +trackOrders()
+        +receiveReviews()
+        +updateServiceRating()
+    }
+    
+    class Pool {
+        +int pool_id
+        +string pool_type
+        +float water_capacity_liters
+        +string location
+        +string pool_status
+        +addPool()
+        +getPoolDetails()
+    }
+    
+    class PoolMaintenanceLog {
+        +int log_id
+        +date task_date
+        +string task_type
+        +string notes
+        +recordMaintenance()
+    }
+    
+    class WaterQualityReading {
+        +int reading_id
+        +date reading_date
+        +float pH
+        +float chlorine
+        +float alkalinity
+        +float temperature
+        +enterReading()
+        +syncReading()
+    }
+    
+    class Notification {
+        +int notification_id
+        +string message
+        +date created_at
+        +boolean read_status
+        +sendNotification()
+    }
+    
+    class Service {
+        +int service_id
+        +string service_name
+        +string description
+        +float price
+        +string duration
+        +listService()
+        +updateService()
+    }
+    
+    class Booking {
+        +int booking_id
+        +date booking_date
+        +string status
+        +scheduleBooking()
+        +cancelBooking()
+    }
+    
+    class Product {
+        +int product_id
+        +string product_name
+        +string product_type
+        +float price
+        +int stock_quantity
+        +listProduct()
+        +updateStock()
+    }
+    
+    class Order {
+        +int order_id
+        +date order_date
+        +int quantity
+        +float total_price
+        +string status
+        +placeOrder()
+        +trackOrder()
+    }
+    
+    class WeatherData {
+        +int weather_id
+        +date record_date
+        +float rainfall_mm
+        +float temperature_c
+        +float evaporation_rate
+        +fetchData()
+    }
+    
+    class LoadsheddingSchedule {
+        +int schedule_id
+        +date outage_date
+        +time start_time
+        +time end_time
+        +fetchSchedule()
+    }
+    
+    class MunicipalRestriction {
+        +int restriction_id
+        +string municipality_name
+        +string restriction_type
+        +string description
+        +date effective_from
+        +date effective_to
+        +checkCompliance()
+    }
+    
+    class Role {
+        +int role_id
+        +string role_name
+        +string description
+        +getRole()
+    }
+    
+    class RecommendationEngine {
+        +calculateRecommendations()
+        +triggerAlertsAndReminders()
+    }
+    
+    class Marketplace {
+        +searchServices()
+        +browseProducts()
+        +processPayment()
+    }
+    
+    class System {
+        +triggerBackendCalculations()
+        +manageAlertsAndReminders()
+        +facilitateMarketplaceTransactions()
+    }
+    
+    User <|-- PoolOwner: is a
+    User <|-- ServiceProvider: is a
+    
+    User "1" -- "0..*" Pool: manages
+    User "1" -- "0..*" Booking: makes
+    User "1" -- "0..*" Order: places
+    User "1" -- "0..*" Notification: receives
+    
+    PoolOwner "1" -- "0..*" Pool: registers
+    Pool "1" -- "0..*" PoolMaintenanceLog: has
+    Pool "1" -- "0..*" WaterQualityReading: records
+    Pool "1" -- "0..*" WeatherData: associated with
+    Pool "1" -- "0..*" LoadsheddingSchedule: impacted by
+    Pool "1" -- "0..*" MunicipalRestriction: subject to
+    
+    ServiceProvider "1" -- "0..*" Service: offers
+    ServiceProvider "1" -- "0..*" Product: supplies
+    
+    Service "1" -- "0..*" Booking: booked in
+    
+    Order "1" -- "1" Product: includes
+    
+    User "1" -- "1" Role: has
+    
+    Pool "1" -- "1" RecommendationEngine: provides data for
+    Pool "1" -- "1" System: sends data to
+    
+    System "1" -- "1" RecommendationEngine: uses
+    System "1" -- "1" Marketplace: manages
+    
+    Marketplace "1" -- "0..*" ServiceProvider: has
+    Marketplace "1" -- "0..*" User: interacts with
