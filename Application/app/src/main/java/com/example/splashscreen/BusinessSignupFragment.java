@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 
@@ -27,10 +28,10 @@ public class BusinessSignupFragment extends Fragment {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
-    private TextInputEditText businessNameEditText;
-    private TextInputEditText emailEditText;
-    private TextInputEditText passwordEditText;
-    private TextInputEditText locationEditText;
+    private EditText businessNameEditText;
+    private EditText emailEditText;
+    private EditText passwordEditText;
+    private EditText locationEditText;
     private Button signupButton;
 
     public BusinessSignupFragment() {
