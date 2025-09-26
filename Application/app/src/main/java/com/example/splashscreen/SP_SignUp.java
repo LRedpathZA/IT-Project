@@ -15,7 +15,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -23,7 +22,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BusinessSignupFragment extends Fragment {
+public class SP_SignUp extends Fragment {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
@@ -34,7 +33,7 @@ public class BusinessSignupFragment extends Fragment {
     private EditText locationEditText;
     private Button signupButton;
 
-    public BusinessSignupFragment() {
+    public SP_SignUp() {
         // Required empty public constructor
     }
 
@@ -48,7 +47,7 @@ public class BusinessSignupFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_business_signup, container, false);
+        View view = inflater.inflate(R.layout.fragment_sp_signup, container, false);
 
         // Find the views from your XML
         businessNameEditText = view.findViewById(R.id.businessNameEditText);
@@ -92,7 +91,7 @@ public class BusinessSignupFragment extends Fragment {
                             saveBusinessDataToFirestore(user, businessName, email, location);
                         }
                     } else {
-                        Log.e("BusinessSignupFragment", "Authentication failed: " + task.getException().getMessage());
+                        Log.e("SP_SignUp", "Authentication failed: " + task.getException().getMessage());
                         NotificationHelper.showNotification(
                                 getView(),
                                 "Sign up failed",
@@ -127,7 +126,7 @@ public class BusinessSignupFragment extends Fragment {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("BusinessSignupFragment", "Error saving business data to Firestore: " + e.getMessage());
+                    Log.e("SP_SignUp", "Error saving business data to Firestore: " + e.getMessage());
                     NotificationHelper.showNotification(
                             getView(),
                             "Business registration request",
