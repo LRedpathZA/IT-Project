@@ -18,13 +18,13 @@ public class AuthenticationActivity extends AppCompatActivity {
     }
     public void showBusinessFragment() {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new BusinessSignupFragment())
+                .replace(R.id.fragment_container, new SP_SignUp())
                 .addToBackStack(null) // Allows the user to press the back button
                 .commit();
     }
     public void showSignupFragment() {
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new SignupFragment())
+                .replace(R.id.fragment_container, new PO_SignUp())
                 .addToBackStack(null)
                 .commit();
     }

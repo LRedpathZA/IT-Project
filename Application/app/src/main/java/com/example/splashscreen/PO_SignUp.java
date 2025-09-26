@@ -22,7 +22,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SignupFragment extends Fragment {
+public class PO_SignUp extends Fragment {
 
     // Firebase instances
     private FirebaseAuth auth;
@@ -38,7 +38,7 @@ public class SignupFragment extends Fragment {
     private TextView loginLink;
     private TextView businessLink;
 
-    public SignupFragment() {
+    public PO_SignUp() {
         // Required empty public constructor -- Standards?
     }
 
@@ -54,7 +54,7 @@ public class SignupFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_signup, container, false);
+        View view = inflater.inflate(R.layout.fragment_po_signup, container, false);
 
         // Find the views
         usernameEditText = view.findViewById(R.id.usernameEditText);
@@ -104,7 +104,7 @@ public class SignupFragment extends Fragment {
 
         businessLink.setOnClickListener(v -> {
             getActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new BusinessSignupFragment())
+                    .replace(R.id.fragment_container, new SP_SignUp())
                     .addToBackStack(null)
                     .commit();
         });
@@ -123,7 +123,7 @@ public class SignupFragment extends Fragment {
                         }
                     } else {
                         // Handle authentication failure :(
-                        Log.e("SignupFragment", "Authentication failed: " + task.getException().getMessage());
+                        Log.e("PO_SignUp", "Authentication failed: " + task.getException().getMessage());
                         NotificationHelper.showNotification(
                                 getView(),
                                 "Authentication failed",
@@ -159,7 +159,7 @@ public class SignupFragment extends Fragment {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("SignupFragment", "Error saving user to Firestore: " + e.getMessage());
+                    Log.e("PO_SignUp", "Error saving user to Firestore: " + e.getMessage());
                     NotificationHelper.showNotification(
                             getView(),
                             "Error while saving",
