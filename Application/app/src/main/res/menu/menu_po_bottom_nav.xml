@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_menu_po"
+        android:icon="@drawable/ic_menu"
+        android:title="Menu" />
+    <item
+    android:id="@+id/nav_calc"
+    android:icon="@drawable/calculator"
+    android:title="Calculator" />
+
+    <item
+    android:id="@+id/nav_marketplace"
+    android:icon="@drawable/ic_cart"
+    android:title="Marketplace" />
+
+</menu>

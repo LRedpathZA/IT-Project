@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -22,8 +23,8 @@ public class LoginFragment extends Fragment {
     private FirebaseAuth auth;
 
 
-    private TextInputEditText emailEditText;
-    private TextInputEditText passwordEditText;
+    private EditText emailEditText, passwordEditText;
+
     private Button loginButton;
     private TextView switchToSignup;
 

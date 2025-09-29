@@ -19,7 +19,7 @@ public class AuthenticationActivity extends AppCompatActivity {
     public void showBusinessFragment() {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new SP_SignUp())
-                .addToBackStack(null) // Allows the user to press the back button
+                .addToBackStack(null)
                 .commit();
     }
     public void showSignupFragment() {

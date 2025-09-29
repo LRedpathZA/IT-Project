@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -29,14 +30,13 @@ public class PO_SignUp extends Fragment {
     private FirebaseFirestore db;
 
     // View components
-    private TextInputEditText usernameEditText;
-    private TextInputEditText emailEditText;
-    private TextInputEditText passwordEditText;
+    private EditText usernameEditText,passwordEditText,emailEditText;
+
     private Button signupButton;
     private CheckBox termsCheckbox;
 
-    private TextView loginLink;
-    private TextView businessLink;
+    private TextView loginLink,businessLink;
+
 
     public PO_SignUp() {
         // Required empty public constructor -- Standards?

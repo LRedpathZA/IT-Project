@@ -27,10 +27,7 @@ public class SP_SignUp extends Fragment {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
-    private EditText businessNameEditText;
-    private EditText emailEditText;
-    private EditText passwordEditText;
-    private EditText locationEditText;
+    private EditText businessNameEditText,emailEditText,passwordEditText,locationEditText;
     private Button signupButton;
 
     public SP_SignUp() {
@@ -49,7 +46,7 @@ public class SP_SignUp extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_sp_signup, container, false);
 
-        // Find the views from your XML
+
         businessNameEditText = view.findViewById(R.id.businessNameEditText);
         emailEditText = view.findViewById(R.id.emailEditText);
         passwordEditText = view.findViewById(R.id.passwordEditText);

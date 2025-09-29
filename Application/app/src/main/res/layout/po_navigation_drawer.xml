@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/navDrawerLayout"
+    android:layout_width="300dp"
+    android:layout_height="match_parent"
+    android:layout_gravity="start"
+    android:background="@color/white"
+    android:orientation="vertical"
+    android:paddingTop="24dp"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp"
+        android:background="@color/PrimaryColour">
+
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/ic_profile_placeholder"
+            android:contentDescription="User Profile Icon"
+            app:tint="@color/black" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Login"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:layout_marginTop="8dp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <View android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/black"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="8dp">
+
+            <include layout="@layout/item_menu_button" android:id="@+id/btnMessages" />
+            <include layout="@layout/item_menu_button" android:id="@+id/btnSummary" />
+            <include layout="@layout/item_menu_button" android:id="@+id/btnTips" />
+            <include layout="@layout/item_menu_button" android:id="@+id/btnLoadshedding" />
+            <include layout="@layout/item_menu_button" android:id="@+id/btnRestrictions" />
+            <include layout="@layout/item_menu_button" android:id="@+id/btnHelp" />
+            <include layout="@layout/item_menu_button" android:id="@+id/btnSettings" />
+            <include layout="@layout/item_menu_button" android:id="@+id/btnTutorial" />
+            <include layout="@layout/item_menu_button" android:id="@+id/btnRegisterBusiness" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

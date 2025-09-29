@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/login_background"
-    tools:context=".LoginActivity">
+    tools:context=".LoginFragment">
 
     <!-- Welcome Text -->
     <TextView
@@ -37,52 +37,72 @@
         android:layout_marginStart="32dp"/>
 
     <!-- Email Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/emailInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    <LinearLayout
+        android:id="@+id/emailBlock"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/rounded_input_bg"
+        android:paddingHorizontal="12dp"
         android:layout_marginTop="40dp"
         android:layout_marginHorizontal="32dp"
         app:layout_constraintTop_toBottomOf="@id/loginHeading"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:boxStrokeColor="@color/PrimaryColour"
-        app:hintTextColor="@color/white">
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <com.google.android.material.textfield.TextInputEditText
+        <EditText
             android:id="@+id/emailEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:hint="Email Address"
+            android:background="@android:color/transparent"
             android:inputType="textEmailAddress"
-            />
+            android:padding="8dp"/>
 
-    </com.google.android.material.textfield.TextInputLayout>
+        <ImageView
+            android:id="@+id/emailIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/email"
+            android:contentDescription="Email icon"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
 
     <!-- Password Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/passwordInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    <LinearLayout
+        android:id="@+id/passwordBlock"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/rounded_input_bg"
+        android:paddingHorizontal="12dp"
         android:layout_marginTop="16dp"
         android:layout_marginHorizontal="32dp"
-        app:passwordToggleEnabled="true"
-        app:layout_constraintTop_toBottomOf="@id/emailInputLayout"
+        app:layout_constraintTop_toBottomOf="@id/emailBlock"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:boxStrokeColor="@color/PrimaryColour"
-        app:hintTextColor="@color/white">
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <com.google.android.material.textfield.TextInputEditText
+        <EditText
             android:id="@+id/passwordEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:hint="Password"
-            android:inputType="textPassword"/>
+            android:background="@android:color/transparent"
+            android:inputType="textPassword"
+            android:padding="8dp"/>
 
-    </com.google.android.material.textfield.TextInputLayout>
+        <ImageView
+            android:id="@+id/passwordIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/password"
+            android:contentDescription="Password icon"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
 
     <!-- Remember Me + Forgot Password Row -->
     <LinearLayout
@@ -90,20 +110,18 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-
         android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/passwordInputLayout"
+        android:layout_marginHorizontal="32dp"
+        app:layout_constraintTop_toBottomOf="@id/passwordBlock"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginHorizontal="32dp">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <CheckBox
             android:id="@+id/rememberMe"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Remember me"
-            android:textColorLink="#00BCD4"
-            />
+            android:textColorLink="#00BCD4"/>
 
         <TextView
             android:id="@+id/forgotPassword"
@@ -113,7 +131,6 @@
             android:textColor="#0A57FF"
             android:textStyle="bold"
             android:paddingStart="16dp"/>
-
     </LinearLayout>
 
     <!-- Login Button -->
