@@ -1,22 +1,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/nav_menu_sp"
-        android:icon="@drawable/home"
+        android:id="@+id/nav_menu"
+        android:icon="@drawable/ic_menu"
         android:title="Menu" />
     <item
-        android:id="@+id/nav_clients_sp"
-        android:icon="@drawable/clients"
-        android:title="Clients" />
-<!--    <item-->
-<!--        android:id="@+id/nav_placeholder_sp"-->
-<!--        android:title=""-->
-<!--        android:enabled="false"/>-->
+        android:id="@+id/nav_home_sp"
+        android:icon="@drawable/home"
+        android:title="Home" />
     <item
     android:id="@+id/nav_inventory"
     android:icon="@drawable/inventory"
     android:title="Inventory" />
-    <item
-        android:id="@+id/nav_profile_sp"
-        android:icon="@drawable/profile"
-        android:title="Profile" />
 </menu>

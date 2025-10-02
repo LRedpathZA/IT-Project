@@ -46,7 +46,7 @@
             android:background="@android:color/transparent"
             android:src="@drawable/ic_profile_placeholder"
             android:contentDescription="Business Profile"
-            app:tint="@color/colorPrimary" />
+            app:tint="@color/black" />
 
     </LinearLayout>
 
