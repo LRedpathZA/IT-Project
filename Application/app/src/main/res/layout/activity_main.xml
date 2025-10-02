@@ -1,10 +1,13 @@
-<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:openDrawer="start">
+    tools:openDrawer="start"
+   >
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
@@ -14,25 +17,111 @@
             android:id="@+id/fragment_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="?attr/actionBarSize" />
+            android:paddingBottom="?attr/actionBarSize" />
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_navigation_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:background="?android:attr/windowBackground"
-            app:labelVisibilityMode="labeled" />
+            app:labelVisibilityMode="labeled"
+            android:background="?attr/colorPrimaryVariant"
+            app:itemIconTint="?attr/colorOnPrimary"
+            app:itemTextColor="?attr/colorOnPrimary"
+            app:itemRippleColor="@color/PrimaryColour"
+            />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_add"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="100dp"
+            android:layout_marginBottom="64dp"
             android:src="@drawable/ic_add_white_24dp"
-            app:backgroundTint="@color/PrimaryColour"
+            app:backgroundTint="?attr/colorPrimary"
             app:tint="@android:color/white" />
+
+        <FrameLayout
+            android:id="@+id/fab_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/black_overlay"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/speed_dial_menu_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="center_horizontal|bottom"
+                android:layout_marginBottom="150dp"
+                android:gravity="center_horizontal"
+                android:padding="70dp">
+
+                <Button
+                    android:id="@+id/btn_action_1"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_rounded_button"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:paddingVertical="12dp"
+                    android:layout_marginBottom="12dp"/>
+
+                <Button
+                    android:id="@+id/btn_action_2"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_rounded_button"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:paddingVertical="12dp"
+                    android:layout_marginBottom="12dp"/>
+
+                <Button
+                    android:id="@+id/btn_action_3"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_rounded_button"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:paddingVertical="12dp"
+                    android:layout_marginBottom="12dp"/>
+
+                <Button
+                    android:id="@+id/btn_action_4"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_rounded_button"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:paddingVertical="12dp"
+                    android:layout_marginBottom="12dp"/>
+
+                <Button
+                    android:id="@+id/btn_action_5"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_rounded_button"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:paddingVertical="12dp"
+                    android:layout_marginBottom="12dp"/>
+
+                <Button
+                    android:id="@+id/btn_action_6"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_rounded_button"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:paddingVertical="12dp"/>
+
+            </LinearLayout>
+
+        </FrameLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

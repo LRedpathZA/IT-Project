@@ -4,9 +4,8 @@
         android:icon="@drawable/ic_menu"
         android:title="Menu" />
     <item
-    android:id="@+id/nav_calc"
-    android:icon="@drawable/calculator"
-    android:title="Calculator" />
+    android:id="@+id/nav_actions"
+    android:title="Actions" />
 
     <item
     android:id="@+id/nav_marketplace"

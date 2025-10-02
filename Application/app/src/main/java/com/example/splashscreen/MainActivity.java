@@ -4,7 +4,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -15,6 +18,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -22,11 +26,6 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-// Import your Fragment classes (You need to create these)
-// import com.example.splashscreen.fragments.PO_HomeScreen;
-// import com.example.splashscreen.fragments.SP_HomeScreen;
-// import com.example.splashscreen.fragments.MarketplaceFragment;
-// import com.example.splashscreen.fragments.SettingsFragment;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -38,28 +37,39 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private BottomNavigationView bottomNavigationView;
     private FloatingActionButton fabAdd;
+
+    private LinearLayout speedDialContainer;
+    private boolean isSpeedDialOpen = false;
+    private Button[] speedDialButtons = new Button[6];
     private FrameLayout drawerContainer; // Used to dynamically load drawer content
+    private FrameLayout fabOverlay;
 
-
+    private String username;
     private static final int ROLE_POOL_OWNER = 1;
     private static final int ROLE_SERVICE_PROVIDER = 2;
    // private static final int ROLE_ADMIN = 3;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main); // activity_main.xml must contain DrawerLayout
-
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
-        // Initialize UI components from activity_main.xml
         drawerLayout = findViewById(R.id.drawer_layout);
         bottomNavigationView = findViewById(R.id.bottom_navigation_view);
         fabAdd = findViewById(R.id.fab_add);
-        // Note: You need to add 'drawer_container' FrameLayout to activity_main.xml (see previous response)
         drawerContainer = findViewById(R.id.drawer_container);
+        fabOverlay = findViewById(R.id.fab_overlay);
+        speedDialContainer = findViewById(R.id.speed_dial_menu_container);
+        speedDialButtons[0] = speedDialContainer.findViewById(R.id.btn_action_1);
+        speedDialButtons[1] = speedDialContainer.findViewById(R.id.btn_action_2);
+        speedDialButtons[2] = speedDialContainer.findViewById(R.id.btn_action_3);
+        speedDialButtons[3] = speedDialContainer.findViewById(R.id.btn_action_4);
+        speedDialButtons[4] = speedDialContainer.findViewById(R.id.btn_action_5);
+        speedDialButtons[5] = speedDialContainer.findViewById(R.id.btn_action_6);
 
         // Check if a user is logged in
         FirebaseUser currentUser = auth.getCurrentUser();
@@ -79,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
                 if (document.exists()) {
-                    String username = document.getString("name");
+                     username = document.getString("name");
                     Long roleLong = document.getLong("role_id");
                     assert roleLong != null;
                     int userRole = roleLong.intValue();
@@ -119,7 +129,6 @@ public class MainActivity extends AppCompatActivity {
      * @param role_id The user's role_id (POOL_OWNER or SERVICE_PROVIDER).
      */
     private void setupRoleBasedUI(int role_id) {
-        // Clear previous menu items
         bottomNavigationView.getMenu().clear();
 
         if (ROLE_POOL_OWNER == role_id) {
@@ -131,6 +140,8 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Opening Add Pool/Reading screen", Toast.LENGTH_SHORT).show();
                 // TODO: Implement navigation to AddPoolFragment or AddWaterReadingFragment
             });
+
+            populatePoMenu(drawerContainer);
         } else if (ROLE_SERVICE_PROVIDER == role_id) {
             bottomNavigationView.inflateMenu(R.menu.menu_sp_bottom_nav);
             setupDrawer(R.layout.sp_navigation_drawer);
@@ -165,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
         // TODO: Attach listeners to the buttons inside the inflated drawer layout here
         // e.g., findViewById(R.id.btnSettings).setOnClickListener(...)
     }
+
 
     /**
      * Handles the selection logic for the Bottom Navigation View.
@@ -206,6 +218,54 @@ public class MainActivity extends AppCompatActivity {
         }
         return false;
     }
+    private void setMenuItemLabel(View parentView, int rootIncludeId, String labelText) {
+
+        View rootMenuButton = parentView.findViewById(rootIncludeId);
+
+        // Check for the included view's existence (essential safety check)
+        if (rootMenuButton != null) {
+            // 2. Find the TextView inside the included layout
+            // Assuming the TextView ID is R.id.menu_label
+            TextView label = rootMenuButton.findViewById(R.id.tvMenuItemText);
+
+            // 3. Set the text
+            if (label != null) {
+                label.setText(labelText);
+            }
+        }
+    }
+
+    private void populatePoMenu(FrameLayout drawerContainer) {
+        // Header Logic (Assuming IDs: R.id.tv_drawer_username and R.id.tv_login_status)
+        TextView tvDrawerUsername = drawerContainer.findViewById(R.id.nav_username);
+        if (tvDrawerUsername != null) {
+            tvDrawerUsername.setText(username);
+        }
+
+//        TextView tvLoginStatus = drawerContainer.findViewById(R.id.tv_login_status);
+//        if (tvLoginStatus != null) {
+//            tvLoginStatus.setText("Log Out"); // Change "Login" to "Log Out"
+//        }
+
+
+        // --- Optimized Menu Item Population ---
+
+        // We only need to check the result of findViewById once inside the helper method.
+        setMenuItemLabel(drawerContainer, R.id.btnMessages, "Messages");
+        setMenuItemLabel(drawerContainer, R.id.btnSummary, "My Pool Summary");
+        setMenuItemLabel(drawerContainer, R.id.btnTips, "Pool Tips & Articles");
+        setMenuItemLabel(drawerContainer, R.id.btnLoadshedding, "Load Shedding Alerts");
+        setMenuItemLabel(drawerContainer, R.id.btnRestrictions, "Water Restrictions");
+        setMenuItemLabel(drawerContainer, R.id.btnHelp, "Help & Support");
+        setMenuItemLabel(drawerContainer, R.id.btnSettings, "Settings");
+        setMenuItemLabel(drawerContainer, R.id.btnTutorial, "Tutorial Videos");
+        setMenuItemLabel(drawerContainer, R.id.btnRegisterBusiness, "Register as Business");
+
+        // Note: You would set the click listeners here for each button ID as well.
+        // E.g., drawerContainer.findViewById(R.id.btnMessages).setOnClickListener(...)
+
+        setupFabActions("POOL_OWNER");
+    }
 
     private void replaceFragment(Fragment fragment) {
         getSupportFragmentManager().beginTransaction()
@@ -213,14 +273,66 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
     }
 
+    private void toggleSpeedDialMenu() {
+        isSpeedDialOpen = !isSpeedDialOpen;
 
+        if (isSpeedDialOpen) {
+            fabOverlay.setVisibility(View.VISIBLE);
+            fabAdd.setImageResource(R.drawable.ic_close_white_24dp);
+        } else {
+            fabOverlay.setVisibility(View.GONE);
+            fabAdd.setImageResource(R.drawable.ic_add_white_24dp);
+        }
+    }
+    private void setupFabActions(String role) {
+        // Ensure all speed dial buttons are hidden if the user is NOT a PO
+        if (!"POOL_OWNER".equals(role)) {
+            speedDialContainer.setVisibility(View.GONE);
+            // Set the SP's primary action here (e.g., Log New Job)
+            fabAdd.setOnClickListener(v -> Toast.makeText(this, "SP Primary Action: New Job", Toast.LENGTH_SHORT).show());
+            return;
+        }
 
-    /**
-     * Helper method for fragments to control the FAB visibility if needed.
-     * @param visibility View.VISIBLE, View.INVISIBLE, or View.GONE
-     */
-    public void setFabVisibility(int visibility) {
-        fabAdd.setVisibility(visibility);
+        // --- PO LOGIC: Setup Multi-Action FAB ---
+        final String[] poLabels = new String[] {
+                "Add Pool", "Add a Note", "Add Chemicals",
+                "Water Reading", "Maintenance", "Calculator"
+        };
+
+        // 1. Set the FAB's click listener to toggle the menu
+        fabAdd.setOnClickListener(v -> toggleSpeedDialMenu());
+
+        // 2. Loop through the buttons to set labels and listeners
+        for (int i = 0; i < speedDialButtons.length; i++) {
+            final Button button = speedDialButtons[i];
+            final String actionLabel = poLabels[i];
+
+            if (button != null) {
+                button.setText(actionLabel);
+
+                // Set the listener to handle the action and close the menu
+                button.setOnClickListener(v -> {
+                    handlePoSpeedDialAction(actionLabel);
+                    toggleSpeedDialMenu(); // Close menu after selection
+                });
+            }
+        }
+    }
+    private void handlePoSpeedDialAction(String action) {
+        // Implement navigation logic here using your replaceFragment method
+
+        if ("Add Pool".equals(action)) {
+            // This caters to the user with 0 pools OR the user adding a second pool
+//            replaceFragment(new AddPoolFragment());
+        } else if ("Water Reading".equals(action)) {
+            // Ensure the fragment can handle the primary pool ID passed from MainActivity
+//            replaceFragment(new WaterReadingFragment());
+        } else if ("Maintenance".equals(action)) {
+//            replaceFragment(new MaintenanceFragment());
+        } else {
+            // Generic handler for other actions for now
+            Toast.makeText(this, "Navigating to: " + action, Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
