@@ -94,7 +94,8 @@
                 android:layout_height="24dp"
                 android:layout_gravity="center_vertical"
                 android:src="@drawable/ic_filter"
-                android:contentDescription="Filter Icon" />
+                android:contentDescription="Filter Icon"
+                app:tint="@color/black" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 

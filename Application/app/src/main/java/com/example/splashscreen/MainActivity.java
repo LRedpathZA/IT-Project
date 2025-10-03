@@ -57,32 +57,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
-        // Initialize UI components
         drawerLayout = findViewById(R.id.drawer_layout);
         bottomNavigationView = findViewById(R.id.bottom_navigation_view);
         fabAdd = findViewById(R.id.fab_add);
         drawerContainer = findViewById(R.id.drawer_container);
         fabOverlay = findViewById(R.id.fab_overlay);
         speedDialContainer = findViewById(R.id.speed_dial_menu_container);
-
-        // Initialize speed dial buttons
         speedDialButtons[0] = speedDialContainer.findViewById(R.id.btn_action_1);
         speedDialButtons[1] = speedDialContainer.findViewById(R.id.btn_action_2);
         speedDialButtons[2] = speedDialContainer.findViewById(R.id.btn_action_3);
         speedDialButtons[3] = speedDialContainer.findViewById(R.id.btn_action_4);
         speedDialButtons[4] = speedDialContainer.findViewById(R.id.btn_action_5);
         speedDialButtons[5] = speedDialContainer.findViewById(R.id.btn_action_6);
-
         // Check for logged-in user and setup the main screen
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser != null) {
             fetchUserDataAndSetup(currentUser.getUid());
         } else {
-            // Redirect to login/authentication screen if somehow here without a user
+            // Redirect to login/authentication screen if somehow WE are here without a user... No Because what did you do?
             logoutUser();
         }
        // findViewById(R.id.ivProfileIcon).setOnClickListener(v -> logoutUser());
@@ -136,10 +130,6 @@ public class MainActivity extends AppCompatActivity {
     public DocumentSnapshot getUserDataDocument() {
         return userDataDocument;
     }
-
-    /**
-     * Logs the current Firebase user out and redirects to the AuthenticationActivity.
-     */
     public void logoutUser() {
         // 1. Sign out the user from Firebase
         auth.signOut();
@@ -157,8 +147,6 @@ public class MainActivity extends AppCompatActivity {
         finish(); // Close MainActivity
     }
 
-    // --- Existing Methods Below ---
-
     private void setupRoleBasedUI(int role_id) {
         bottomNavigationView.getMenu().clear();
         int drawerLayoutResId;
@@ -166,17 +154,15 @@ public class MainActivity extends AppCompatActivity {
         if (ROLE_POOL_OWNER == role_id) {
             bottomNavigationView.inflateMenu(R.menu.menu_po_bottom_nav);
             drawerLayoutResId = R.layout.po_navigation_drawer;
-            setupDrawer(drawerLayoutResId); // Setup drawer view and listener
-            populatePoMenu(drawerContainer); // Populate labels and set FAB actions
+            setupDrawer(drawerLayoutResId);
+            populatePoMenu(drawerContainer);
 
         } else if (ROLE_SERVICE_PROVIDER == role_id) {
             bottomNavigationView.inflateMenu(R.menu.menu_sp_bottom_nav);
             drawerLayoutResId = R.layout.sp_navigation_drawer;
-            setupDrawer(drawerLayoutResId); // Setup drawer view and listener
-            populateSpMenu(drawerContainer); // Populate labels and set FAB actions
+            setupDrawer(drawerLayoutResId);
+            populateSpMenu(drawerContainer);
         }
-
-        // Set the listener for fragment swapping for both roles
         bottomNavigationView.setOnItemSelectedListener(this::onNavigationItemSelected);
     }
 
@@ -184,8 +170,6 @@ public class MainActivity extends AppCompatActivity {
         // Loads the correct drawer layout (PO or SP) and sets the Menu button listener.
         drawerContainer.removeAllViews();
         getLayoutInflater().inflate(drawerLayoutResId, drawerContainer, true);
-
-        // The Drawer Menu button should have the consistent ID R.id.nav_menu in both bottom nav menus.
         MenuItem menuButton = bottomNavigationView.getMenu().findItem(R.id.nav_menu);
 
         if (menuButton != null) {
@@ -221,7 +205,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void populatePoMenu(FrameLayout drawerContainer) {
-        // Sets the specific menu item labels and prepares FAB actions for the Pool Owner role.
         TextView tvDrawerUsername = drawerContainer.findViewById(R.id.nav_username);
         if (tvDrawerUsername != null) {
             tvDrawerUsername.setText(username);
@@ -240,12 +223,12 @@ public class MainActivity extends AppCompatActivity {
         setupFabActions("POOL_OWNER");
 
         // TESTTTTINNNNNNNNNNGGG (Removed to avoid confusion, but kept the functionality intact)
-        // If btnTips is your placeholder for the Profile, ensure you update its ID later
+
         findViewById(R.id.btnTips).setOnClickListener(v -> navTest());
     }
     private void navTest()
     {
-        // Example navigation to the PO_Profile Fragment
+        // Example navigation for TEXTING
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new PO_Marketplace())
                 .addToBackStack(null)
@@ -253,7 +236,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void populateSpMenu(FrameLayout drawerContainer) {
-        // Sets the specific menu item labels and prepares FAB actions for the Service Provider role.
         TextView tvDrawerUsername = drawerContainer.findViewById(R.id.nav_username);
         if (tvDrawerUsername != null) {
             tvDrawerUsername.setText(username);
@@ -267,7 +249,6 @@ public class MainActivity extends AppCompatActivity {
         setMenuItemLabel(drawerContainer, R.id.btnHelp, "Help & Support");
         setMenuItemLabel(drawerContainer, R.id.btnSettings, "Settings");
         setMenuItemLabel(drawerContainer, R.id.btnTutorial, "Tutorial");
-        // Assuming R.id.btnLogOut is the button used for log out in the SP drawer
         //setMenuItemLabel(drawerContainer, R.id.btnLogOut, "Log Out");
         findViewById(R.id.btnTips).setVisibility(View.GONE);
         findViewById(R.id.btnRegisterBusiness).setVisibility(View.GONE);
@@ -282,16 +263,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void toggleSpeedDialMenu() {
-        // Toggles the visibility of the full-screen FAB overlay.
+
         isSpeedDialOpen = !isSpeedDialOpen;
 
         if (isSpeedDialOpen) {
             fabOverlay.setVisibility(View.VISIBLE);
-            // Change FAB icon to 'X' to indicate closing the menu
+
             fabAdd.setImageResource(R.drawable.ic_close_white_24dp);
         } else {
             fabOverlay.setVisibility(View.GONE);
-            // Change FAB icon back to '+'
+
             fabAdd.setImageResource(R.drawable.ic_add_white_24dp);
         }
     }
