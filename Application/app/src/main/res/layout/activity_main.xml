@@ -36,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="100dp"
+            android:layout_marginBottom="140dp"
             android:src="@drawable/ic_add_white_24dp"
             app:backgroundTint="?attr/colorPrimary"
             app:tint="@android:color/white" />

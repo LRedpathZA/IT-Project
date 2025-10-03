@@ -23,7 +23,7 @@
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:src="@drawable/password"
-            android:background="@color/grey_light"
+
             android:scaleType="centerCrop"
             android:contentDescription="Item Image"/>
 

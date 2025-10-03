@@ -65,7 +65,7 @@ public class PO_HomeScreen extends Fragment {
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_po_home_screen, container, false);
+        return inflater.inflate(R.layout.po_home_screen, container, false);
     }
 
     @Override

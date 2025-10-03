@@ -10,10 +10,10 @@ import android.view.ViewGroup;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link SP_HomeScreen#newInstance} factory method to
+ * Use the {@link SP_Marketplace#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class SP_HomeScreen extends Fragment {
+public class SP_Marketplace extends Fragment {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -24,7 +24,7 @@ public class SP_HomeScreen extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    public SP_HomeScreen() {
+    public SP_Marketplace() {
         // Required empty public constructor
     }
 
@@ -34,11 +34,11 @@ public class SP_HomeScreen extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment SP_HomeScreen.
+     * @return A new instance of fragment SP_Marketplace.
      */
     // TODO: Rename and change types and number of parameters
-    public static SP_HomeScreen newInstance(String param1, String param2) {
-        SP_HomeScreen fragment = new SP_HomeScreen();
+    public static SP_Marketplace newInstance(String param1, String param2) {
+        SP_Marketplace fragment = new SP_Marketplace();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -59,6 +59,6 @@ public class SP_HomeScreen extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.sp_home_screen, container, false);
+        return inflater.inflate(R.layout.sp_marketplace, container, false);
     }
 }

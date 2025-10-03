@@ -22,5 +22,5 @@
     <color name="grey_light">#D3D3D3</color>
     <color name="grey_background">#F5F5F5</color>
     <color name="black_overlay">#80000000</color>
-
+    <color name="white_transparent_50">#80FFFFFF</color>
 </resources>

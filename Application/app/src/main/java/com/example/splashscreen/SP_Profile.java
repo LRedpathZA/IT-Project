@@ -5,8 +5,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -58,17 +56,17 @@ public class SP_Profile extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        return inflater.inflate(R.layout.fragment_sp_profile, container, false);
+        return inflater.inflate(R.layout.sp_profile, container, false);
     }
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        setupProductList(view);
-        setupServiceList(view);
+//        setupProductList(view);
+//        setupServiceList(view);
     }
     private void setupProductList(View view) {
-        RecyclerView rvProducts = view.findViewById(R.id.rv_products);
+      //  RecyclerView rvProducts = view.findViewById(R.id.rv_products);
 
         // 1. Create Data (This is the crucial step you were missing!)
         List<ItemModel> productList = new ArrayList<>();
@@ -81,15 +79,15 @@ public class SP_Profile extends Fragment {
 
         // 2. Configure RecyclerView
         // Ensure it uses your horizontal layout manager
-        rvProducts.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+       // rvProducts.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 
         // 3. Attach Adapter
         ItemAdapter productAdapter = new ItemAdapter(productList);
-        rvProducts.setAdapter(productAdapter);
+      //  rvProducts.setAdapter(productAdapter);
     }
 
     private void setupServiceList(View view) {
-        RecyclerView rvServices = view.findViewById(R.id.rv_services);
+     //   RecyclerView rvServices = view.findViewById(R.id.rv_services);
 
         // 1. Create Data
         List<ItemModel> serviceList = new ArrayList<>();
@@ -101,11 +99,11 @@ public class SP_Profile extends Fragment {
 
 
         // 2. Configure RecyclerView
-        rvServices.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+     //   rvServices.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 
         // 3. Attach Adapter
         ItemAdapter serviceAdapter = new ItemAdapter(serviceList);
-        rvServices.setAdapter(serviceAdapter);
+      //  rvServices.setAdapter(serviceAdapter);
     }
 }
 

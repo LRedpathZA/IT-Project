@@ -247,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
     {
         // Example navigation to the PO_Profile Fragment
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new SP_Profile())
+                .replace(R.id.fragment_container, new PO_Marketplace())
                 .addToBackStack(null)
                 .commit();
     }
