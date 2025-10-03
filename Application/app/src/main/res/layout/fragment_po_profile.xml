@@ -13,9 +13,10 @@
         android:layout_width="0dp"
         android:layout_height="180dp"
         android:background="@color/colorPrimaryVariant"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/btn_back"
@@ -42,12 +43,13 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestedScrollView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/profile_header_background"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/profile_header_background">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -57,50 +59,71 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="60dp"/>
+                android:layout_height="60dp" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                android:layout_marginBottom="16dp">
+                app:cardElevation="4dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingTop="60dp"
                     android:paddingHorizontal="16dp"
+                    android:paddingTop="60dp"
                     android:paddingBottom="16dp">
 
                     <TextView
                         android:id="@+id/tv_user_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Juanette Viljoen"
-                        android:textSize="22sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/black"
                         android:layout_gravity="center_horizontal"
-                        android:layout_marginBottom="16dp"/>
+                        android:layout_marginBottom="16dp"
+                        android:text="Juanette Viljoen"
+                        android:textColor="@color/black"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
 
                     <TableLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:stretchColumns="1">
+
                         <TableRow>
-                            <TextView style="@style/ProfileDetailLabel" android:text="Email"/>
-                            <TextView style="@style/ProfileDetailValue" android:text="email@email.com"/>
+
+                            <TextView
+                                style="@style/ProfileDetailLabel"
+                                android:text="Email" />
+
+                            <TextView
+                                style="@style/ProfileDetailValue"
+                                android:text="email@email.com" />
                         </TableRow>
+
                         <TableRow>
-                            <TextView style="@style/ProfileDetailLabel" android:text="Phone"/>
-                            <TextView style="@style/ProfileDetailValue" android:text="(+27) 000 1111 222"/>
+
+                            <TextView
+                                style="@style/ProfileDetailLabel"
+                                android:text="Phone" />
+
+                            <TextView
+                                style="@style/ProfileDetailValue"
+                                android:text="(+27) 000 1111 222" />
                         </TableRow>
+
                         <TableRow>
-                            <TextView style="@style/ProfileDetailLabel" android:text="Location"/>
-                            <TextView style="@style/ProfileDetailValue" android:text="Summerstrand, Port Elizabeth"/>
+
+                            <TextView
+                                style="@style/ProfileDetailLabel"
+                                android:text="Location" />
+
+                            <TextView
+                                style="@style/ProfileDetailValue"
+                                android:text="Summerstrand, Port Elizabeth" />
                         </TableRow>
                     </TableLayout>
                 </LinearLayout>
@@ -109,26 +132,36 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Options"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:text="Options"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:background="@color/white"
+                android:orientation="vertical"
                 android:paddingHorizontal="16dp">
 
-                <include layout="@layout/item_profile_option" android:id="@+id/option_account_settings"/>
-                <View style="@style/DividerLine"/>
-                <include layout="@layout/item_profile_option" android:id="@+id/option_security_privacy"/>
-                <View style="@style/DividerLine"/>
-                <include layout="@layout/item_profile_option" android:id="@+id/option_help_center"/>
+                <include
+                    android:id="@+id/option_account_settings"
+                    layout="@layout/item_profile_option" />
+
+                <View style="@style/DividerLine" />
+
+                <include
+                    android:id="@+id/option_security_privacy"
+                    layout="@layout/item_profile_option" />
+
+                <View style="@style/DividerLine" />
+
+                <include
+                    android:id="@+id/option_help_center"
+                    layout="@layout/item_profile_option" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -138,10 +171,10 @@
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="32dp"
                 android:text="Log out"
-                android:textSize="18sp"
                 android:textAllCaps="false"
-                app:cornerRadius="8dp"
-                app:backgroundTint="@color/black"/>
+                android:textSize="18sp"
+                app:backgroundTint="@color/black"
+                app:cornerRadius="8dp" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
@@ -168,5 +201,16 @@
             android:padding="8dp"
             android:contentDescription="User Profile Picture" />
     </com.google.android.material.card.MaterialCardView>
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="149dp"
+        android:layout_height="175dp"
+        android:src="@drawable/ic_profile_placeholder"
+        app:layout_constraintBottom_toBottomOf="@+id/profile_header_background"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/profile_header_background"
+        app:layout_constraintVertical_bias="1.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
