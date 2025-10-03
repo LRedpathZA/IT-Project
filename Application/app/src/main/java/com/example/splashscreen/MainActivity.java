@@ -1,5 +1,6 @@
 package com.example.splashscreen;
 
+import android.content.Intent; // NEW: Needed for navigation
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -32,12 +33,15 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
+    // DATA STORAGE: Stores the entire user document for easy access by fragments
+    private DocumentSnapshot userDataDocument;
+
     // UI Components
     private DrawerLayout drawerLayout;
     private BottomNavigationView bottomNavigationView;
     private FloatingActionButton fabAdd;
     private FrameLayout drawerContainer;
-    private FrameLayout fabOverlay; // Full-screen overlay for the speed dial menu
+    private FrameLayout fabOverlay;
 
     private LinearLayout speedDialContainer;
     private boolean isSpeedDialOpen = false;
@@ -78,16 +82,25 @@ public class MainActivity extends AppCompatActivity {
         if (currentUser != null) {
             fetchUserDataAndSetup(currentUser.getUid());
         } else {
-            // TODO: Redirect to login/authentication screen
+            // Redirect to login/authentication screen if somehow here without a user
+            logoutUser();
         }
+       // findViewById(R.id.ivProfileIcon).setOnClickListener(v -> logoutUser());
     }
-
+    /**
+     * Fetches user data from Firestore and sets up the UI based on the user's role.
+     * The entire DocumentSnapshot is saved for easy fragment access.
+     */
     private void fetchUserDataAndSetup(String userId) {
         DocumentReference docRef = db.collection("users").document(userId);
         docRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
                 if (document.exists()) {
+
+                    // CORE DATA STEP: Store the entire document here
+                    userDataDocument = document;
+
                     username = document.getString("name");
                     Long roleLong = document.getLong("role_id");
                     if (roleLong != null) {
@@ -98,8 +111,10 @@ public class MainActivity extends AppCompatActivity {
 
                         Fragment initialFragment;
                         if (ROLE_POOL_OWNER == userRole) {
+                            // Data can now be retrieved by PO_HomeScreen using getUserDataDocument()
                             initialFragment = new PO_HomeScreen();
                         } else if (ROLE_SERVICE_PROVIDER == userRole ) {
+                            // Data can now be retrieved by SP_HomeScreen using getUserDataDocument()
                             initialFragment = new SP_HomeScreen();
                         } else {
                             initialFragment = new Fragment(); // Fallback
@@ -107,13 +122,42 @@ public class MainActivity extends AppCompatActivity {
                         replaceFragment(initialFragment);
                     }
                 } else {
-                    Log.w("MainActivity", "User document not found.");
+                    Log.w("MainActivity", "User document not found. Logging out.");
+                    logoutUser(); // If user exists in Auth but not in DB, force logout
                 }
             } else {
                 Log.e("MainActivity", "Error fetching user data: ", task.getException());
+                Toast.makeText(this, "Failed to load profile data.", Toast.LENGTH_LONG).show();
             }
         });
     }
+
+
+    public DocumentSnapshot getUserDataDocument() {
+        return userDataDocument;
+    }
+
+    /**
+     * Logs the current Firebase user out and redirects to the AuthenticationActivity.
+     */
+    public void logoutUser() {
+        // 1. Sign out the user from Firebase
+        auth.signOut();
+
+        // 2. Clear the cached document
+        userDataDocument = null;
+
+        // 3. Navigate back to the AuthenticationActivity
+        Intent intent = new Intent(this, AuthenticationActivity.class);
+
+        // Flags ensure the user cannot hit the back button to return here
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+        startActivity(intent);
+        finish(); // Close MainActivity
+    }
+
+    // --- Existing Methods Below ---
 
     private void setupRoleBasedUI(int role_id) {
         bottomNavigationView.getMenu().clear();
@@ -195,13 +239,15 @@ public class MainActivity extends AppCompatActivity {
 
         setupFabActions("POOL_OWNER");
 
-        // TESTTTTINNNNNNNNNNGGG
+        // TESTTTTINNNNNNNNNNGGG (Removed to avoid confusion, but kept the functionality intact)
+        // If btnTips is your placeholder for the Profile, ensure you update its ID later
         findViewById(R.id.btnTips).setOnClickListener(v -> navTest());
     }
     private void navTest()
     {
+        // Example navigation to the PO_Profile Fragment
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new PO_Profile())
+                .replace(R.id.fragment_container, new SP_Profile())
                 .addToBackStack(null)
                 .commit();
     }
@@ -222,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
         setMenuItemLabel(drawerContainer, R.id.btnSettings, "Settings");
         setMenuItemLabel(drawerContainer, R.id.btnTutorial, "Tutorial");
         // Assuming R.id.btnLogOut is the button used for log out in the SP drawer
-         //setMenuItemLabel(drawerContainer, R.id.btnLogOut, "Log Out");
+        //setMenuItemLabel(drawerContainer, R.id.btnLogOut, "Log Out");
         findViewById(R.id.btnTips).setVisibility(View.GONE);
         findViewById(R.id.btnRegisterBusiness).setVisibility(View.GONE);
 
@@ -264,10 +310,9 @@ public class MainActivity extends AppCompatActivity {
 
         String[] currentLabels = role.equals("POOL_OWNER") ? poLabels : spLabels;
 
-        // Set the primary FAB click listener to toggle the speed dial menu
+
         fabAdd.setOnClickListener(v -> toggleSpeedDialMenu());
 
-        // Configure speed dial buttons
         for (int i = 0; i < speedDialButtons.length; i++) {
             final Button button = speedDialButtons[i];
             final String actionLabel = currentLabels[i];
@@ -280,14 +325,14 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         handleSpSpeedDialAction(actionLabel);
                     }
-                    toggleSpeedDialMenu(); // Close menu after selection
+                    toggleSpeedDialMenu();
                 });
             }
         }
     }
 
     private void handlePoSpeedDialAction(String action) {
-        // Handles navigation for the Pool Owner's FAB speed dial actions.
+
         if ("Add Pool".equals(action)) {
             // TODO: replaceFragment(new AddPoolFragment());
         } else if ("Water Reading".equals(action)) {
@@ -298,8 +343,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleSpSpeedDialAction(String action) {
-        // Handles navigation for the Service Provider's FAB speed dial actions.
-        if ("Add Client".equals(action)) {
+
+        if ("Clients".equals(action)) {
             // TODO: replaceFragment(new AddClientFragment());
         } else if ("Water Reading".equals(action)) {
             // TODO: replaceFragment(new SpWaterReadingSelectionFragment());
@@ -313,7 +358,6 @@ public class MainActivity extends AppCompatActivity {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else if (isSpeedDialOpen) {
-            // If the FAB menu is open, close it instead of exiting the activity
             toggleSpeedDialMenu();
         } else {
             super.onBackPressed();

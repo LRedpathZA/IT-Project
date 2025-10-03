@@ -42,4 +42,5 @@
         <item name="android:layout_height">1dp</item>
         <item name="android:background">@color/grey_light</item>
     </style>
+
 </resources>
