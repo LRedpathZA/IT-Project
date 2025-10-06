@@ -72,7 +72,6 @@ public class NotificationHelper {
         }
 
         params.topMargin = statusBarHeight + (int) (16 * parentView.getContext().getResources().getDisplayMetrics().density); // 16dp extra margin
-        //Centering the notification as it will be off to the left
         int horizontalMargin = (int) (parentView.getContext().getResources().getDisplayMetrics().widthPixels * 0.1);
         params.leftMargin = horizontalMargin;
         params.rightMargin = horizontalMargin;

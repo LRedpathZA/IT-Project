@@ -20,9 +20,9 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
     @NonNull
     @Override
     public ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflates the reusable card layout
+
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.card_list_item_generic, parent, false);
+                .inflate(R.layout.item_generic_list_card, parent, false);
         return new ItemViewHolder(view);
     }
 

@@ -28,6 +28,7 @@
             android:background="?attr/colorPrimaryVariant"
             app:itemIconTint="?attr/colorOnPrimary"
             app:itemTextColor="?attr/colorOnPrimary"
+            app:itemActiveIndicatorStyle="@color/PrimaryColour"
             app:itemRippleColor="@color/PrimaryColour"
             />
 

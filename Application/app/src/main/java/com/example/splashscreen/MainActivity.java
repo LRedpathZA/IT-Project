@@ -1,6 +1,6 @@
 package com.example.splashscreen;
 
-import android.content.Intent; // NEW: Needed for navigation
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -38,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     // UI Components
     private DrawerLayout drawerLayout;
-    private BottomNavigationView bottomNavigationView;
+    public BottomNavigationView bottomNavigationView;
     private FloatingActionButton fabAdd;
     private FrameLayout drawerContainer;
     private FrameLayout fabOverlay;
@@ -71,20 +72,16 @@ public class MainActivity extends AppCompatActivity {
         speedDialButtons[3] = speedDialContainer.findViewById(R.id.btn_action_4);
         speedDialButtons[4] = speedDialContainer.findViewById(R.id.btn_action_5);
         speedDialButtons[5] = speedDialContainer.findViewById(R.id.btn_action_6);
+
         // Check for logged-in user and setup the main screen
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser != null) {
             fetchUserDataAndSetup(currentUser.getUid());
         } else {
-            // Redirect to login/authentication screen if somehow WE are here without a user... No Because what did you do?
+            // Redirect to login/authentication screen
             logoutUser();
         }
-       // findViewById(R.id.ivProfileIcon).setOnClickListener(v -> logoutUser());
     }
-    /**
-     * Fetches user data from Firestore and sets up the UI based on the user's role.
-     * The entire DocumentSnapshot is saved for easy fragment access.
-     */
     private void fetchUserDataAndSetup(String userId) {
         DocumentReference docRef = db.collection("users").document(userId);
         docRef.get().addOnCompleteListener(task -> {
@@ -105,11 +102,14 @@ public class MainActivity extends AppCompatActivity {
 
                         Fragment initialFragment;
                         if (ROLE_POOL_OWNER == userRole) {
-                            // Data can now be retrieved by PO_HomeScreen using getUserDataDocument()
                             initialFragment = new PO_HomeScreen();
+
+                            bottomNavigationView.setSelectedItemId(R.id.nav_home_po);
                         } else if (ROLE_SERVICE_PROVIDER == userRole ) {
-                            // Data can now be retrieved by SP_HomeScreen using getUserDataDocument()
+
                             initialFragment = new SP_HomeScreen();
+
+                            bottomNavigationView.setSelectedItemId(R.id.nav_home_sp);
                         } else {
                             initialFragment = new Fragment(); // Fallback
                         }
@@ -140,7 +140,6 @@ public class MainActivity extends AppCompatActivity {
         // 3. Navigate back to the AuthenticationActivity
         Intent intent = new Intent(this, AuthenticationActivity.class);
 
-        // Flags ensure the user cannot hit the back button to return here
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
         startActivity(intent);
@@ -151,11 +150,13 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView.getMenu().clear();
         int drawerLayoutResId;
 
+
         if (ROLE_POOL_OWNER == role_id) {
             bottomNavigationView.inflateMenu(R.menu.menu_po_bottom_nav);
             drawerLayoutResId = R.layout.po_navigation_drawer;
             setupDrawer(drawerLayoutResId);
             populatePoMenu(drawerContainer);
+
 
         } else if (ROLE_SERVICE_PROVIDER == role_id) {
             bottomNavigationView.inflateMenu(R.menu.menu_sp_bottom_nav);
@@ -165,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
         }
         bottomNavigationView.setOnItemSelectedListener(this::onNavigationItemSelected);
     }
+
 
     private void setupDrawer(int drawerLayoutResId) {
         // Loads the correct drawer layout (PO or SP) and sets the Menu button listener.
@@ -187,9 +189,31 @@ public class MainActivity extends AppCompatActivity {
         Fragment selectedFragment = null;
         int itemId = item.getItemId();
 
-        // TODO: Map menu item IDs to actual Fragments for both PO and SP
-        // if (itemId == R.id.nav_home_po) { ... }
-        // if (selectedFragment != null) { replaceFragment(selectedFragment); return true; }
+        // Check if the Drawer Menu button was pressed
+        if (itemId == R.id.nav_menu) {
+
+            return false;
+        }
+
+        // --- Pool Owner Navigation Mapping ---
+        if (bottomNavigationView.getMenu().findItem(R.id.nav_home_po) != null) {
+            if (itemId == R.id.nav_home_po) {
+                selectedFragment = new PO_HomeScreen();
+            } else if (itemId == R.id.nav_marketplace_po) {
+                selectedFragment = new PO_Marketplace();
+            }
+            // --- Service Provider Navigation Mapping ---
+        } else if (bottomNavigationView.getMenu().findItem(R.id.nav_home_sp) != null) {
+            if (itemId == R.id.nav_home_sp) {
+                selectedFragment = new SP_HomeScreen();
+            }
+        }
+
+
+        if (selectedFragment != null) {
+            replaceFragment(selectedFragment);
+            return true;
+        }
         return false;
     }
 
@@ -222,15 +246,14 @@ public class MainActivity extends AppCompatActivity {
 
         setupFabActions("POOL_OWNER");
 
-        // TESTTTTINNNNNNNNNNGGG (Removed to avoid confusion, but kept the functionality intact)
-
+        // TESTTTTINNNNNNNNNGGGG
         findViewById(R.id.btnTips).setOnClickListener(v -> navTest());
     }
     private void navTest()
     {
-        // Example navigation for TEXTING
+        // Example navigation for TESTING
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new PO_Marketplace())
+                .replace(R.id.fragment_container, new PO_AddPool())
                 .addToBackStack(null)
                 .commit();
     }
@@ -315,7 +338,11 @@ public class MainActivity extends AppCompatActivity {
     private void handlePoSpeedDialAction(String action) {
 
         if ("Add Pool".equals(action)) {
-            // TODO: replaceFragment(new AddPoolFragment());
+            // TODO: Navigate to PO_AddPool fragment
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new PO_AddPool())
+                    .addToBackStack(null)
+                    .commit();
         } else if ("Water Reading".equals(action)) {
             // TODO: replaceFragment(new WaterReadingFragment());
         } else {

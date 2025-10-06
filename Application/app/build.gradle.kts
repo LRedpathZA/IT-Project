@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.android.application) // Apply the Android Application plugin here
+    alias(libs.plugins.android.application)
     id("com.google.gms.google-services") // Apply Google Services plugin if you use Firebase in this module
 
 }
@@ -43,7 +43,14 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    // Firebase dependencies
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth) // Changed this line
+    implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+
+    // REQUIRED FOR IMAGE UPLOAD (Firebase Storage)
+    implementation("com.google.firebase:firebase-storage")
+    // If you are using version catalogs for other libs, you might use:
+    // implementation(libs.firebase.storage)
 }
