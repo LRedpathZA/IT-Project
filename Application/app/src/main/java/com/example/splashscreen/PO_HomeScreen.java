@@ -47,6 +47,9 @@ public class PO_HomeScreen extends Fragment {
     private ImageView ivPoolImage;
     private View poolCardView;
 
+
+    private String homePoolId;
+
     public PO_HomeScreen() {
     }
 
@@ -74,10 +77,13 @@ public class PO_HomeScreen extends Fragment {
         llAddPoolPlaceholder = view.findViewById(R.id.ll_add_pool_placeholder);
         flHomePoolContent = view.findViewById(R.id.fl_home_pool_content);
         rvProducts = view.findViewById(R.id.rv_products);
+
         View calendarCardContainer = view.findViewById(R.id.calendarCard);
         if (calendarCardContainer != null) {
-            calendarCardContainer.setOnClickListener(v -> navigateToFragment(new PO_Calendar()));
+            // UPDATED: Use the new method to pass the pool ID to PO_Calendar
+            calendarCardContainer.setOnClickListener(v -> navigateToPO_Calendar());
         }
+
         setupPoolResultListener();
         setupProductRecyclerView();
         initNavigation();
@@ -94,7 +100,6 @@ public class PO_HomeScreen extends Fragment {
         llAddPoolPlaceholder.setOnClickListener(v -> navigateToFragment(new PO_AddPool()));
     }
 
-    /** Navigates to a new Fragment by replacing the current one. */
     private void navigateToFragment(Fragment fragment) {
         if (getActivity() != null) {
             FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
@@ -104,6 +109,20 @@ public class PO_HomeScreen extends Fragment {
         } else if (getContext() != null) {
             Toast.makeText(getContext(), "Navigation failed.", Toast.LENGTH_SHORT).show();
         }
+    }
+    public void navigateToPO_Calendar() {
+        if (homePoolId == null) {
+            Toast.makeText(getContext(), "Pool details not loaded yet. Please wait.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        PO_Calendar calendarFragment = new PO_Calendar();
+        Bundle args = new Bundle();
+        // Pass the homePoolId using the ARG_POOL_ID constant
+        args.putString(ARG_POOL_ID, homePoolId);
+        calendarFragment.setArguments(args);
+
+        navigateToFragment(calendarFragment);
     }
 
 
@@ -149,6 +168,7 @@ public class PO_HomeScreen extends Fragment {
             if (requestKey.equals(REQUEST_KEY_POOL_ADDED)) {
                 String newPoolId = bundle.getString(BUNDLE_KEY_POOL_ID);
                 if (newPoolId != null) {
+                    this.homePoolId = newPoolId;
                     fetchAndDisplayPool(newPoolId);
                 }
             }
@@ -161,12 +181,17 @@ public class PO_HomeScreen extends Fragment {
 
         db.collection("users").document(userId).get()
                 .addOnSuccessListener(userDocument -> {
-                    String homePoolId = userDocument.getString("homePoolId");
+                    String fetchedPoolId = userDocument.getString("homePoolId");
 
-                    if (homePoolId != null && !homePoolId.isEmpty()) {
-                        fetchAndDisplayPool(homePoolId);
+                    if (fetchedPoolId != null && !fetchedPoolId.isEmpty()) {
+                        // CRITICAL: Store the fetched ID
+                        this.homePoolId = fetchedPoolId;
+                        MainActivity.homePoolId = this.homePoolId;
+                        fetchAndDisplayPool(fetchedPoolId);
 
                     } else {
+                        // Clear the stored ID if no pool is found
+                        this.homePoolId = null;
                         if (flHomePoolContent != null) {
                             flHomePoolContent.removeAllViews();
                             flHomePoolContent.addView(llAddPoolPlaceholder);
@@ -178,6 +203,7 @@ public class PO_HomeScreen extends Fragment {
                     }
                 })
                 .addOnFailureListener(e -> {
+                    this.homePoolId = null;
                     if (flHomePoolContent != null) {
                         flHomePoolContent.removeAllViews();
                         flHomePoolContent.addView(llAddPoolPlaceholder);

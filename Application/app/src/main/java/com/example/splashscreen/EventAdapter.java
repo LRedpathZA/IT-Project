@@ -56,7 +56,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tv_event_title);
-//            tvStatus = itemView.findViewById(R.id.tv_event_status);
+            tvStatus = itemView.findViewById(R.id.tv_event_status);
             tvTime = itemView.findViewById(R.id.tv_event_time);
         }
     }

@@ -36,7 +36,6 @@ import java.util.UUID;
 
 public class PO_AddPool extends Fragment {
 
-    // Member Variables
     private EditText etPoolName, etPoolType, etWaterCapacity, etSanitizerType, etFilterRuntime, etPoolLocation;
     private MaterialButton btnAddPool;
     private MaterialButton btnDeletePool; // NEW

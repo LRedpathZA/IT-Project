@@ -5,9 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,10 +15,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -39,17 +35,12 @@ public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
     public BottomNavigationView bottomNavigationView;
-    private FloatingActionButton fabAdd;
-    private FrameLayout drawerContainer;
-    private FrameLayout fabOverlay;
-
-    private LinearLayout speedDialContainer;
-    private boolean isSpeedDialOpen = false;
-    private final Button[] speedDialButtons = new Button[6];
+    private FrameLayout drawerContainer; // Used to hold the custom drawer content
 
     private String username;
     private static final int ROLE_POOL_OWNER = 1;
     private static final int ROLE_SERVICE_PROVIDER = 2;
+    public static String homePoolId;
 
 
     @Override
@@ -57,20 +48,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+
         drawerLayout = findViewById(R.id.drawer_layout);
         bottomNavigationView = findViewById(R.id.bottom_navigation_view);
-        fabAdd = findViewById(R.id.fab_add);
         drawerContainer = findViewById(R.id.drawer_container);
-        fabOverlay = findViewById(R.id.fab_overlay);
-        speedDialContainer = findViewById(R.id.speed_dial_menu_container);
-        speedDialButtons[0] = speedDialContainer.findViewById(R.id.btn_action_1);
-        speedDialButtons[1] = speedDialContainer.findViewById(R.id.btn_action_2);
-        speedDialButtons[2] = speedDialContainer.findViewById(R.id.btn_action_3);
-        speedDialButtons[3] = speedDialContainer.findViewById(R.id.btn_action_4);
-        speedDialButtons[4] = speedDialContainer.findViewById(R.id.btn_action_5);
-        speedDialButtons[5] = speedDialContainer.findViewById(R.id.btn_action_6);
 
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser != null) {
@@ -80,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
             logoutUser();
         }
     }
+
     private void fetchUserDataAndSetup(String userId) {
         DocumentReference docRef = db.collection("users").document(userId);
         docRef.get().addOnCompleteListener(task -> {
@@ -101,12 +86,9 @@ public class MainActivity extends AppCompatActivity {
                         Fragment initialFragment;
                         if (ROLE_POOL_OWNER == userRole) {
                             initialFragment = new PO_HomeScreen();
-
                             bottomNavigationView.setSelectedItemId(R.id.nav_home_po);
                         } else if (ROLE_SERVICE_PROVIDER == userRole ) {
-
                             initialFragment = new SP_HomeScreen();
-
                             bottomNavigationView.setSelectedItemId(R.id.nav_home_sp);
                         } else {
                             initialFragment = new Fragment(); // Fallback
@@ -128,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
     public DocumentSnapshot getUserDataDocument() {
         return userDataDocument;
     }
+
     public void logoutUser() {
         auth.signOut();
         userDataDocument = null;
@@ -139,20 +122,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupRoleBasedUI(int role_id) {
         bottomNavigationView.getMenu().clear();
-        int drawerLayoutResId;
-
 
         if (ROLE_POOL_OWNER == role_id) {
             bottomNavigationView.inflateMenu(R.menu.menu_po_bottom_nav);
-            drawerLayoutResId = R.layout.po_navigation_drawer;
-            setupDrawer(drawerLayoutResId);
+            setupDrawer(R.layout.po_navigation_drawer);
             populatePoMenu(drawerContainer);
-
-
         } else if (ROLE_SERVICE_PROVIDER == role_id) {
             bottomNavigationView.inflateMenu(R.menu.menu_sp_bottom_nav);
-            drawerLayoutResId = R.layout.sp_navigation_drawer;
-            setupDrawer(drawerLayoutResId);
+            setupDrawer(R.layout.sp_navigation_drawer);
             populateSpMenu(drawerContainer);
         }
         bottomNavigationView.setOnItemSelectedListener(this::onNavigationItemSelected);
@@ -182,7 +159,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Check if the Drawer Menu button was pressed
         if (itemId == R.id.nav_menu) {
-
             return false;
         }
 
@@ -190,7 +166,12 @@ public class MainActivity extends AppCompatActivity {
         if (bottomNavigationView.getMenu().findItem(R.id.nav_home_po) != null) {
             if (itemId == R.id.nav_home_po) {
                 selectedFragment = new PO_HomeScreen();
-            } else if (itemId == R.id.nav_marketplace_po) {
+            } else if (itemId == R.id.nav_calculator) {
+                selectedFragment = new PO_AddPool();
+            } else if (itemId == R.id.nav_calendar) {
+               navigateToPO_Calendar();
+               return true;
+            }else if (itemId == R.id.nav_marketplace_po) {
                 selectedFragment = new PO_Marketplace();
             }
             // --- Service Provider Navigation Mapping ---
@@ -209,7 +190,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setMenuItemLabel(View parentView, int rootIncludeId, String labelText) {
-        // Helper method to set the text of the TextView inside the included menu item layout.
         View rootMenuButton = parentView.findViewById(rootIncludeId);
         if (rootMenuButton != null) {
             TextView label = rootMenuButton.findViewById(R.id.tvMenuItemText);
@@ -235,13 +215,11 @@ public class MainActivity extends AppCompatActivity {
         setMenuItemLabel(drawerContainer, R.id.btnTutorial, "Tutorial Videos");
         setMenuItemLabel(drawerContainer, R.id.btnRegisterBusiness, "Register as Business");
 
-        setupFabActions("POOL_OWNER");
-
         // TESTTTTINNNNNNNNNGGGG
         findViewById(R.id.btnTips).setOnClickListener(v -> navTest());
     }
-    private void navTest()
-    {
+
+    private void navTest() {
         // Example navigation for TESTING
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new PO_AddPool())
@@ -266,100 +244,36 @@ public class MainActivity extends AppCompatActivity {
         //setMenuItemLabel(drawerContainer, R.id.btnLogOut, "Log Out");
         findViewById(R.id.btnTips).setVisibility(View.GONE);
         findViewById(R.id.btnRegisterBusiness).setVisibility(View.GONE);
-
-        setupFabActions("SERVICE_PROVIDER");
     }
 
     private void replaceFragment(Fragment fragment) {
+        // Clear back stack when navigating via bottom nav to prevent deep nesting
+        getSupportFragmentManager().popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, fragment)
                 .commit();
-    }
-
-    private void toggleSpeedDialMenu() {
-
-        isSpeedDialOpen = !isSpeedDialOpen;
-
-        if (isSpeedDialOpen) {
-            fabOverlay.setVisibility(View.VISIBLE);
-
-            fabAdd.setImageResource(R.drawable.ic_close_white_24dp);
-        } else {
-            fabOverlay.setVisibility(View.GONE);
-
-            fabAdd.setImageResource(R.drawable.ic_add_white_24dp);
-        }
-    }
-    // These are the quick menu actions :>
-    private void setupFabActions(String role) {
-
-
-        final String[] poLabels = new String[] {
-                "Add Pool", "Add a Note", "Add Chemicals",
-                "Water Reading", "Maintenance", "Calculator"
-        };
-        final String[] spLabels = new String[] {
-                "Clients", "Add a Note", "Add Chemicals",
-                "Water Reading", "Maintenance", "Calculator"
-        };
-
-        String[] currentLabels = role.equals("POOL_OWNER") ? poLabels : spLabels;
-
-
-        fabAdd.setOnClickListener(v -> toggleSpeedDialMenu());
-
-        for (int i = 0; i < speedDialButtons.length; i++) {
-            final Button button = speedDialButtons[i];
-            final String actionLabel = currentLabels[i];
-
-            if (button != null) {
-                button.setText(actionLabel);
-                button.setOnClickListener(v -> {
-                    if (role.equals("POOL_OWNER")) {
-                        handlePoSpeedDialAction(actionLabel);
-                    } else {
-                        handleSpSpeedDialAction(actionLabel);
-                    }
-                    toggleSpeedDialMenu();
-                });
-            }
-        }
-    }
-
-    private void handlePoSpeedDialAction(String action) {
-
-        if ("Add Pool".equals(action)) {
-            // TODO: Navigate to PO_AddPool fragment
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new PO_AddPool())
-                    .addToBackStack(null)
-                    .commit();
-        } else if ("Water Reading".equals(action)) {
-            // TODO: replaceFragment(new WaterReadingFragment());
-        } else {
-            Toast.makeText(this, "PO Navigating to: " + action, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void handleSpSpeedDialAction(String action) {
-
-        if ("Clients".equals(action)) {
-            // TODO: replaceFragment(new AddClientFragment());
-        } else if ("Water Reading".equals(action)) {
-            // TODO: replaceFragment(new SpWaterReadingSelectionFragment());
-        } else {
-            Toast.makeText(this, "SP Navigating to: " + action, Toast.LENGTH_SHORT).show();
-        }
     }
 
     @Override
     public void onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
-        } else if (isSpeedDialOpen) {
-            toggleSpeedDialMenu();
         } else {
             super.onBackPressed();
         }
+    }
+    public void navigateToPO_Calendar() {
+        if (homePoolId == null) {
+            Toast.makeText(this, "Pool details not loaded yet. Please wait.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        PO_Calendar calendarFragment = new PO_Calendar();
+        Bundle args = new Bundle();
+        args.putString("POOL_ID", homePoolId);
+        calendarFragment.setArguments(args);
+
+        replaceFragment(calendarFragment);
     }
 }

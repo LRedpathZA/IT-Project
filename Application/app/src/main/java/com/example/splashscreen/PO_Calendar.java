@@ -46,8 +46,9 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
     private EventAdapter eventAdapter;
     private List<EventModel> eventList = new ArrayList<>();
 
+
     // PLACEHOLDER: Replace with actual pool ID fetched from user profile/preferences
-    private final String HOME_POOL_ID = "YOUR_CURRENT_HOME_POOL_ID";
+    private  String HOME_POOL_ID = "YOUR_CURRENT_HOME_POOL_ID";
 
     public PO_Calendar() {}
 
@@ -69,6 +70,12 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
 
         ImageButton btnBack = view.findViewById(R.id.btn_back);
         FloatingActionButton fabAddEvent = view.findViewById(R.id.fab_add_event);
+        if (getArguments() != null) {
+            HOME_POOL_ID = getArguments().getString("POOL_ID");
+            if (HOME_POOL_ID == null) {
+                Toast.makeText(getContext(), "Cannot load event screen: Pool ID missing.", Toast.LENGTH_LONG).show();
+            }
+        }
 
         calendarView = view.findViewById(R.id.calendar_view);
         rvEvents = view.findViewById(R.id.rv_events);
@@ -84,6 +91,7 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
             loadEventsForSelectedDate(selectedDate);
         });
 
+
         loadEventsForSelectedDate(selectedDate);
 
         btnBack.setOnClickListener(v -> {
@@ -93,13 +101,13 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
                 getActivity().finish();
             }
         });
-
         fabAddEvent.setOnClickListener(v -> navigateToAddEvent(null));
 
         setupEventResultListener();
     }
 
     private void loadEventsForSelectedDate(Calendar date) {
+        final String TAG = "PO_Calendar"; //
         if (getContext() == null || HOME_POOL_ID.equals("YOUR_CURRENT_HOME_POOL_ID")) return;
 
         SimpleDateFormat headerFormat = new SimpleDateFormat("EEEE, MMMM dd, yyyy", Locale.getDefault());
@@ -113,6 +121,8 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
         startOfDay.set(Calendar.SECOND, 0);
         startOfDay.set(Calendar.MILLISECOND, 0);
         long startTime = startOfDay.getTimeInMillis();
+        Log.d(TAG, "Query Start Time (ms): " + startTime);
+        Log.d(TAG, "Query Start Date: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(startOfDay.getTime()));
 
         // 2. Prepare end of day (23:59:59)
         Calendar endOfDay = (Calendar) date.clone();
@@ -121,6 +131,9 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
         endOfDay.set(Calendar.SECOND, 59);
         endOfDay.set(Calendar.MILLISECOND, 999);
         long endTime = endOfDay.getTimeInMillis();
+        Log.d(TAG, "Query End Time (ms): " + endTime);
+        Log.d(TAG, "Query End Date: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(endOfDay.getTime()));
+
 
         // 3. Firestore Query: Find events for the home pool where the event's start date is between the start and end of the selected day.
         db.collection("events")
@@ -134,11 +147,16 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
 
                     eventList.clear();
                     if (task.isSuccessful() && task.getResult() != null) {
+                        Log.d(TAG, "Query successful. Documents found: " + task.getResult().size()); // LOG 1: Documents found
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             EventModel event = document.toObject(EventModel.class);
                             event.id = document.getId(); // Set the document ID
                             eventList.add(event);
+                            Log.d(TAG, "Event found: " + event.title + " StartDate: " + event.startDate);
                         }
+                    }
+                    else {
+                        Log.e(TAG, "Query failed: " + (task.getException() != null ? task.getException().getMessage() : "Unknown error"));
                     }
 
                     if (!eventList.isEmpty()) {
@@ -172,14 +190,17 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
         navigateToAddEvent(event.id);
     }
 
+    // In PO_Calendar.java
+
     private void navigateToAddEvent(@Nullable String eventId) {
         PO_AddEvent addEventFragment = new PO_AddEvent();
-        if (eventId != null) {
-            Bundle args = new Bundle();
-            args.putString(ARG_EVENT_ID, eventId);
-            addEventFragment.setArguments(args);
-        }
+        Bundle args = new Bundle();
+        args.putString("POOL_ID", HOME_POOL_ID);
 
+        if (eventId != null) {
+            args.putString(ARG_EVENT_ID, eventId);
+        }
+        addEventFragment.setArguments(args);
         if (getActivity() != null) {
             FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
             transaction.replace(R.id.fragment_container, addEventFragment);

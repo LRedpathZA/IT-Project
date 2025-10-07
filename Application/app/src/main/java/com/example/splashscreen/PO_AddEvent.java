@@ -3,6 +3,7 @@ package com.example.splashscreen;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth; // ADDED
+import com.google.firebase.auth.FirebaseUser; // ADDED
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
@@ -29,18 +32,22 @@ import java.util.Objects;
 
 public class PO_AddEvent extends Fragment {
 
+    private static final String TAG = "PO_AddEvent";
+
     private EditText etEventTitle, etDescription;
     private Spinner spEventType, spEventStatus;
-    private EditText etStartDate, etStartTime, etEndDate, etEndTime; // Added End Date/Time
+    private EditText etStartDate, etStartTime, etEndDate, etEndTime;
     private MaterialButton btnSaveEvent, btnDeleteEvent;
     private TextView tvTitle;
 
     private FirebaseFirestore db;
+    // ADDED: Firebase Auth instance and current user UID
+    private FirebaseAuth auth;
+    private String currentUserId;
+
     private final Calendar startCalendar = Calendar.getInstance();
     private final Calendar endCalendar = Calendar.getInstance();
-
-    // PLACEHOLDER: Replace with actual pool ID fetched from user profile/preferences
-    private final String HOME_POOL_ID = "YOUR_CURRENT_HOME_POOL_ID";
+    private  String HOME_POOL_ID = "BLANK";
 
     public PO_AddEvent() {}
 
@@ -48,6 +55,27 @@ public class PO_AddEvent extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance(); // INITIALIZED
+
+        FirebaseUser user = auth.getCurrentUser();
+        if (user != null) {
+            currentUserId = user.getUid(); // GET CURRENT USER UID
+            Log.d(TAG, "Authenticated user ID: " + currentUserId);
+        } else {
+            // Handle case where user is not logged in - critical for security rules
+            Log.e(TAG, "User not authenticated. CRUD operations will fail.");
+            Toast.makeText(getContext(), "Authentication required. Cannot save event.", Toast.LENGTH_LONG).show();
+            // currentUserId will remain null
+        }
+        if (getArguments() != null) {
+            HOME_POOL_ID = getArguments().getString("POOL_ID");
+            if (HOME_POOL_ID == null) {
+                Log.e(TAG, "CRITICAL: Pool ID missing from arguments.");
+                Toast.makeText(getContext(), "Cannot load event screen: Pool ID missing.", Toast.LENGTH_LONG).show();
+            } else {
+                Log.d(TAG, "Home Pool ID retrieved: " + HOME_POOL_ID);
+            }
+        }
     }
 
     @Override
@@ -60,7 +88,7 @@ public class PO_AddEvent extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Initialize Views (Assuming your XML uses Spinner for Type and Status)
+        // 1. Initialize Views
         tvTitle = view.findViewById(R.id.tv_title);
         btnSaveEvent = view.findViewById(R.id.btn_save_event);
         btnDeleteEvent = view.findViewById(R.id.btn_delete_event);
@@ -68,8 +96,8 @@ public class PO_AddEvent extends Fragment {
         etEventTitle = view.findViewById(R.id.et_event_title);
         etDescription = view.findViewById(R.id.et_description);
 
-        spEventType = view.findViewById(R.id.sp_event_type); // Assuming Spinner
-        spEventStatus = view.findViewById(R.id.sp_event_status); // Assuming Spinner
+        spEventType = view.findViewById(R.id.sp_event_type);
+        spEventStatus = view.findViewById(R.id.sp_event_status);
 
         etStartDate = view.findViewById(R.id.et_start_date);
         etStartTime = view.findViewById(R.id.et_start_time);
@@ -207,6 +235,7 @@ public class PO_AddEvent extends Fragment {
                             setSpinnerSelection(spEventType, event.type);
                             setSpinnerSelection(spEventStatus, event.status);
 
+                            // Assuming event.startDate and event.endDate are Long (timestamp)
                             startCalendar.setTimeInMillis(event.startDate);
                             endCalendar.setTimeInMillis(event.endDate);
 
@@ -220,10 +249,21 @@ public class PO_AddEvent extends Fragment {
                         getParentFragmentManager().popBackStack();
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error loading event.", Toast.LENGTH_LONG).show());
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading event: " + e.getMessage());
+                    Toast.makeText(getContext(), "Error loading event.", Toast.LENGTH_LONG).show();
+                });
     }
 
     private void handleAddEvent() {
+        if (currentUserId == null || HOME_POOL_ID == null || HOME_POOL_ID.equals("BLANK")) {
+            if (getContext() != null) {
+                String message = (currentUserId == null) ? "User authentication failed." : "You have no pool to create an event for.";
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
+
         Map<String, Object> eventData = getAndValidateInputs();
         if (eventData == null) return;
 
@@ -234,11 +274,17 @@ public class PO_AddEvent extends Fragment {
                     sendResultAndPopBack(newEventId, "Event added successfully!");
                 })
                 .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error adding event: " + e.getMessage());
                     if (getContext() != null) Toast.makeText(getContext(), "Error adding event: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
 
     private void handleEditEvent(String eventId) {
+        if (currentUserId == null) {
+            Toast.makeText(getContext(), "User authentication failed. Cannot edit event.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         Map<String, Object> eventData = getAndValidateInputs();
         if (eventData == null) return;
 
@@ -248,16 +294,23 @@ public class PO_AddEvent extends Fragment {
                     sendResultAndPopBack(eventId, "Event updated successfully!");
                 })
                 .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error updating event: " + e.getMessage());
                     if (getContext() != null) Toast.makeText(getContext(), "Error updating event: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
 
     private void handleDeleteEvent(String eventId) {
+        if (currentUserId == null) {
+            Toast.makeText(getContext(), "User authentication failed. Cannot delete event.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         db.collection("events").document(eventId).delete()
                 .addOnSuccessListener(aVoid -> {
                     sendResultAndPopBack(null, "Event deleted successfully!");
                 })
                 .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error deleting event: " + e.getMessage());
                     if (getContext() != null) Toast.makeText(getContext(), "Error deleting event: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
@@ -267,6 +320,12 @@ public class PO_AddEvent extends Fragment {
     // =========================================================================================
 
     private Map<String, Object> getAndValidateInputs() {
+        if (currentUserId == null) {
+            // This check should be redundant due to checks in handleAdd/EditEvent, but kept for validation
+            Toast.makeText(getContext(), "User authentication failed. Cannot save event.", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+
         String title = etEventTitle.getText().toString().trim();
         String description = etDescription.getText().toString().trim();
         String type = spEventType.getSelectedItem().toString();
@@ -276,8 +335,6 @@ public class PO_AddEvent extends Fragment {
             if (getContext() != null) Toast.makeText(getContext(), "Event title is required.", Toast.LENGTH_SHORT).show();
             return null;
         }
-
-        // Ensure start time is not after end time
         if (startCalendar.after(endCalendar)) {
             if (getContext() != null) Toast.makeText(getContext(), "Start date/time cannot be after end date/time.", Toast.LENGTH_SHORT).show();
             return null;
@@ -290,8 +347,8 @@ public class PO_AddEvent extends Fragment {
         eventData.put("startDate", startCalendar.getTimeInMillis());
         eventData.put("endDate", endCalendar.getTimeInMillis());
         eventData.put("description", description);
-        eventData.put("poolId", HOME_POOL_ID); // Placeholder Pool ID
-        // eventData.put("createdBy", CURRENT_USER_UID); // You would add the current user's UID here
+        eventData.put("poolId", HOME_POOL_ID);
+        eventData.put("createdBy", currentUserId);
 
         return eventData;
     }
@@ -302,7 +359,6 @@ public class PO_AddEvent extends Fragment {
         }
 
         Bundle result = new Bundle();
-        // The value of eventId doesn't matter much here, only that the result key is sent
         getParentFragmentManager().setFragmentResult(PO_Calendar.REQUEST_KEY_EVENT_UPDATED, result);
 
         if (getActivity() != null) {
