@@ -359,6 +359,18 @@
                 app:cornerRadius="8dp" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_delete_pool"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="8dp"
+                android:text="Delete Pool"
+                android:textAllCaps="false"
+                android:textSize="18sp"
+                android:visibility="gone"
+                app:backgroundTint="@color/black"
+                app:cornerRadius="8dp" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_cancel"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"

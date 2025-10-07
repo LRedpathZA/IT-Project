@@ -37,7 +37,6 @@ public class MainActivity extends AppCompatActivity {
     // DATA STORAGE: Stores the entire user document for easy access by fragments
     private DocumentSnapshot userDataDocument;
 
-    // UI Components
     private DrawerLayout drawerLayout;
     public BottomNavigationView bottomNavigationView;
     private FloatingActionButton fabAdd;
@@ -73,7 +72,6 @@ public class MainActivity extends AppCompatActivity {
         speedDialButtons[4] = speedDialContainer.findViewById(R.id.btn_action_5);
         speedDialButtons[5] = speedDialContainer.findViewById(R.id.btn_action_6);
 
-        // Check for logged-in user and setup the main screen
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser != null) {
             fetchUserDataAndSetup(currentUser.getUid());
@@ -117,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } else {
                     Log.w("MainActivity", "User document not found. Logging out.");
-                    logoutUser(); // If user exists in Auth but not in DB, force logout
+                    logoutUser();
                 }
             } else {
                 Log.e("MainActivity", "Error fetching user data: ", task.getException());
@@ -131,19 +129,12 @@ public class MainActivity extends AppCompatActivity {
         return userDataDocument;
     }
     public void logoutUser() {
-        // 1. Sign out the user from Firebase
         auth.signOut();
-
-        // 2. Clear the cached document
         userDataDocument = null;
-
-        // 3. Navigate back to the AuthenticationActivity
         Intent intent = new Intent(this, AuthenticationActivity.class);
-
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
         startActivity(intent);
-        finish(); // Close MainActivity
+        finish();
     }
 
     private void setupRoleBasedUI(int role_id) {

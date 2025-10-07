@@ -25,6 +25,9 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue; // Import for deleting field
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -36,6 +39,7 @@ public class PO_AddPool extends Fragment {
     // Member Variables
     private EditText etPoolName, etPoolType, etWaterCapacity, etSanitizerType, etFilterRuntime, etPoolLocation;
     private MaterialButton btnAddPool;
+    private MaterialButton btnDeletePool; // NEW
     private LinearLayout llPlaceholder;
     private ImageView ivSelectedPhoto;
     private ImageButton btnDeletePhoto;
@@ -46,6 +50,7 @@ public class PO_AddPool extends Fragment {
 
     // Image Management
     private Uri selectedImageUri = null;
+    private String currentPhotoUrl = null;
     private static final int PICK_IMAGE_REQUEST = 1;
 
     public PO_AddPool() {
@@ -73,6 +78,7 @@ public class PO_AddPool extends Fragment {
         // 1. Initialize Views
         TextView tvTitle = view.findViewById(R.id.tv_title);
         btnAddPool = view.findViewById(R.id.btn_add_pool);
+        btnDeletePool = view.findViewById(R.id.btn_delete_pool); // NEW
 
         etPoolName = view.findViewById(R.id.et_pool_name);
         etPoolType = view.findViewById(R.id.et_pool_type);
@@ -89,7 +95,7 @@ public class PO_AddPool extends Fragment {
 
         String poolId;
         if (getArguments() != null) {
-            poolId = getArguments().getString("POOL_ID");
+            poolId = getArguments().getString(PO_HomeScreen.ARG_POOL_ID);
         } else {
             poolId = null;
         }
@@ -97,28 +103,29 @@ public class PO_AddPool extends Fragment {
         if (poolId != null) {
             tvTitle.setText("Edit Pool Details");
             btnAddPool.setText("Save Changes");
-            // TODO: loadPoolData(poolId);
+            btnDeletePool.setVisibility(View.VISIBLE);
+            loadPoolData(poolId);
             btnAddPool.setOnClickListener(v -> handleEditPool(poolId));
+            btnDeletePool.setOnClickListener(v -> deletePool(poolId));
         } else {
             tvTitle.setText("Add New Pool");
             btnAddPool.setText("Add Pool");
+            btnDeletePool.setVisibility(View.GONE);
             btnAddPool.setOnClickListener(v -> addPool());
         }
 
-        // 3. Set Dropdown Listeners
         etPoolType.setOnClickListener(v -> showPoolTypeSelectionMenu(v, etPoolType));
         etSanitizerType.setOnClickListener(v -> showSanitizerSelectionMenu(v, etSanitizerType));
 
-        // 4. Set Image Listeners
+
         llPlaceholder.setOnClickListener(v -> openImageChooser());
         ivSelectedPhoto.setOnClickListener(v -> openImageChooser());
         btnDeletePhoto.setOnClickListener(v -> deleteSelectedPhoto());
 
-        // 5. Setup Back Button Handling (Updated to use modern method)
+
         ImageButton btnBack = view.findViewById(R.id.btn_back);
-        setupBackPressHandling(); // Register the lifecycle-aware callback
+        setupBackPressHandling();
         btnBack.setOnClickListener(v -> {
-            // Trigger the back stack operation using the dispatcher
             requireActivity().getOnBackPressedDispatcher().onBackPressed();
         });
     }
@@ -128,20 +135,17 @@ public class PO_AddPool extends Fragment {
     // =========================================================================================
 
     private void setupBackPressHandling() {
-        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled */) {
+        OnBackPressedCallback callback = new OnBackPressedCallback(true ) {
             @Override
             public void handleOnBackPressed() {
-                // If there are fragments in the stack, pop one off.
                 if (getParentFragmentManager().getBackStackEntryCount() > 0) {
                     getParentFragmentManager().popBackStack();
                 } else if (getActivity() != null) {
-                    // Otherwise, let the Activity finish (e.g., exit app)
                     getActivity().finish();
                 }
             }
         };
 
-        // Attach the callback to the Fragment's lifecycle
         requireActivity().getOnBackPressedDispatcher().addCallback(
                 getViewLifecycleOwner(),
                 callback
@@ -153,31 +157,124 @@ public class PO_AddPool extends Fragment {
     // =========================================================================================
 
     private void addPool() {
-        // 1. Validate inputs and get data map
         Map<String, Object> poolData = getAndValidateInputs();
-        if (poolData == null) {
-            return; // Validation failed
-        }
+        if (poolData == null) return;
+
         if (selectedImageUri != null) {
-            // CALL NEW FAKE UPLOAD METHOD
-            simulateImageUploadAndSavePool(poolData);
+            simulateImageUploadAndSavePool(poolData, null);
         } else {
-            savePoolToFirestore(poolData);
+            savePoolToFirestore(poolData, null);
         }
     }
 
     private void handleEditPool(String poolId) {
-        // 1. Validate inputs and get data map
         Map<String, Object> poolData = getAndValidateInputs();
-        if (poolData == null) {
-            return; // Validation failed
+        if (poolData == null) return;
+
+        if (selectedImageUri != null) {
+            simulateImageUploadAndSavePool(poolData, poolId);
+        } else {
+            poolData.put("photoUrl", currentPhotoUrl);
+            updatePoolInFirestore(poolData, poolId);
+        }
+    }
+
+    // NEW: DELETE POOL IMPLEMENTATION
+    private void deletePool(String poolId) {
+        String userId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+        if (userId == null) {
+            Toast.makeText(getContext(), "Authentication error. Cannot delete pool.", Toast.LENGTH_LONG).show();
+            return;
         }
 
-        // For simplicity in this first pass, we call savePoolToFirestore with update logic
-        // savePoolToFirestore(poolData, poolId);
-        if (getContext() != null) { // CRASH FIX
-            Toast.makeText(getContext(), "Edit Pool logic triggered for ID: " + poolId, Toast.LENGTH_SHORT).show();
-        }
+        btnAddPool.setEnabled(false);
+        btnDeletePool.setEnabled(false);
+        btnDeletePool.setText("Deleting...");
+
+        // 1. Remove pool document
+        db.collection("pools").document(poolId).delete()
+                .addOnSuccessListener(aVoid -> {
+                    // 2. Clear homePoolId from user document
+                    db.collection("users").document(userId)
+                            .update("homePoolId", FieldValue.delete())
+                            .addOnSuccessListener(aVoid1 -> {
+                                if (getContext() != null) {
+                                    Toast.makeText(getContext(), "Pool deleted successfully!", Toast.LENGTH_SHORT).show();
+                                }
+
+                                // 3. Notify PO_HomeScreen to refresh (pass null ID to revert to placeholder)
+                                Bundle result = new Bundle();
+                                result.putString(PO_HomeScreen.BUNDLE_KEY_POOL_ID, null);
+                                getParentFragmentManager().setFragmentResult(PO_HomeScreen.REQUEST_KEY_POOL_ADDED, result);
+
+                                // 4. Navigate back
+                                if (getActivity() != null) {
+                                    getParentFragmentManager().popBackStack();
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                // Pool deleted, but user update failed (Major issue, but continue back)
+                                if (getContext() != null) {
+                                    Toast.makeText(getContext(), "Pool deleted, but user link remains. Please report.", Toast.LENGTH_LONG).show();
+                                }
+                                if (getActivity() != null) {
+                                    getParentFragmentManager().popBackStack();
+                                }
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    // Pool deletion failed
+                    btnAddPool.setEnabled(true);
+                    btnDeletePool.setEnabled(true);
+                    btnDeletePool.setText("Delete Pool");
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(), "Error deleting pool: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    // =========================================================================================
+    //                                  DATA FETCHING FOR EDIT
+    // =========================================================================================
+
+    private void loadPoolData(String poolId) {
+        db.collection("pools").document(poolId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        etPoolName.setText(documentSnapshot.getString("name"));
+                        etPoolType.setText(documentSnapshot.getString("type"));
+                        etSanitizerType.setText(documentSnapshot.getString("sanitizerType"));
+                        etPoolLocation.setText(documentSnapshot.getString("location"));
+
+                        Long capacity = documentSnapshot.getLong("waterCapacityLiters");
+                        if (capacity != null) {
+                            etWaterCapacity.setText(String.valueOf(capacity));
+                        }
+
+                        Long runtime = documentSnapshot.getLong("filterRuntimeHours");
+                        if (runtime != null) {
+                            etFilterRuntime.setText(String.valueOf(runtime));
+                        }
+
+                        // Handle Image loading (simulated)
+                        currentPhotoUrl = documentSnapshot.getString("photoUrl");
+                        if (currentPhotoUrl != null && !currentPhotoUrl.isEmpty()) {
+                            // Using a placeholder drawable (R.drawable.fake_pool)
+                            ivSelectedPhoto.setImageResource(R.drawable.fake_pool);
+                            ivSelectedPhoto.setVisibility(View.VISIBLE);
+                            btnDeletePhoto.setVisibility(View.VISIBLE);
+                            llPlaceholder.setVisibility(View.GONE);
+                        }
+
+                    } else if (getContext() != null) {
+                        Toast.makeText(getContext(), "Pool not found.", Toast.LENGTH_LONG).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(), "Error loading pool data: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     // =========================================================================================
@@ -188,7 +285,7 @@ public class PO_AddPool extends Fragment {
     private Map<String, Object> getAndValidateInputs() {
         String userId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
         if (userId == null) {
-            if (getContext() != null) { // CRASH FIX
+            if (getContext() != null) {
                 Toast.makeText(getContext(), "Authentication error. Please log in again.", Toast.LENGTH_LONG).show();
             }
             return null;
@@ -203,7 +300,7 @@ public class PO_AddPool extends Fragment {
 
         if (poolName.isEmpty() || poolType.isEmpty() || capacityStr.isEmpty() ||
                 sanitizerType.isEmpty() || runtimeStr.isEmpty() || poolLocation.isEmpty()) {
-            if (getContext() != null) { // CRASH FIX
+            if (getContext() != null) {
                 Toast.makeText(getContext(), "Please fill in all pool details.", Toast.LENGTH_SHORT).show();
             }
             return null;
@@ -236,11 +333,11 @@ public class PO_AddPool extends Fragment {
         poolData.put("sanitizerType", sanitizerType);
         poolData.put("filterRuntimeHours", filterRuntime);
         poolData.put("location", poolLocation);
-        poolData.put("createdAt", System.currentTimeMillis());
 
         return poolData;
     }
-    private void simulateImageUploadAndSavePool(Map<String, Object> poolData) {
+
+    private void simulateImageUploadAndSavePool(Map<String, Object> poolData, @Nullable String existingPoolId) {
         btnAddPool.setText("Saving...");
         btnAddPool.setEnabled(false);
 
@@ -248,57 +345,81 @@ public class PO_AddPool extends Fragment {
 
         poolData.put("photoUrl", fakeUrl);
 
-        savePoolToFirestore(poolData);
+        if (existingPoolId == null) {
+            savePoolToFirestore(poolData, null);
+        } else {
+            updatePoolInFirestore(poolData, existingPoolId);
+        }
     }
 
-    private void savePoolToFirestore(Map<String, Object> poolData) {
+    private void savePoolToFirestore(Map<String, Object> poolData, @Nullable String existingPoolId) {
+        poolData.put("createdAt", System.currentTimeMillis());
+
         db.collection("pools")
                 .add(poolData)
                 .addOnSuccessListener(documentReference -> {
                     String newPoolId = documentReference.getId();
                     String userId = mAuth.getCurrentUser().getUid();
-                    Map<String, Object> update = new HashMap<>();
-                    update.put("homePoolId", newPoolId);
 
                     db.collection("users").document(userId)
-                            .update(update)
+                            .update("homePoolId", newPoolId)
                             .addOnSuccessListener(aVoid -> {
-                                // 1. Success Toast
                                 if (getContext() != null) {
-                                    Toast.makeText(getContext(), "Pool added and set as home pool successfully!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), "Pool added and set as home pool!", Toast.LENGTH_SHORT).show();
                                 }
 
-                                // 2. Fragment Result API: PASS DATA BACK (THIS IS THE KEY FIX)
                                 Bundle result = new Bundle();
                                 result.putString(PO_HomeScreen.BUNDLE_KEY_POOL_ID, newPoolId);
                                 getParentFragmentManager().setFragmentResult(PO_HomeScreen.REQUEST_KEY_POOL_ADDED, result);
 
-                                // 3. Navigate back
                                 if (getActivity() != null) {
                                     getParentFragmentManager().popBackStack();
                                 }
                             })
                             .addOnFailureListener(e -> {
-                                // User document update failed
                                 if (getContext() != null) {
                                     Toast.makeText(getContext(), "Pool added, but failed to set as home pool: " + e.getMessage(), Toast.LENGTH_LONG).show();
                                 }
                                 btnAddPool.setText("Add Pool");
                                 btnAddPool.setEnabled(true);
-                                if (getActivity() != null) {
-                                    getParentFragmentManager().popBackStack();
-                                }
                             });
                 })
                 .addOnFailureListener(e -> {
-                    // Pool document creation failed
                     btnAddPool.setText("Add Pool");
                     btnAddPool.setEnabled(true);
-                    if (getContext() != null) { // CRASH FIX
+                    if (getContext() != null) {
                         Toast.makeText(getContext(), "Error saving pool: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
     }
+
+    private void updatePoolInFirestore(Map<String, Object> poolData, @NonNull String poolId) {
+        db.collection("pools").document(poolId)
+                .update(poolData)
+                .addOnSuccessListener(aVoid -> {
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(), "Pool details updated successfully!", Toast.LENGTH_SHORT).show();
+                    }
+
+                    Bundle result = new Bundle();
+                    result.putString(PO_HomeScreen.BUNDLE_KEY_POOL_ID, poolId);
+                    getParentFragmentManager().setFragmentResult(PO_HomeScreen.REQUEST_KEY_POOL_ADDED, result);
+
+                    if (getActivity() != null) {
+                        getParentFragmentManager().popBackStack();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    btnAddPool.setText("Save Changes");
+                    btnAddPool.setEnabled(true);
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(), "Error updating pool: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+// ... (rest of image handling and dropdown methods remain the same)
+// ... (rest of image handling and dropdown methods remain the same)
+// ... (rest of image handling and dropdown methods remain the same)
 
     private void openImageChooser() {
         Intent intent = new Intent();
@@ -327,13 +448,14 @@ public class PO_AddPool extends Fragment {
 
     private void deleteSelectedPhoto() {
         selectedImageUri = null;
+        currentPhotoUrl = null;
         ivSelectedPhoto.setImageDrawable(null);
         ivSelectedPhoto.setVisibility(View.GONE);
         btnDeletePhoto.setVisibility(View.GONE);
         llPlaceholder.setVisibility(View.VISIBLE);
 
-        if (getContext() != null) { // CRASH FIX
-            Toast.makeText(getContext(), "Photo removed. You can select a new one.", Toast.LENGTH_SHORT).show();
+        if (getContext() != null) {
+            Toast.makeText(getContext(), "Photo removed.", Toast.LENGTH_SHORT).show();
         }
     }
 

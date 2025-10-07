@@ -24,7 +24,6 @@ public class NotificationHelper {
         CONFIRMATION
     }
 // TODO: Implement a proper dialogue, current one works but not Flexible
-    //Liné was here 2025
     public static void showNotification(View parentView, String title, String message, NotificationType type) {
 
         ViewGroup rootView = (ViewGroup) parentView.getRootView();

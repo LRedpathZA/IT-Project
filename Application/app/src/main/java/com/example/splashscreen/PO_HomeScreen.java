@@ -38,8 +38,8 @@ public class PO_HomeScreen extends Fragment {
 
     public static final String REQUEST_KEY_POOL_ADDED = "pool_added_key";
     public static final String BUNDLE_KEY_POOL_ID = "new_pool_id";
+    public static final String ARG_POOL_ID = "POOL_ID";
 
-    // Views for the dynamically inflated pool card (will be found after inflation)
     private TextView tvPoolName;
     private TextView tvPoolType;
     private TextView tvPoolCapacity;
@@ -74,7 +74,10 @@ public class PO_HomeScreen extends Fragment {
         llAddPoolPlaceholder = view.findViewById(R.id.ll_add_pool_placeholder);
         flHomePoolContent = view.findViewById(R.id.fl_home_pool_content);
         rvProducts = view.findViewById(R.id.rv_products);
-
+        View calendarCardContainer = view.findViewById(R.id.calendarCard);
+        if (calendarCardContainer != null) {
+            calendarCardContainer.setOnClickListener(v -> navigateToFragment(new PO_Calendar()));
+        }
         setupPoolResultListener();
         setupProductRecyclerView();
         initNavigation();
@@ -91,6 +94,7 @@ public class PO_HomeScreen extends Fragment {
         llAddPoolPlaceholder.setOnClickListener(v -> navigateToFragment(new PO_AddPool()));
     }
 
+    /** Navigates to a new Fragment by replacing the current one. */
     private void navigateToFragment(Fragment fragment) {
         if (getActivity() != null) {
             FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
@@ -140,6 +144,7 @@ public class PO_HomeScreen extends Fragment {
     }
 
     private void setupPoolResultListener() {
+        // Listens for the result of a newly created or edited pool from PO_AddPool.
         getParentFragmentManager().setFragmentResultListener(REQUEST_KEY_POOL_ADDED, this, (requestKey, bundle) -> {
             if (requestKey.equals(REQUEST_KEY_POOL_ADDED)) {
                 String newPoolId = bundle.getString(BUNDLE_KEY_POOL_ID);
@@ -197,7 +202,6 @@ public class PO_HomeScreen extends Fragment {
 
                         // 1. Dynamic View Inflation
                         flHomePoolContent.removeAllViews();
-                        // ASSUMING R.layout.pool_card_layout is the resource ID for your dynamic XML
                         poolCardView = LayoutInflater.from(getContext()).inflate(R.layout.item_pool_card, flHomePoolContent, false);
                         flHomePoolContent.addView(poolCardView);
 
@@ -208,18 +212,19 @@ public class PO_HomeScreen extends Fragment {
                         tvPoolLocation = poolCardView.findViewById(R.id.tv_pool_location);
                         ivPoolImage = poolCardView.findViewById(R.id.iv_pool_image);
 
-
                         // 3. Update the UI Text/Data
                         if (tvPoolName != null) tvPoolName.setText(poolName);
                         if (tvPoolType != null) tvPoolType.setText(String.format("%s | %s", poolType, sanitizerType));
                         if (tvPoolCapacity != null && capacity != null) tvPoolCapacity.setText(String.format("%dL", capacity));
                         if (tvPoolLocation != null) tvPoolLocation.setText(poolLocation);
 
-
                         // 4. Set Image
                         if (ivPoolImage != null) {
                             ivPoolImage.setImageResource(R.drawable.fake_pool);
                         }
+
+                        // 5. Add Click Listener for Editing
+                        poolCardView.setOnClickListener(v -> navigateToEditPool(poolId));
 
                     } else {
                         // Revert to placeholder if document is missing
@@ -244,5 +249,12 @@ public class PO_HomeScreen extends Fragment {
                         Toast.makeText(getContext(), "Error loading pool details.", Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+    private void navigateToEditPool(String poolId) {
+        PO_AddPool editFragment = new PO_AddPool();
+        Bundle args = new Bundle();
+        args.putString(ARG_POOL_ID, poolId);
+        editFragment.setArguments(args);
+        navigateToFragment(editFragment);
     }
 }

@@ -49,8 +49,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
 
-    // REQUIRED FOR IMAGE UPLOAD (Firebase Storage)
-    implementation("com.google.firebase:firebase-storage")
-    // If you are using version catalogs for other libs, you might use:
-    // implementation(libs.firebase.storage)
+    // Calendar Dependency :)
+    implementation(libs.material.calendarview)
+
 }
