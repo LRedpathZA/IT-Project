@@ -1,3 +1,5 @@
+// settings.gradle.kts
+
 pluginManagement {
     repositories {
         google {
@@ -9,6 +11,7 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+
     }
 }
 dependencyResolutionManagement {
@@ -21,4 +24,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "SplashScreen"
 include(":app")
- 

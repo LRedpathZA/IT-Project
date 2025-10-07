@@ -49,7 +49,4 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
 
-    // Calendar Dependency :)
-    implementation(libs.material.calendarview)
-
 }
