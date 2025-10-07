@@ -1,6 +1,7 @@
 package com.example.splashscreen;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,12 +19,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
-public class PO_Calendar extends Fragment {
+// Implements the click listener for the RecyclerView Adapter
+public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickListener {
 
     public static final String REQUEST_KEY_EVENT_UPDATED = "event_updated_key";
     public static final String BUNDLE_KEY_EVENT_ID = "event_id";
@@ -36,6 +43,11 @@ public class PO_Calendar extends Fragment {
 
     private FirebaseFirestore db;
     private Calendar selectedDate = Calendar.getInstance();
+    private EventAdapter eventAdapter;
+    private List<EventModel> eventList = new ArrayList<>();
+
+    // PLACEHOLDER: Replace with actual pool ID fetched from user profile/preferences
+    private final String HOME_POOL_ID = "YOUR_CURRENT_HOME_POOL_ID";
 
     public PO_Calendar() {}
 
@@ -58,16 +70,16 @@ public class PO_Calendar extends Fragment {
         ImageButton btnBack = view.findViewById(R.id.btn_back);
         FloatingActionButton fabAddEvent = view.findViewById(R.id.fab_add_event);
 
-        // FIX: The CalendarView ID should match your XML (R.id.calendar_view)
         calendarView = view.findViewById(R.id.calendar_view);
         rvEvents = view.findViewById(R.id.rv_events);
         tvNoEvents = view.findViewById(R.id.tv_no_events);
         tvEventsHeader = view.findViewById(R.id.tv_events_header);
 
         rvEvents.setLayoutManager(new LinearLayoutManager(getContext()));
+        eventAdapter = new EventAdapter(eventList, this); // 'this' is the OnEventClickListener
+        rvEvents.setAdapter(eventAdapter);
 
         calendarView.setOnDateChangeListener((view1, year, month, dayOfMonth) -> {
-            // Calendar month is 0-indexed (Jan=0), Calendar.set handles this correctly.
             selectedDate.set(year, month, dayOfMonth);
             loadEventsForSelectedDate(selectedDate);
         });
@@ -88,37 +100,76 @@ public class PO_Calendar extends Fragment {
     }
 
     private void loadEventsForSelectedDate(Calendar date) {
-        if (getContext() == null) return;
+        if (getContext() == null || HOME_POOL_ID.equals("YOUR_CURRENT_HOME_POOL_ID")) return;
 
         SimpleDateFormat headerFormat = new SimpleDateFormat("EEEE, MMMM dd, yyyy", Locale.getDefault());
         String selectedDateString = headerFormat.format(date.getTime());
         tvEventsHeader.setText("Events for " + selectedDateString);
 
-        // TODO: Implement Firestore query logic here.
-        // db.collection("events").whereEqualTo("date", selectedDate).get()...
+        // 1. Prepare start of day (00:00:00)
+        Calendar startOfDay = (Calendar) date.clone();
+        startOfDay.set(Calendar.HOUR_OF_DAY, 0);
+        startOfDay.set(Calendar.MINUTE, 0);
+        startOfDay.set(Calendar.SECOND, 0);
+        startOfDay.set(Calendar.MILLISECOND, 0);
+        long startTime = startOfDay.getTimeInMillis();
 
-        boolean eventsFound = false; // Replace with result from Firestore query
+        // 2. Prepare end of day (23:59:59)
+        Calendar endOfDay = (Calendar) date.clone();
+        endOfDay.set(Calendar.HOUR_OF_DAY, 23);
+        endOfDay.set(Calendar.MINUTE, 59);
+        endOfDay.set(Calendar.SECOND, 59);
+        endOfDay.set(Calendar.MILLISECOND, 999);
+        long endTime = endOfDay.getTimeInMillis();
 
-        if (eventsFound) {
-            rvEvents.setVisibility(View.VISIBLE);
-            tvNoEvents.setVisibility(View.GONE);
-            // TODO: Update your RecyclerView adapter with fetched events
-        } else {
-            rvEvents.setVisibility(View.GONE);
-            tvNoEvents.setVisibility(View.VISIBLE);
-        }
+        // 3. Firestore Query: Find events for the home pool where the event's start date is between the start and end of the selected day.
+        db.collection("events")
+                .whereEqualTo("poolId", HOME_POOL_ID)
+                .whereGreaterThanOrEqualTo("startDate", startTime)
+                .whereLessThanOrEqualTo("startDate", endTime)
+                .orderBy("startDate", Query.Direction.ASCENDING)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (!isAdded()) return; // Prevent crash if fragment detached
+
+                    eventList.clear();
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            EventModel event = document.toObject(EventModel.class);
+                            event.id = document.getId(); // Set the document ID
+                            eventList.add(event);
+                        }
+                    }
+
+                    if (!eventList.isEmpty()) {
+                        eventAdapter.updateList(eventList);
+                        rvEvents.setVisibility(View.VISIBLE);
+                        tvNoEvents.setVisibility(View.GONE);
+                    } else {
+                        eventAdapter.updateList(eventList);
+                        rvEvents.setVisibility(View.GONE);
+                        tvNoEvents.setVisibility(View.VISIBLE);
+                    }
+                });
     }
 
     private void setupEventResultListener() {
         getParentFragmentManager().setFragmentResultListener(REQUEST_KEY_EVENT_UPDATED, this, (requestKey, bundle) -> {
             if (requestKey.equals(REQUEST_KEY_EVENT_UPDATED)) {
-                Toast.makeText(getContext(), "Events updated. Reloading list.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Events list reloaded.", Toast.LENGTH_SHORT).show();
 
+                // Get the date from the CalendarView's current state to reload
                 Calendar dateToReload = Calendar.getInstance();
                 dateToReload.setTimeInMillis(calendarView.getDate());
                 loadEventsForSelectedDate(dateToReload);
             }
         });
+    }
+
+    // Handles click on an event in the list -> Navigates to edit screen
+    @Override
+    public void onEventClick(EventModel event) {
+        navigateToAddEvent(event.id);
     }
 
     private void navigateToAddEvent(@Nullable String eventId) {
