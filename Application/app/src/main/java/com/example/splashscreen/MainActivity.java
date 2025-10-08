@@ -137,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void setupDrawer(int drawerLayoutResId) {
-        // Loads the correct drawer layout (PO or SP) and sets the Menu button listener.
         drawerContainer.removeAllViews();
         getLayoutInflater().inflate(drawerLayoutResId, drawerContainer, true);
         MenuItem menuButton = bottomNavigationView.getMenu().findItem(R.id.nav_menu);
@@ -156,8 +155,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean onNavigationItemSelected(@NonNull MenuItem item) {
         Fragment selectedFragment = null;
         int itemId = item.getItemId();
-
-        // Check if the Drawer Menu button was pressed
         if (itemId == R.id.nav_menu) {
             return false;
         }
@@ -247,9 +244,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void replaceFragment(Fragment fragment) {
-        // Clear back stack when navigating via bottom nav to prevent deep nesting
         getSupportFragmentManager().popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
-
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, fragment)
                 .commit();
