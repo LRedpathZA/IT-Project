@@ -15,29 +15,24 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 
 public class MainActivity extends AppCompatActivity {
+    private UserViewModel userViewModel;
 
-    // Firebase
     private FirebaseAuth auth;
-    private FirebaseFirestore db;
-
-    // DATA STORAGE: Stores the entire user document for easy access by fragments
-    private DocumentSnapshot userDataDocument;
 
     private DrawerLayout drawerLayout;
     public BottomNavigationView bottomNavigationView;
-    private FrameLayout drawerContainer; // Used to hold the custom drawer content
+    private FrameLayout drawerContainer;
 
-    private String username;
     private static final int ROLE_POOL_OWNER = 1;
     private static final int ROLE_SERVICE_PROVIDER = 2;
     public static String homePoolId;
@@ -50,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         auth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
+        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
 
         drawerLayout = findViewById(R.id.drawer_layout);
         bottomNavigationView = findViewById(R.id.bottom_navigation_view);
@@ -58,62 +53,51 @@ public class MainActivity extends AppCompatActivity {
 
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser != null) {
-            fetchUserDataAndSetup(currentUser.getUid());
+            userViewModel.fetchUserData(currentUser.getUid());
+            observeUserData();
         } else {
-            // Redirect to login/authentication screen
             logoutUser();
         }
     }
 
-    private void fetchUserDataAndSetup(String userId) {
-        DocumentReference docRef = db.collection("users").document(userId);
-        docRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                DocumentSnapshot document = task.getResult();
-                if (document.exists()) {
+    private void observeUserData() {
+        // Observe the userRole for initial setup and UI configuration
+        userViewModel.userRole.observe(this, userRole -> {
+            if (userRole != null) {
 
-                    // CORE DATA STEP: Store the entire document here
-                    userDataDocument = document;
+                setupRoleBasedUI(userRole);
 
-                    username = document.getString("name");
-                    Long roleLong = document.getLong("role_id");
-                    if (roleLong != null) {
-                        int userRole = roleLong.intValue();
-                        Log.d("MainActivity", "User: " + username + ", Role: " + userRole);
 
-                        setupRoleBasedUI(userRole);
-
-                        Fragment initialFragment;
-                        if (ROLE_POOL_OWNER == userRole) {
-                            initialFragment = new PO_HomeScreen();
-                            bottomNavigationView.setSelectedItemId(R.id.nav_home_po);
-                        } else if (ROLE_SERVICE_PROVIDER == userRole ) {
-                            initialFragment = new SP_HomeScreen();
-                            bottomNavigationView.setSelectedItemId(R.id.nav_home_sp);
-                        } else {
-                            initialFragment = new Fragment(); // Fallback
-                        }
-                        replaceFragment(initialFragment);
-                    }
-                } else {
-                    Log.w("MainActivity", "User document not found. Logging out.");
-                    logoutUser();
+                Fragment initialFragment = new Fragment();
+                if (ROLE_POOL_OWNER == userRole) {
+                    initialFragment = new PO_HomeScreen();
+                    bottomNavigationView.setSelectedItemId(R.id.nav_home_po);
+                } else if (ROLE_SERVICE_PROVIDER == userRole) {
+                    initialFragment = new SP_HomeScreen();
+                    bottomNavigationView.setSelectedItemId(R.id.nav_home_sp);
                 }
+                replaceFragment(initialFragment);
+                userViewModel.username.observe(this, username -> {
+                    if (username != null) {
+                        populateDrawerUsername(username);
+                    }
+                });
+
             } else {
-                Log.e("MainActivity", "Error fetching user data: ", task.getException());
-                Toast.makeText(this, "Failed to load profile data.", Toast.LENGTH_LONG).show();
+                Log.w("MainActivity", "User role is null after fetch. Logging out.");
+                logoutUser();
             }
         });
-    }
 
 
-    public DocumentSnapshot getUserDataDocument() {
-        return userDataDocument;
+        userViewModel.isLoading.observe(this, isLoading -> {
+            // Show a progress bar if loading, hide otherwise
+        });
     }
 
     public void logoutUser() {
         auth.signOut();
-        userDataDocument = null;
+        userViewModel.userData.removeObservers(this);
         Intent intent = new Intent(this, AuthenticationActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
@@ -160,19 +144,19 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // --- Pool Owner Navigation Mapping ---
-        if (bottomNavigationView.getMenu().findItem(R.id.nav_home_po) != null) {
+        if (userViewModel.isPoolOwner()) {
             if (itemId == R.id.nav_home_po) {
                 selectedFragment = new PO_HomeScreen();
             } else if (itemId == R.id.nav_calculator) {
                 selectedFragment = new PO_AddPool();
             } else if (itemId == R.id.nav_calendar) {
-               navigateToPO_Calendar();
-               return true;
+                navigateToPO_Calendar();
+                return true;
             }else if (itemId == R.id.nav_marketplace_po) {
                 selectedFragment = new PO_Marketplace();
             }
             // --- Service Provider Navigation Mapping ---
-        } else if (bottomNavigationView.getMenu().findItem(R.id.nav_home_sp) != null) {
+        } else if (userViewModel.isServiceProvider()) {
             if (itemId == R.id.nav_home_sp) {
                 selectedFragment = new SP_HomeScreen();
             }
@@ -196,11 +180,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void populatePoMenu(FrameLayout drawerContainer) {
+    // Extracted method to set username after fetch
+    private void populateDrawerUsername(String username) {
         TextView tvDrawerUsername = drawerContainer.findViewById(R.id.nav_username);
         if (tvDrawerUsername != null) {
             tvDrawerUsername.setText(username);
         }
+    }
+
+    private void populatePoMenu(FrameLayout drawerContainer) {
+        // We removed setting username here and moved it to observeUserData
 
         setMenuItemLabel(drawerContainer, R.id.btnMessages, "Messages");
         setMenuItemLabel(drawerContainer, R.id.btnSummary, "My Pool Summary");
@@ -212,12 +201,10 @@ public class MainActivity extends AppCompatActivity {
         setMenuItemLabel(drawerContainer, R.id.btnTutorial, "Tutorial Videos");
         setMenuItemLabel(drawerContainer, R.id.btnRegisterBusiness, "Register as Business");
 
-        // TESTTTTINNNNNNNNNGGGG
         findViewById(R.id.btnTips).setOnClickListener(v -> navTest());
     }
 
     private void navTest() {
-        // Example navigation for TESTING
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new PO_AddPool())
                 .addToBackStack(null)
@@ -225,11 +212,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void populateSpMenu(FrameLayout drawerContainer) {
-        TextView tvDrawerUsername = drawerContainer.findViewById(R.id.nav_username);
-        if (tvDrawerUsername != null) {
-            tvDrawerUsername.setText(username);
-        }
-
+        // We removed setting username here and moved it to observeUserData
 
         setMenuItemLabel(drawerContainer, R.id.btnMessages, "Message & Notifications");
         setMenuItemLabel(drawerContainer, R.id.btnSummary, "Summary");
@@ -238,7 +221,6 @@ public class MainActivity extends AppCompatActivity {
         setMenuItemLabel(drawerContainer, R.id.btnHelp, "Help & Support");
         setMenuItemLabel(drawerContainer, R.id.btnSettings, "Settings");
         setMenuItemLabel(drawerContainer, R.id.btnTutorial, "Tutorial");
-        //setMenuItemLabel(drawerContainer, R.id.btnLogOut, "Log Out");
         findViewById(R.id.btnTips).setVisibility(View.GONE);
         findViewById(R.id.btnRegisterBusiness).setVisibility(View.GONE);
     }
@@ -258,6 +240,7 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
+
     public void navigateToPO_Calendar() {
         if (homePoolId == null) {
             Toast.makeText(this, "Pool details not loaded yet. Please wait.", Toast.LENGTH_SHORT).show();

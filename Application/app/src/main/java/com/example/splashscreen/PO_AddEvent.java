@@ -19,8 +19,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.auth.FirebaseAuth; // ADDED
-import com.google.firebase.auth.FirebaseUser; // ADDED
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
@@ -41,7 +41,6 @@ public class PO_AddEvent extends Fragment {
     private TextView tvTitle;
 
     private FirebaseFirestore db;
-    // ADDED: Firebase Auth instance and current user UID
     private FirebaseAuth auth;
     private String currentUserId;
 
@@ -55,17 +54,15 @@ public class PO_AddEvent extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         db = FirebaseFirestore.getInstance();
-        auth = FirebaseAuth.getInstance(); // INITIALIZED
+        auth = FirebaseAuth.getInstance();
 
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
-            currentUserId = user.getUid(); // GET CURRENT USER UID
+            currentUserId = user.getUid();
             Log.d(TAG, "Authenticated user ID: " + currentUserId);
         } else {
-            // Handle case where user is not logged in - critical for security rules
             Log.e(TAG, "User not authenticated. CRUD operations will fail.");
             Toast.makeText(getContext(), "Authentication required. Cannot save event.", Toast.LENGTH_LONG).show();
-            // currentUserId will remain null
         }
         if (getArguments() != null) {
             HOME_POOL_ID = getArguments().getString("POOL_ID");
@@ -88,7 +85,6 @@ public class PO_AddEvent extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Initialize Views
         tvTitle = view.findViewById(R.id.tv_title);
         btnSaveEvent = view.findViewById(R.id.btn_save_event);
         btnDeleteEvent = view.findViewById(R.id.btn_delete_event);
@@ -121,7 +117,6 @@ public class PO_AddEvent extends Fragment {
             btnSaveEvent.setOnClickListener(v -> handleEditEvent(eventId));
             btnDeleteEvent.setOnClickListener(v -> handleDeleteEvent(eventId));
         } else {
-            // Set default date/time placeholders for new event
             updateDateTimeFields(etStartDate, startCalendar);
             updateDateTimeFields(etStartTime, startCalendar);
             updateDateTimeFields(etEndDate, endCalendar);
@@ -133,28 +128,20 @@ public class PO_AddEvent extends Fragment {
             btnSaveEvent.setOnClickListener(v -> handleAddEvent());
         }
 
-        // 2. Setup Back Button
         ImageButton btnBack = view.findViewById(R.id.btn_back);
         btnBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
 
-        // 3. Setup Date/Time Pickers
         etStartDate.setOnClickListener(v -> showDatePicker(startCalendar, etStartDate, true));
         etStartTime.setOnClickListener(v -> showTimePicker(startCalendar, etStartTime));
         etEndDate.setOnClickListener(v -> showDatePicker(endCalendar, etEndDate, false));
         etEndTime.setOnClickListener(v -> showTimePicker(endCalendar, etEndTime));
     }
 
-    // =========================================================================================
-    //                                  PICKERS AND SPINNERS
-    // =========================================================================================
-
     private void setupSpinners() {
-        // Types: You must replace these placeholders with your actual list of types
         String[] types = new String[]{"Cleaning", "Repair", "Inspection", "Maintenance"};
         ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, types);
         spEventType.setAdapter(typeAdapter);
 
-        // Statuses: These are the statuses you requested
         String[] statuses = new String[]{"Scheduled", "In Progress", "Completed", "Cancelled"};
         ArrayAdapter<String> statusAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, statuses);
         spEventStatus.setAdapter(statusAdapter);
@@ -166,7 +153,6 @@ public class PO_AddEvent extends Fragment {
             calendarToUpdate.set(Calendar.MONTH, monthOfYear);
             calendarToUpdate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
 
-            // If updating start date, ensure end date is not before it
             if (isStartDate && endCalendar.before(startCalendar)) {
                 endCalendar.setTimeInMillis(startCalendar.getTimeInMillis());
                 updateDateTimeFields(etEndDate, endCalendar);
@@ -193,7 +179,7 @@ public class PO_AddEvent extends Fragment {
         new TimePickerDialog(requireContext(), timeSetListener,
                 calendarToUpdate.get(Calendar.HOUR_OF_DAY),
                 calendarToUpdate.get(Calendar.MINUTE),
-                false).show(); // Use 'false' for 12-hour format
+                false).show();
     }
 
     private void updateDateTimeFields(EditText field, Calendar calendar) {
@@ -219,11 +205,6 @@ public class PO_AddEvent extends Fragment {
         }
     }
 
-
-    // =========================================================================================
-    //                                  CRUD LOGIC
-    // =========================================================================================
-
     private void loadEventData(String eventId) {
         db.collection("events").document(eventId).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -235,7 +216,6 @@ public class PO_AddEvent extends Fragment {
                             setSpinnerSelection(spEventType, event.type);
                             setSpinnerSelection(spEventStatus, event.status);
 
-                            // Assuming event.startDate and event.endDate are Long (timestamp)
                             startCalendar.setTimeInMillis(event.startDate);
                             endCalendar.setTimeInMillis(event.endDate);
 
@@ -315,13 +295,8 @@ public class PO_AddEvent extends Fragment {
                 });
     }
 
-    // =========================================================================================
-    //                                  HELPERS
-    // =========================================================================================
-
     private Map<String, Object> getAndValidateInputs() {
         if (currentUserId == null) {
-            // This check should be redundant due to checks in handleAdd/EditEvent, but kept for validation
             Toast.makeText(getContext(), "User authentication failed. Cannot save event.", Toast.LENGTH_SHORT).show();
             return null;
         }
