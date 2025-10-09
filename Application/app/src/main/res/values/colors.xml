@@ -24,4 +24,13 @@
     <color name="black_overlay">#80000000</color>
     <color name="white_transparent_50">#80FFFFFF</color>
     <color name="black_transparent_50">#80000000</color>
+    <color name="off_white_background">#F0F2F5</color>
+    <color name="green_icon_bg">#4CAF50</color>
+    <color name="blue_icon_bg">#2196F3</color>
+    <color name="purple_icon_bg">#9C27B0</color>
+    <color name="orange_icon_bg">#FF9800</color>
+    <color name="teal_icon_bg">#009688</color>
+    <color name="light_blue_icon_bg">#03A9F4</color>
+    <color name="grey_icon_bg">#9E9E9E</color>
+    <color name="red_icon_bg">#F44336</color>
 </resources>

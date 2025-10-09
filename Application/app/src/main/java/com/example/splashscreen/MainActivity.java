@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
             if (itemId == R.id.nav_home_po) {
                 selectedFragment = new PO_HomeScreen();
             } else if (itemId == R.id.nav_calculator) {
-                selectedFragment = new PO_AddPool();
+                selectedFragment = new Calculator_Selector();
             } else if (itemId == R.id.nav_calendar) {
                 navigateToPO_Calendar();
                 return true;

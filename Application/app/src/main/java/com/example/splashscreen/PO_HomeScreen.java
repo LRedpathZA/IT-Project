@@ -96,7 +96,6 @@ public class PO_HomeScreen extends Fragment {
         setupProductRecyclerView();
         initNavigation();
 
-        // Use ViewModel for user name and homePoolId
         observeUserData();
     }
 
@@ -107,9 +106,9 @@ public class PO_HomeScreen extends Fragment {
     private void observeUserData() {
         userViewModel.username.observe(getViewLifecycleOwner(), username -> {
             if (username != null && !username.isEmpty()) {
-                tvGreetingName.setText("Hello, " + username + "!");
+                tvGreetingName.setText("Hello, " + username);
             } else {
-                tvGreetingName.setText("Hello, User!");
+                tvGreetingName.setText("Hello, Guest User");
             }
         });
 

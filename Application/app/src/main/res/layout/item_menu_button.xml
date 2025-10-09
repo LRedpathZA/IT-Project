@@ -4,28 +4,22 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
+    android:gravity="center_vertical"
     android:clickable="true"
     android:focusable="true"
     android:background="?attr/selectableItemBackground"
     android:paddingStart="24dp"
-    android:paddingTop="14dp"
-    android:paddingEnd="24dp"
-    android:paddingBottom="14dp">
-
-    <TextView
-        android:id="@+id/tvMenuItemText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Menu Item"
-        android:textColor="@color/black"
-        android:textSize="16sp" />
-
-    <ImageView
-        android:id="@+id/ivMenuItemIcon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:contentDescription="Menu Icon"
-        app:tint="@color/black" />
+    android:paddingEnd="16dp"  android:paddingVertical="12dp"> <ImageView
+    android:id="@+id/ivMenuItemIcon"
+    android:layout_width="24dp"
+    android:layout_height="24dp"
+    android:contentDescription="Menu Icon"
+    android:src="@drawable/ic_placeholder_icon" app:tint="@color/black" /> <TextView
+    android:id="@+id/tvMenuItemText"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:layout_marginStart="24dp" android:text="Menu Item"
+    android:textColor="@color/black" android:textSize="16sp" />
 
 </LinearLayout>
