@@ -89,7 +89,7 @@
                 <ImageView
                     android:id="@+id/ivMessagesIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
-                    android:src="@drawable/ic_messages_rounded"
+                    android:src="@drawable/message"
                     app:tint="@color/black" /> <TextView
                 android:id="@+id/tvMessagesText"
                 style="@style/NavDrawerMenuItemTextStyle"
@@ -103,7 +103,7 @@
                 <ImageView
                     android:id="@+id/ivSummaryIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
-                    android:src="@drawable/ic_summary_rounded"
+                    android:src="@drawable/pool"
                     app:tint="@color/black" /> <TextView
                 android:id="@+id/tvSummaryText"
                 style="@style/NavDrawerMenuItemTextStyle"
@@ -113,15 +113,15 @@
             <LinearLayout
                 android:id="@+id/btnTips"
                 style="@style/NavDrawerMenuItemStyle"
-                android:contentDescription="Pool Tips & Articles">
+                android:contentDescription="Pool Tips &amp; Articles">
                 <ImageView
                     android:id="@+id/ivTipsIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
-                    android:src="@drawable/ic_tips_rounded"
+                    android:src="@drawable/tips"
                     app:tint="@color/black" /> <TextView
                 android:id="@+id/tvTipsText"
                 style="@style/NavDrawerMenuItemTextStyle"
-                android:text="Pool Tips & Articles"
+                android:text="Pool Tips &amp; Articles"
                 android:textColor="@color/black" /> </LinearLayout>
 
             <LinearLayout
@@ -131,7 +131,7 @@
                 <ImageView
                     android:id="@+id/ivLoadsheddingIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
-                    android:src="@drawable/ic_loadshedding_rounded"
+                    android:src="@drawable/loadshedding"
                     app:tint="@color/black" /> <TextView
                 android:id="@+id/tvLoadsheddingText"
                 style="@style/NavDrawerMenuItemTextStyle"
@@ -145,7 +145,7 @@
                 <ImageView
                     android:id="@+id/ivRestrictionsIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
-                    android:src="@drawable/ic_restrictions_rounded"
+                    android:src="@drawable/water_restriction"
                     app:tint="@color/black" /> <TextView
                 android:id="@+id/tvRestrictionsText"
                 style="@style/NavDrawerMenuItemTextStyle"
@@ -155,15 +155,15 @@
             <LinearLayout
                 android:id="@+id/btnHelp"
                 style="@style/NavDrawerMenuItemStyle"
-                android:contentDescription="Help & Support">
+                android:contentDescription="Help &amp; Support">
                 <ImageView
                     android:id="@+id/ivHelpIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
-                    android:src="@drawable/ic_help_rounded"
+                    android:src="@drawable/help"
                     app:tint="@color/black" /> <TextView
                 android:id="@+id/tvHelpText"
                 style="@style/NavDrawerMenuItemTextStyle"
-                android:text="Help & Support"
+                android:text="Help &amp; Support"
                 android:textColor="@color/black" /> </LinearLayout>
 
             <LinearLayout
@@ -173,7 +173,7 @@
                 <ImageView
                     android:id="@+id/ivSettingsIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
-                    android:src="@drawable/ic_settings_rounded"
+                    android:src="@drawable/settings"
                     app:tint="@color/black" /> <TextView
                 android:id="@+id/tvSettingsText"
                 style="@style/NavDrawerMenuItemTextStyle"
@@ -187,7 +187,7 @@
                 <ImageView
                     android:id="@+id/ivTutorialIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
-                    android:src="@drawable/ic_tutorial_rounded"
+                    android:src="@drawable/tutorial"
                     app:tint="@color/black" /> <TextView
                 android:id="@+id/tvTutorialText"
                 style="@style/NavDrawerMenuItemTextStyle"
@@ -205,7 +205,7 @@
             <ImageView
                 android:id="@+id/ivBusinessIcon"
                 style="@style/NavDrawerMenuItemIconStyle"
-                android:src="@drawable/ic_business_rounded"
+                android:src="@drawable/business"
                 app:tint="@color/black" /> <TextView
             android:id="@+id/tvBusinessText"
             style="@style/NavDrawerMenuItemTextStyle"
@@ -224,22 +224,22 @@
         android:background="@android:color/transparent">
 
         <ImageView
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:src="@drawable/facebook"
             android:contentDescription="Facebook"
             android:layout_marginHorizontal="12dp"/>
 
         <ImageView
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:src="@drawable/linkedin"
             android:contentDescription="LinkedIn"
             android:layout_marginHorizontal="12dp"/>
 
         <ImageView
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:src="@drawable/instagram"
             android:contentDescription="Instagram"
             android:layout_marginHorizontal="12dp"/>
