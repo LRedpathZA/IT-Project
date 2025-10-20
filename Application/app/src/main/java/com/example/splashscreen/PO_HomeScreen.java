@@ -29,7 +29,8 @@ public class PO_HomeScreen extends Fragment {
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
-    private UserViewModel userViewModel; // NEW: ViewModel
+    private UserViewModel userViewModel;
+    private PoolViewModel poolViewModel;
 
     private TextView tvGreetingName;
     private ImageView ivProfileIcon;
@@ -43,7 +44,6 @@ public class PO_HomeScreen extends Fragment {
     public static final String BUNDLE_KEY_POOL_ID = "new_pool_id";
     public static final String ARG_POOL_ID = "POOL_ID";
 
-    // Pool card views
     private TextView tvPoolName;
     private TextView tvPoolType;
     private TextView tvPoolCapacity;
@@ -51,7 +51,7 @@ public class PO_HomeScreen extends Fragment {
     private ImageView ivPoolImage;
     private View poolCardView;
 
-    private String homePoolId; // Still tracks the ID locally
+    private String homePoolId;
 
     public PO_HomeScreen() {
     }
@@ -77,10 +77,9 @@ public class PO_HomeScreen extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Initialize ViewModel
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
+        poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
 
-        // Initialize Views
         tvGreetingName = view.findViewById(R.id.poGreeting);
         ivProfileIcon = view.findViewById(R.id.ivProfileIcon);
         llAddPoolPlaceholder = view.findViewById(R.id.ll_add_pool_placeholder);
@@ -97,6 +96,21 @@ public class PO_HomeScreen extends Fragment {
         initNavigation();
 
         observeUserData();
+        // 💥 UPDATED: Observe PoolModel instead of DocumentSnapshot
+        observePoolData();
+    }
+
+    // =========================================================================================
+    //                                  ADDED REFRESH LOGIC
+    // =========================================================================================
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // This ensures the user data is fresh, which in turn triggers pool data load via handleHomePoolDocument
+        if (auth.getCurrentUser() != null) {
+            userViewModel.fetchUserData(auth.getCurrentUser().getUid());
+        }
     }
 
     // =========================================================================================
@@ -116,32 +130,51 @@ public class PO_HomeScreen extends Fragment {
             if (userDocument != null && userDocument.exists()) {
                 handleHomePoolDocument(userDocument);
             }
-        }); // Try fetch the user's data via the Main Activity.
+        });
+    }
+
+    private void observePoolData() {
+        // 💥 CHANGED: Observe the LiveData that holds the PoolModel
+        poolViewModel.currentPoolModel.observe(getViewLifecycleOwner(), poolModel -> {
+            if (poolModel != null) {
+                // 💥 CHANGED: Pass the PoolModel to the display function
+                displayPoolCard(poolModel);
+            } else {
+                // If the model is null (cleared or not found)
+                if (flHomePoolContent != null) {
+                    flHomePoolContent.removeAllViews();
+                    flHomePoolContent.addView(llAddPoolPlaceholder);
+                    llAddPoolPlaceholder.setVisibility(View.VISIBLE);
+                }
+            }
+        });
     }
 
     private void handleHomePoolDocument(DocumentSnapshot userDocument) {
         String fetchedPoolId = userDocument.getString("homePoolId");
 
-        if (fetchedPoolId != null && !fetchedPoolId.isEmpty()) {
-            this.homePoolId = fetchedPoolId;
-            MainActivity.homePoolId = this.homePoolId;
-            fetchAndDisplayPool(fetchedPoolId);
-        } else {
+        // Logic to clear pool data if no home pool is set
+        if (fetchedPoolId == null || fetchedPoolId.isEmpty()) {
             this.homePoolId = null;
             MainActivity.homePoolId = null;
+            poolViewModel.clearPoolData();
 
             if (flHomePoolContent != null) {
                 flHomePoolContent.removeAllViews();
                 flHomePoolContent.addView(llAddPoolPlaceholder);
                 llAddPoolPlaceholder.setVisibility(View.VISIBLE);
             }
+            return;
+        }
+
+        // Only fetch if the ID is new or we are forcing a fresh load
+        if (!fetchedPoolId.equals(this.homePoolId)) {
+            this.homePoolId = fetchedPoolId;
+            MainActivity.homePoolId = this.homePoolId;
+            // The PoolViewModel is now responsible for handling when to actually fetch
+            poolViewModel.fetchPoolData(fetchedPoolId);
         }
     }
-
-
-    // =========================================================================================
-    //                                 NAVIGATION SETUP
-    // =========================================================================================
 
     private void initNavigation() {
         ivProfileIcon.setOnClickListener(v -> navigateToFragment(new PO_Profile()));
@@ -173,13 +206,6 @@ public class PO_HomeScreen extends Fragment {
         navigateToFragment(calendarFragment);
     }
 
-
-    // =========================================================================================
-    //                                 DATA FETCHING & RECYCLERVIEW
-    // =========================================================================================
-
-
-
     private void setupProductRecyclerView() {
         List<ItemModel> initialList = new ArrayList<>();
         initialList.add(new ItemModel("Chlorine Tabs", "Top Seller", R.drawable.password));
@@ -191,72 +217,67 @@ public class PO_HomeScreen extends Fragment {
     }
 
     private void setupPoolResultListener() {
-        // Listens for the result of a newly created or edited pool from PO_AddPool.
         getParentFragmentManager().setFragmentResultListener(REQUEST_KEY_POOL_ADDED, this, (requestKey, bundle) -> {
             if (requestKey.equals(REQUEST_KEY_POOL_ADDED)) {
-                String newPoolId = bundle.getString(BUNDLE_KEY_POOL_ID);
-                if (newPoolId != null) {
-                    this.homePoolId = newPoolId;
-                    MainActivity.homePoolId = newPoolId;
-                    if (auth.getCurrentUser() != null) {
-                        userViewModel.fetchUserData(auth.getCurrentUser().getUid());
-                    }
+                String resultPoolId = bundle.getString(BUNDLE_KEY_POOL_ID);
 
-                    fetchAndDisplayPool(newPoolId);
+                // The manual update handles the immediate UI change via ViewModel observation.
+                // We still need to call fetchUserData to ensure the homePoolId link is confirmed
+                // and to trigger a potential pool data fetch if the ID changed or was deleted.
+                if (auth.getCurrentUser() != null) {
+                    userViewModel.fetchUserData(auth.getCurrentUser().getUid());
                 }
             }
         });
     }
 
-    private void fetchAndDisplayPool(String poolId) {
-        db.collection("pools").document(poolId).get()
-                .addOnSuccessListener(poolDocument -> {
-                    if (poolDocument.exists() && flHomePoolContent != null && getContext() != null) {
 
-                        String poolName = poolDocument.getString("name");
-                        String poolType = poolDocument.getString("type");
-                        String sanitizerType = poolDocument.getString("sanitizerType");
-                        String poolLocation = poolDocument.getString("location");
-                        Long capacity = poolDocument.getLong("waterCapacityLiters");
-                        flHomePoolContent.removeAllViews();
-                        poolCardView = LayoutInflater.from(getContext()).inflate(R.layout.item_pool_card, flHomePoolContent, false);
-                        flHomePoolContent.addView(poolCardView);
+    private void displayPoolCard(PoolModel poolModel) {
+        if (poolModel != null && flHomePoolContent != null && getContext() != null) {
 
-                        tvPoolName = poolCardView.findViewById(R.id.tv_pool_name);
-                        tvPoolType = poolCardView.findViewById(R.id.tv_pool_type);
-                        tvPoolCapacity = poolCardView.findViewById(R.id.tv_pool_capacity);
-                        tvPoolLocation = poolCardView.findViewById(R.id.tv_pool_location);
-                        ivPoolImage = poolCardView.findViewById(R.id.iv_pool_image);
+            String poolName = poolModel.getName();
+            String poolType = poolModel.getType();
+            String sanitizerType = poolModel.getSanitizerType();
+            String poolLocation = poolModel.getLocation();
+            Long capacity = poolModel.getWaterCapacityLiters();
+            String poolId = poolModel.getPoolId();
 
-                        if (tvPoolName != null) tvPoolName.setText(poolName);
-                        if (tvPoolType != null) tvPoolType.setText(String.format("%s | %s", poolType, sanitizerType));
-                        if (tvPoolCapacity != null && capacity != null) tvPoolCapacity.setText(String.format("%dL", capacity));
-                        if (tvPoolLocation != null) tvPoolLocation.setText(poolLocation);
+            boolean poolCardExists = flHomePoolContent.getChildCount() > 0 &&
+                    flHomePoolContent.getChildAt(0) == poolCardView;
+
+            if (poolCardView == null || !poolCardExists) {
+
+                flHomePoolContent.removeAllViews();
+                poolCardView = LayoutInflater.from(getContext()).inflate(R.layout.item_pool_card, flHomePoolContent, false);
+                flHomePoolContent.addView(poolCardView);
+                poolCardView.setOnClickListener(v -> navigateToEditPool(poolId));
+
+                tvPoolName = poolCardView.findViewById(R.id.tv_pool_name);
+                tvPoolType = poolCardView.findViewById(R.id.tv_pool_type);
+                tvPoolCapacity = poolCardView.findViewById(R.id.tv_pool_capacity);
+                tvPoolLocation = poolCardView.findViewById(R.id.tv_pool_location);
+                ivPoolImage = poolCardView.findViewById(R.id.iv_pool_image);
+
+                if (ivPoolImage != null) {
+                    ivPoolImage.setImageResource(R.drawable.fake_pool);
+                }
+            }
+
+            if (tvPoolName != null) tvPoolName.setText(poolName);
+            if (tvPoolType != null) tvPoolType.setText(String.format("%s | %s", poolType, sanitizerType));
+            if (tvPoolCapacity != null && capacity != null) tvPoolCapacity.setText(String.format("%dL", capacity));
+            if (tvPoolLocation != null) tvPoolLocation.setText(poolLocation);
 
 
-                        if (ivPoolImage != null) {
-                            ivPoolImage.setImageResource(R.drawable.fake_pool);
-                        }
+            llAddPoolPlaceholder.setVisibility(View.GONE);
 
-
-                        poolCardView.setOnClickListener(v -> navigateToEditPool(poolId));
-
-                    } else {
-                        if (flHomePoolContent != null) {
-                            flHomePoolContent.removeAllViews();
-                            flHomePoolContent.addView(llAddPoolPlaceholder);
-                            llAddPoolPlaceholder.setVisibility(View.VISIBLE);
-                        }
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    // Revert to placeholder on error
-                    if (flHomePoolContent != null) {
-                        flHomePoolContent.removeAllViews();
-                        flHomePoolContent.addView(llAddPoolPlaceholder);
-                        llAddPoolPlaceholder.setVisibility(View.VISIBLE);
-                    }
-                });
+        } else {
+            if (flHomePoolContent != null) {
+                flHomePoolContent.removeAllViews();
+                flHomePoolContent.addView(llAddPoolPlaceholder);
+                llAddPoolPlaceholder.setVisibility(View.VISIBLE);
+            }
+        }
     }
 
     private void navigateToEditPool(String poolId) {

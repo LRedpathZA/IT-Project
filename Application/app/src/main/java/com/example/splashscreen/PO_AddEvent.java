@@ -17,6 +17,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -42,11 +43,12 @@ public class PO_AddEvent extends Fragment {
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
+    private PoolViewModel poolViewModel;
     private String currentUserId;
 
     private final Calendar startCalendar = Calendar.getInstance();
     private final Calendar endCalendar = Calendar.getInstance();
-    private  String HOME_POOL_ID = "BLANK";
+    private  String HOME_POOL_ID = null; // Changed initial state to null
 
     public PO_AddEvent() {}
 
@@ -59,19 +61,14 @@ public class PO_AddEvent extends Fragment {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
             currentUserId = user.getUid();
-            Log.d(TAG, "Authenticated user ID: " + currentUserId);
         } else {
             Log.e(TAG, "User not authenticated. CRUD operations will fail.");
-            Toast.makeText(getContext(), "Authentication required. Cannot save event.", Toast.LENGTH_LONG).show();
+            if (getContext() != null) Toast.makeText(getContext(), "Authentication required. Cannot save event.", Toast.LENGTH_LONG).show();
         }
+
+        // Retain the POOL_ID argument logic as a fallback, but rely on ViewModel in onViewCreated
         if (getArguments() != null) {
             HOME_POOL_ID = getArguments().getString("POOL_ID");
-            if (HOME_POOL_ID == null) {
-                Log.e(TAG, "CRITICAL: Pool ID missing from arguments.");
-                Toast.makeText(getContext(), "Cannot load event screen: Pool ID missing.", Toast.LENGTH_LONG).show();
-            } else {
-                Log.d(TAG, "Home Pool ID retrieved: " + HOME_POOL_ID);
-            }
         }
     }
 
@@ -84,6 +81,21 @@ public class PO_AddEvent extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
+
+        // Use the ViewModel's poolId and observe changes
+        poolViewModel.poolId.observe(getViewLifecycleOwner(), poolId -> {
+            if (poolId != null) {
+                HOME_POOL_ID = poolId;
+            } else {
+                HOME_POOL_ID = null;
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Cannot proceed: Pool context missing.", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
 
         tvTitle = view.findViewById(R.id.tv_title);
         btnSaveEvent = view.findViewById(R.id.btn_save_event);
@@ -236,9 +248,9 @@ public class PO_AddEvent extends Fragment {
     }
 
     private void handleAddEvent() {
-        if (currentUserId == null || HOME_POOL_ID == null || HOME_POOL_ID.equals("BLANK")) {
+        if (currentUserId == null || HOME_POOL_ID == null) {
             if (getContext() != null) {
-                String message = (currentUserId == null) ? "User authentication failed." : "You have no pool to create an event for.";
+                String message = (currentUserId == null) ? "User authentication failed." : "You have no pool selected to create an event for.";
                 Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
             }
             return;
@@ -296,8 +308,8 @@ public class PO_AddEvent extends Fragment {
     }
 
     private Map<String, Object> getAndValidateInputs() {
-        if (currentUserId == null) {
-            Toast.makeText(getContext(), "User authentication failed. Cannot save event.", Toast.LENGTH_SHORT).show();
+        if (currentUserId == null || HOME_POOL_ID == null) {
+            if (getContext() != null) Toast.makeText(getContext(), "Missing user or pool context. Cannot save event.", Toast.LENGTH_SHORT).show();
             return null;
         }
 

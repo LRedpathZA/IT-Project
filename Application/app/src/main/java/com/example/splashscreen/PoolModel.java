@@ -1,0 +1,115 @@
+package com.example.splashscreen;
+
+import com.google.firebase.firestore.DocumentSnapshot;
+
+
+public class PoolModel {
+    private String poolId;
+    private String userId;
+    private String name;
+    private String type;
+    private Long waterCapacityLiters;
+    private String sanitizerType;
+    private Long filterRuntimeHours;
+    private String location;
+    private String photoUrl;
+    private Long createdAt;
+
+    public PoolModel() {
+    }
+
+    public PoolModel(DocumentSnapshot document) {
+        if (document != null && document.exists()) {
+            this.poolId = document.getId();
+            this.userId = document.getString("userId");
+            this.name = document.getString("name");
+            this.type = document.getString("type");
+            this.waterCapacityLiters = document.getLong("waterCapacityLiters");
+            this.sanitizerType = document.getString("sanitizerType");
+            this.filterRuntimeHours = document.getLong("filterRuntimeHours");
+            this.location = document.getString("location");
+            this.photoUrl = document.getString("photoUrl");
+            this.createdAt = document.getLong("createdAt");
+        }
+    }
+
+    public String getPoolId() {
+        return poolId;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public Long getWaterCapacityLiters() {
+        return waterCapacityLiters;
+    }
+
+    public String getSanitizerType() {
+        return sanitizerType;
+    }
+
+    public Long getFilterRuntimeHours() {
+        return filterRuntimeHours;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public Long getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setPoolId(String poolId) {
+        this.poolId = poolId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setWaterCapacityLiters(Long waterCapacityLiters) {
+        this.waterCapacityLiters = waterCapacityLiters;
+    }
+
+    public void setSanitizerType(String sanitizerType) {
+        this.sanitizerType = sanitizerType;
+    }
+
+    public void setFilterRuntimeHours(Long filterRuntimeHours) {
+        this.filterRuntimeHours = filterRuntimeHours;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
+
+    public void setCreatedAt(Long createdAt) {
+        this.createdAt = createdAt;
+    }
+}

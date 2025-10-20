@@ -1,64 +1,282 @@
 package com.example.splashscreen;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link pHCalculator#newInstance} factory method to
- * create an instance of this fragment.
- */
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputLayout;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class pHCalculator extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private EditText etCurrentPh, etTargetPh, etPoolVolume;
+    private AutoCompleteTextView actvVolumeUnit, actvChemicalType;
+    private TextInputLayout tilChemicalType;
+    private TextView tvChemicalDetails, tvDosageResult;
+    private CardView cvResult;
+    private MaterialButton btnCalculate;
+    private ImageButton btnBack;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private PoolViewModel poolViewModel;
+    private String poolId;
 
-    public pHCalculator() {
-        // Required empty public constructor
-    }
+    // 💥 UPDATED: Renamed constant to LITRES and set value to "L" (The symbol remains 'L')
+    private static final String UNIT_LITRES = "L";
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment pHCalculator.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static pHCalculator newInstance(String param1, String param2) {
-        pHCalculator fragment = new pHCalculator();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+    // 💥 REMOVED: UNIT_GALLONS is no longer needed
+
+    private Map<String, ChemicalDosageInfo> chemicalInfoMap;
+
+    public pHCalculator() {}
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        initializeChemicalData();
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.ph_calculator, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
+
+        etCurrentPh = view.findViewById(R.id.et_current_ph);
+        etTargetPh = view.findViewById(R.id.et_target_ph);
+        etPoolVolume = view.findViewById(R.id.et_pool_volume);
+        actvVolumeUnit = view.findViewById(R.id.actv_volume_unit);
+        actvChemicalType = view.findViewById(R.id.actv_chemical_type);
+        tilChemicalType = view.findViewById(R.id.til_chemical_type);
+        tvChemicalDetails = view.findViewById(R.id.tv_chemical_details);
+        tvDosageResult = view.findViewById(R.id.tv_dosage_result);
+        cvResult = view.findViewById(R.id.cv_result);
+        btnCalculate = view.findViewById(R.id.btn_calculate);
+        btnBack = view.findViewById(R.id.btn_back);
+
+        setupListeners();
+        setupSpinners();
+        observePoolData();
+    }
+
+    private void setupListeners() {
+        btnBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
+        btnCalculate.setOnClickListener(v -> calculateDosage());
+
+        actvChemicalType.setOnItemClickListener((parent, view, position, id) -> updateChemicalDetails(actvChemicalType.getText().toString()));
+
+        TextWatcher inputWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                cvResult.setVisibility(View.GONE);
+            }
+            @Override
+            public void afterTextChanged(Editable s) {}
+        };
+
+        etCurrentPh.addTextChangedListener(inputWatcher);
+        etTargetPh.addTextChangedListener(inputWatcher);
+        etPoolVolume.addTextChangedListener(inputWatcher);
+        actvVolumeUnit.addTextChangedListener(inputWatcher);
+        actvChemicalType.addTextChangedListener(inputWatcher);
+    }
+
+    private void setupSpinners() {
+        // 💥 UPDATED: Only use LITRES. We keep this a dropdown in case other metric units are added later.
+        String[] volumeUnits = new String[]{UNIT_LITRES};
+        ArrayAdapter<String> unitAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, volumeUnits);
+        actvVolumeUnit.setAdapter(unitAdapter);
+        actvVolumeUnit.setText(UNIT_LITRES, false);
+
+        String[] chemicalTypes = chemicalInfoMap.keySet().toArray(new String[0]);
+        ArrayAdapter<String> chemicalAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, chemicalTypes);
+        actvChemicalType.setAdapter(chemicalAdapter);
+    }
+
+    private void observePoolData() {
+        poolViewModel.currentPoolModel.observe(getViewLifecycleOwner(), poolModel -> {
+            if (poolModel != null) {
+                poolId = poolModel.getPoolId();
+                if (poolModel.getWaterCapacityLiters() != null) {
+                    etPoolVolume.setText(String.valueOf(poolModel.getWaterCapacityLiters()));
+                    // 💥 UPDATED: Use UNIT_LITRES
+                    actvVolumeUnit.setText(UNIT_LITRES, false);
+                }
+            } else {
+                poolId = null;
+            }
+        });
+    }
+
+    private void updateChemicalDetails(String chemicalName) {
+        ChemicalDosageInfo info = chemicalInfoMap.get(chemicalName);
+        if (info != null) {
+            tvChemicalDetails.setText(info.details);
+        } else {
+            tvChemicalDetails.setText("Select a chemical above to see safety instructions, dosage caveats, and application procedures.");
+        }
+        cvResult.setVisibility(View.GONE);
+    }
+
+    private void initializeChemicalData() {
+        chemicalInfoMap = new HashMap<>();
+
+        // pH Decreasers
+        chemicalInfoMap.put("pH Decreaser (Muriatic Acid - 31%)", new ChemicalDosageInfo(
+                "Muriatic Acid (Hydrochloric Acid, HCl). Strong acid. Requires extreme caution. Add slowly to water, never water to acid. Ideal for high pH.",
+                "pH Decreaser (Liquid)",
+                1000.0 // ml/10,000L to drop pH by 0.1
+        ));
+        chemicalInfoMap.put("pH Decreaser (Sodium Bisulfate - Granular)", new ChemicalDosageInfo(
+                "Sodium Bisulfate. Safer alternative to liquid acid. Mix in bucket of water before adding to pool. Ideal for high pH.",
+                "pH Decreaser (Granular)",
+                100.0 // grams/10,000L to drop pH by 0.1
+        ));
+
+        // pH Increasers
+        chemicalInfoMap.put("pH Increaser (Soda Ash / Sodium Carbonate)", new ChemicalDosageInfo(
+                "Soda Ash. Highly effective. Pre-dissolve in water and add over deep end. Also increases Total Alkalinity. Ideal for low pH.",
+                "pH Increaser (Powder)",
+                60.0 // grams/10,000L to raise pH by 0.1
+        ));
+    }
+
+    private void calculateDosage() {
+        String currentPhStr = etCurrentPh.getText().toString();
+        String targetPhStr = etTargetPh.getText().toString();
+        String volumeStr = etPoolVolume.getText().toString();
+        String chemicalName = actvChemicalType.getText().toString();
+
+        // 💥 REMOVED: The unit check `String unit = actvVolumeUnit.getText().toString();` is now redundant
+        // as the app is metric-only, but we'll leave it in the check to avoid null pointer
+
+        if (currentPhStr.isEmpty() || volumeStr.isEmpty() || chemicalName.isEmpty()) {
+            Toast.makeText(getContext(), "Please fill in all required fields (*).", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            double currentPh = Double.parseDouble(currentPhStr);
+            double targetPh = targetPhStr.isEmpty() ? 7.5 : Double.parseDouble(targetPhStr);
+            double volume = Double.parseDouble(volumeStr);
+
+            if (currentPh < 0 || currentPh > 14 || targetPh < 0 || targetPh > 14) {
+                Toast.makeText(getContext(), "pH levels must be between 0 and 14.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (volume <= 0) {
+                Toast.makeText(getContext(), "Pool volume must be greater than zero.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (Math.abs(currentPh - targetPh) < 0.05) {
+                tvDosageResult.setText("No adjustment required. pH is stable.");
+                cvResult.setVisibility(View.VISIBLE);
+                return;
+            }
+
+            if (currentPh > targetPh && !chemicalName.toLowerCase().contains("decreaser")) {
+                Toast.makeText(getContext(), "You need a pH Decreaser to lower the pH.", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            if (currentPh < targetPh && !chemicalName.toLowerCase().contains("increaser")) {
+                Toast.makeText(getContext(), "You need a pH Increaser to raise the pH.", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            ChemicalDosageInfo info = chemicalInfoMap.get(chemicalName);
+            if (info == null) {
+                Toast.makeText(getContext(), "Selected chemical is invalid.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            double requiredPhChange = targetPh - currentPh;
+            double phChangeAbsolute = Math.abs(requiredPhChange);
+
+            // Calculate dosage in metric base (g or ml per 10,000 LITRES for 0.1 pH change)
+            double dosageRate = info.dosageRate;
+            double baseVolume = 10000.0; // 10,000 Litres
+
+            double dosageRequiredMetric;
+
+
+
+            // Calculation: (pH_Change / 0.1) * (Volume / Base_Volume) * Dosage_Rate
+            dosageRequiredMetric = (phChangeAbsolute / 0.1) * (volume / baseVolume) * dosageRate;
+
+            // Determine final display unit and convert
+            String finalUnit;
+            String chemicalType;
+            String amountFormat;
+            double dosageToDisplay;
+
+            if (info.baseType.toLowerCase().contains("liquid")) {
+                dosageToDisplay = dosageRequiredMetric / 1000.0; // Convert ml to L
+                finalUnit = UNIT_LITRES;
+                chemicalType = "of " + chemicalName.split("\\(")[0].trim();
+                amountFormat = "%.2f";
+            } else {
+                // Granular/Powder: use grams (g)
+                if (volume > 40000) { // If pool is large, display in kg
+                    dosageToDisplay = dosageRequiredMetric / 1000.0; // Convert g to kg
+                    finalUnit = "kg";
+                    amountFormat = "%.2f";
+                } else {
+                    dosageToDisplay = dosageRequiredMetric; // Display in g
+                    finalUnit = "g";
+                    amountFormat = "%.0f";
+                }
+                chemicalType = "of " + chemicalName.split("\\(")[0].trim();
+            }
+
+            String resultText = String.format(amountFormat + " %s %s", dosageToDisplay, finalUnit, chemicalType);
+
+            tvDosageResult.setText(resultText);
+            cvResult.setVisibility(View.VISIBLE);
+
+        } catch (NumberFormatException e) {
+            Toast.makeText(getContext(), "Invalid number input. Please check your values.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.ph_calculator, container, false);
+    private static class ChemicalDosageInfo {
+        final String details;
+        final String baseType;
+        final double dosageRate;
+
+
+        ChemicalDosageInfo(String details, String baseType, double dosageRate) {
+            this.details = details;
+            this.baseType = baseType;
+            this.dosageRate = dosageRate;
+
+        }
     }
 }

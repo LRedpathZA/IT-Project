@@ -22,12 +22,13 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue; // Import for deleting field
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -38,7 +39,7 @@ public class PO_AddPool extends Fragment {
 
     private EditText etPoolName, etPoolType, etWaterCapacity, etSanitizerType, etFilterRuntime, etPoolLocation;
     private MaterialButton btnAddPool;
-    private MaterialButton btnDeletePool; // NEW
+    private MaterialButton btnDeletePool;
     private LinearLayout llPlaceholder;
     private ImageView ivSelectedPhoto;
     private ImageButton btnDeletePhoto;
@@ -46,14 +47,13 @@ public class PO_AddPool extends Fragment {
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    private PoolViewModel poolViewModel;
 
-    // Image Management
     private Uri selectedImageUri = null;
     private String currentPhotoUrl = null;
     private static final int PICK_IMAGE_REQUEST = 1;
 
     public PO_AddPool() {
-        // Required empty public constructor
     }
 
     @Override
@@ -74,10 +74,11 @@ public class PO_AddPool extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Initialize Views
+        poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
+
         TextView tvTitle = view.findViewById(R.id.tv_title);
         btnAddPool = view.findViewById(R.id.btn_add_pool);
-        btnDeletePool = view.findViewById(R.id.btn_delete_pool); // NEW
+        btnDeletePool = view.findViewById(R.id.btn_delete_pool);
 
         etPoolName = view.findViewById(R.id.et_pool_name);
         etPoolType = view.findViewById(R.id.et_pool_type);
@@ -178,7 +179,6 @@ public class PO_AddPool extends Fragment {
         }
     }
 
-    // NEW: DELETE POOL IMPLEMENTATION
     private void deletePool(String poolId) {
         String userId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
         if (userId == null) {
@@ -190,10 +190,8 @@ public class PO_AddPool extends Fragment {
         btnDeletePool.setEnabled(false);
         btnDeletePool.setText("Deleting...");
 
-        // 1. Remove pool document
         db.collection("pools").document(poolId).delete()
                 .addOnSuccessListener(aVoid -> {
-                    // 2. Clear homePoolId from user document
                     db.collection("users").document(userId)
                             .update("homePoolId", FieldValue.delete())
                             .addOnSuccessListener(aVoid1 -> {
@@ -201,18 +199,17 @@ public class PO_AddPool extends Fragment {
                                     Toast.makeText(getContext(), "Pool deleted successfully!", Toast.LENGTH_SHORT).show();
                                 }
 
-                                // 3. Notify PO_HomeScreen to refresh (pass null ID to revert to placeholder)
+                                // Update ViewModel and notify Home Screen
+                                poolViewModel.clearPoolData();
                                 Bundle result = new Bundle();
                                 result.putString(PO_HomeScreen.BUNDLE_KEY_POOL_ID, null);
                                 getParentFragmentManager().setFragmentResult(PO_HomeScreen.REQUEST_KEY_POOL_ADDED, result);
 
-                                // 4. Navigate back
                                 if (getActivity() != null) {
                                     getParentFragmentManager().popBackStack();
                                 }
                             })
                             .addOnFailureListener(e -> {
-                                // Pool deleted, but user update failed (Major issue, but continue back)
                                 if (getContext() != null) {
                                     Toast.makeText(getContext(), "Pool deleted, but user link remains. Please report.", Toast.LENGTH_LONG).show();
                                 }
@@ -222,7 +219,6 @@ public class PO_AddPool extends Fragment {
                             });
                 })
                 .addOnFailureListener(e -> {
-                    // Pool deletion failed
                     btnAddPool.setEnabled(true);
                     btnDeletePool.setEnabled(true);
                     btnDeletePool.setText("Delete Pool");
@@ -255,10 +251,10 @@ public class PO_AddPool extends Fragment {
                             etFilterRuntime.setText(String.valueOf(runtime));
                         }
 
-                        // Handle Image loading (simulated)
                         currentPhotoUrl = documentSnapshot.getString("photoUrl");
                         if (currentPhotoUrl != null && !currentPhotoUrl.isEmpty()) {
-                            // Using a placeholder drawable (R.drawable.fake_pool)
+                            // Ensure the image URL is stored, even if we use a fake drawable
+                            // You may need to load the image via a library like Glide/Picasso for real URLs
                             ivSelectedPhoto.setImageResource(R.drawable.fake_pool);
                             ivSelectedPhoto.setVisibility(View.VISIBLE);
                             btnDeletePhoto.setVisibility(View.VISIBLE);
@@ -279,6 +275,40 @@ public class PO_AddPool extends Fragment {
     // =========================================================================================
     //                                  VALIDATION AND DATA GRAB
     // =========================================================================================
+
+    /**
+     * Creates a PoolModel object from the input data map, assigning the poolId.
+     * This is used to manually update the ViewModel without requiring a separate fetch.
+     * @param poolData The map of data ready to be saved/updated.
+     * @param poolId The ID of the pool.
+     * @return A manually created PoolModel instance.
+     */
+    private PoolModel createPoolModelFromMap(Map<String, Object> poolData, String poolId) {
+        PoolModel pool = new PoolModel();
+
+        // Convert numbers from Integer (user input) to Long (Firestore type) for storage
+        Long capacityLong = ((Long) poolData.get("waterCapacityLiters")).longValue();
+        Long runtimeLong = ((Long) poolData.get("filterRuntimeHours")).longValue();
+
+        pool.setPoolId(poolId);
+        pool.setUserId((String) poolData.get("userId"));
+        pool.setName((String) poolData.get("name"));
+        pool.setType((String) poolData.get("type"));
+        pool.setWaterCapacityLiters(capacityLong);
+        pool.setSanitizerType((String) poolData.get("sanitizerType"));
+        pool.setFilterRuntimeHours(runtimeLong);
+        pool.setLocation((String) poolData.get("location"));
+        pool.setPhotoUrl((String) poolData.get("photoUrl"));
+        // 'createdAt' needs to be set if available, especially for a newly added pool
+        if (poolData.containsKey("createdAt")) {
+            pool.setCreatedAt((Long) poolData.get("createdAt"));
+        } else {
+            // For an update, we rely on the original value (which is not available here)
+            // but since the home screen doesn't show it, it's safe to skip for updates.
+        }
+
+        return pool;
+    }
 
     @Nullable
     private Map<String, Object> getAndValidateInputs() {
@@ -352,7 +382,13 @@ public class PO_AddPool extends Fragment {
     }
 
     private void savePoolToFirestore(Map<String, Object> poolData, @Nullable String existingPoolId) {
-        poolData.put("createdAt", System.currentTimeMillis());
+        long createdAt = System.currentTimeMillis();
+        poolData.put("createdAt", createdAt);
+
+
+        poolData.put("waterCapacityLiters", ((Integer)poolData.get("waterCapacityLiters")).longValue());
+        poolData.put("filterRuntimeHours", ((Integer)poolData.get("filterRuntimeHours")).longValue());
+
 
         db.collection("pools")
                 .add(poolData)
@@ -366,6 +402,10 @@ public class PO_AddPool extends Fragment {
                                 if (getContext() != null) {
                                     Toast.makeText(getContext(), "Pool added and set as home pool!", Toast.LENGTH_SHORT).show();
                                 }
+
+
+                                PoolModel newPoolModel = createPoolModelFromMap(poolData, newPoolId);
+                                poolViewModel.setPoolDataManually(newPoolModel);
 
                                 Bundle result = new Bundle();
                                 result.putString(PO_HomeScreen.BUNDLE_KEY_POOL_ID, newPoolId);
@@ -393,12 +433,23 @@ public class PO_AddPool extends Fragment {
     }
 
     private void updatePoolInFirestore(Map<String, Object> poolData, @NonNull String poolId) {
+        poolData.put("waterCapacityLiters", ((Integer)poolData.get("waterCapacityLiters")).longValue());
+        poolData.put("filterRuntimeHours", ((Integer)poolData.get("filterRuntimeHours")).longValue());
+
+
         db.collection("pools").document(poolId)
                 .update(poolData)
                 .addOnSuccessListener(aVoid -> {
                     if (getContext() != null) {
                         Toast.makeText(getContext(), "Pool details updated successfully!", Toast.LENGTH_SHORT).show();
                     }
+
+                    if (!poolData.containsKey("photoUrl")) {
+                        poolData.put("photoUrl", currentPhotoUrl);
+                    }
+
+                    PoolModel updatedPoolModel = createPoolModelFromMap(poolData, poolId);
+                    poolViewModel.setPoolDataManually(updatedPoolModel);
 
                     Bundle result = new Bundle();
                     result.putString(PO_HomeScreen.BUNDLE_KEY_POOL_ID, poolId);
@@ -416,9 +467,6 @@ public class PO_AddPool extends Fragment {
                     }
                 });
     }
-// ... (rest of image handling and dropdown methods remain the same)
-// ... (rest of image handling and dropdown methods remain the same)
-// ... (rest of image handling and dropdown methods remain the same)
 
     private void openImageChooser() {
         Intent intent = new Intent();
