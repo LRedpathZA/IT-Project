@@ -6,23 +6,23 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-
 
 public class MainActivity extends AppCompatActivity {
     private UserViewModel userViewModel;
@@ -33,10 +33,16 @@ public class MainActivity extends AppCompatActivity {
     public BottomNavigationView bottomNavigationView;
     private FrameLayout drawerContainer;
 
+    // --- Header Views (NEW) ---
+    private CardView cardTopBar;
+    private TextView tvTitle;
+    private ImageButton btnBack;
+    private ImageButton btnProfile;
+    // -------------------------
+
     private static final int ROLE_POOL_OWNER = 1;
     private static final int ROLE_SERVICE_PROVIDER = 2;
     public static String homePoolId;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +57,15 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.bottom_navigation_view);
         drawerContainer = findViewById(R.id.drawer_container);
 
+        // --- Initialize Header Views (NEW) ---
+        cardTopBar = findViewById(R.id.card_top_bar);
+        tvTitle = findViewById(R.id.tv_title);
+        btnBack = findViewById(R.id.btn_back);
+        btnProfile = findViewById(R.id.btn_profile);
+        // ------------------------------------
+
+        setupHeaderListeners(); // Set up global header listeners
+
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser != null) {
             userViewModel.fetchUserData(currentUser.getUid());
@@ -60,15 +75,70 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // HEADER MANAGEMENT (NEW)
+    // -------------------------------------------------------------------------
+
+    private void setupHeaderListeners() {
+        btnBack.setOnClickListener(v -> {
+            // Handle back navigation using the FragmentManager back stack
+            if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                getSupportFragmentManager().popBackStack();
+            } else {
+                // If on a root fragment, call the system back press
+                onBackPressed();
+            }
+        });
+
+        btnProfile.setOnClickListener(v -> {
+            Fragment profileFragment = new PO_Profile();
+            replaceFragment(profileFragment, true);
+        });
+
+
+        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
+
+            boolean isRoot = getSupportFragmentManager().getBackStackEntryCount() == 0;
+            btnBack.setVisibility(isRoot ? View.GONE : View.VISIBLE);
+
+            // Re-call fragment's onResume to ensure header settings are applied
+            // This is a common pattern to ensure the header is updated after a back operation.
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+            if (currentFragment != null) {
+                if (currentFragment instanceof HeaderUpdatable) {
+                    ((HeaderUpdatable) currentFragment).updateActivityHeader();
+                } else {
+                    // Default header for any fragment that doesn't implement the interface
+                    updateHeader("Detail Screen", true, !isRoot);
+                }
+            }
+        });
+
+        // Hide back button on initial load
+        btnBack.setVisibility(View.GONE);
+    }
+
+    /**
+     * Public method for fragments to call to update the header title and visibility.
+     * This is the core method for the new centralized header system.
+     */
+    public void updateHeader(String title, boolean showHeader, boolean showBackButton) {
+        cardTopBar.setVisibility(showHeader ? View.VISIBLE : View.GONE);
+        tvTitle.setText(title);
+        btnProfile.setVisibility(showHeader ? View.VISIBLE : View.GONE); // Generally hide profile if header is hidden
+        btnBack.setVisibility(showBackButton ? View.VISIBLE : View.GONE);
+    }
+
+    // -------------------------------------------------------------------------
+    // CORE LOGIC
+    // -------------------------------------------------------------------------
+
     private void observeUserData() {
-        // Observe the userRole for initial setup and UI configuration
         userViewModel.userRole.observe(this, userRole -> {
             if (userRole != null) {
-
                 setupRoleBasedUI(userRole);
 
-
-                Fragment initialFragment = new Fragment();
+                Fragment initialFragment = null;
                 if (ROLE_POOL_OWNER == userRole) {
                     initialFragment = new PO_HomeScreen();
                     bottomNavigationView.setSelectedItemId(R.id.nav_home_po);
@@ -76,22 +146,17 @@ public class MainActivity extends AppCompatActivity {
                     initialFragment = new SP_HomeScreen();
                     bottomNavigationView.setSelectedItemId(R.id.nav_home_sp);
                 }
-                replaceFragment(initialFragment);
-                userViewModel.username.observe(this, username -> {
-                    if (username != null) {
-                        populateDrawerUsername(username);
-                    }
-                });
 
+                // Use the custom fragment replacement for the initial load
+                if (initialFragment != null) {
+                    replaceFragment(initialFragment, false);
+                }
+
+                userViewModel.username.observe(this, this::populateDrawerUsername);
             } else {
                 Log.w("MainActivity", "User role is null after fetch. Logging out.");
                 logoutUser();
             }
-        });
-
-
-        userViewModel.isLoading.observe(this, isLoading -> {
-            // Show a progress bar if loading, hide otherwise
         });
     }
 
@@ -164,7 +229,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         if (selectedFragment != null) {
-            replaceFragment(selectedFragment);
+            // Do not add bottom nav fragments to the back stack
+            replaceFragment(selectedFragment, false);
             return true;
         }
         return false;
@@ -188,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void populatePoMenu(FrameLayout drawerContainer) {
-
+        // ... (Drawer population code remains the same)
         setMenuItemLabel(drawerContainer, R.id.btnMessages, "Messages");
         setMenuItemLabel(drawerContainer, R.id.btnSummary, "My Pool Summary");
         setMenuItemLabel(drawerContainer, R.id.btnTips, "Pool Tips & Articles");
@@ -203,15 +269,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void navTest() {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new PO_AddPool())
-                .addToBackStack(null)
-                .commit();
+        // Example of a fragment navigation that should show the back button
+        replaceFragment(new PO_AddPool(), true);
     }
 
     private void populateSpMenu(FrameLayout drawerContainer) {
-        // We removed setting username here and moved it to observeUserData
-
+        // ... (Drawer population code remains the same)
         setMenuItemLabel(drawerContainer, R.id.btnMessages, "Message & Notifications");
         setMenuItemLabel(drawerContainer, R.id.btnSummary, "Summary");
         setMenuItemLabel(drawerContainer, R.id.btnLoadshedding, "Loadshedding");
@@ -223,18 +286,38 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btnRegisterBusiness).setVisibility(View.GONE);
     }
 
-    private void replaceFragment(Fragment fragment) {
-        getSupportFragmentManager().popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, fragment)
-                .commit();
+    /**
+     * Replaces the current fragment with an option to add to the back stack.
+     * @param fragment The fragment to display.
+     * @param addToBackStack True if the fragment should be added to the back stack (i.e., not a root fragment).
+     */
+    private void replaceFragment(Fragment fragment, boolean addToBackStack) {
+        // Clear back stack when navigating to a root/main screen (like Home or Calculator Selector)
+        if (!addToBackStack) {
+            getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        }
+
+        // Begin the transaction
+        androidx.fragment.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment);
+
+        if (addToBackStack) {
+            transaction.addToBackStack(null);
+        }
+
+        transaction.commit();
     }
+
 
     @Override
     public void onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
+        } else if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            // If the back stack is managed, pop it
+            getSupportFragmentManager().popBackStack();
         } else {
+            // Default behavior if on the root fragment
             super.onBackPressed();
         }
     }
@@ -250,6 +333,7 @@ public class MainActivity extends AppCompatActivity {
         args.putString("POOL_ID", homePoolId);
         calendarFragment.setArguments(args);
 
-        replaceFragment(calendarFragment);
+
+        replaceFragment(calendarFragment, true);
     }
 }
