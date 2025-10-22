@@ -180,7 +180,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Extracted method to set username after fetch
     private void populateDrawerUsername(String username) {
         TextView tvDrawerUsername = drawerContainer.findViewById(R.id.nav_username);
         if (tvDrawerUsername != null) {
@@ -189,7 +188,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void populatePoMenu(FrameLayout drawerContainer) {
-        // We removed setting username here and moved it to observeUserData
 
         setMenuItemLabel(drawerContainer, R.id.btnMessages, "Messages");
         setMenuItemLabel(drawerContainer, R.id.btnSummary, "My Pool Summary");

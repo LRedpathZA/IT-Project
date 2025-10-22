@@ -1,0 +1,26 @@
+Score Range (1-10)	Professional Terminology	Status Color	Actionable Meaning
+9-10	Excellent (or Optimal)	Green	Pool is perfectly balanced. Maintenance on schedule.
+7-8	Good (or Balanced)	Light Green	Minor adjustments may be needed. Safe for swimming.
+4-6	Caution (or Slightly Off)	Yellow/Orange	Chemical levels are slightly out of ideal range. Requires attention soon.
+2-3	Critical (or Unbalanced)	Orange/Red	Key levels are significantly off. Immediate adjustment required. May be unsafe.
+1	Hazardous (or Severe)	Red/Maroon	Pool chemistry is dangerous (e.g., extremely high/low pH, high bacteria risk). Do not swim.
+
+
+
+Test Logs
+/pools/{poolId} (Pool Document)
+    |
+    |-- /testLogs (Subcollection)
+          |
+          |-- {logId} (Log Document)
+                |
+                |-- date: TIMESTAMP (or ISO String)
+                |-- ph: DOUBLE
+                |-- freeChlorine: DOUBLE (or ppm)
+                |-- totalAlkalinity: DOUBLE (or ppm)
+                |-- stabilizer: DOUBLE (or ppm)
+                |-- temperature: DOUBLE
+                |-- notes: STRING (Optional)
+
+Next steps:
+Update ph_calculator.xml: Add input fields for Chlorine and Total Alkalinity to the input card.Update pHCalculator.java:Add references for the new input fields.Implement the btn_save_log click listener to collect all data and save it to Firestore.Create PoolLogModel.java: A Java class to structure the data being saved.Create PoolHealthScreen.java: The new main fragment for the dashboard.Implement Health Algorithm: Define the core logic in Java for calculating the 1-10 overall score based on the deviation of $\text{pH}$, Chlorine, and Alkalinity from their ideal ranges.

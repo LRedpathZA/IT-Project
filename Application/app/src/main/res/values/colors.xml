@@ -33,4 +33,17 @@
     <color name="light_blue_icon_bg">#03A9F4</color>
     <color name="grey_icon_bg">#9E9E9E</color>
     <color name="red_icon_bg">#F44336</color>
+    <color name="PrimaryColour_Dark">#005A8D</color>
+    <color name="health_excellent">#28A745</color>
+    <color name="health_good">#8BC34A</color>
+    <color name="health_caution">#FFC107</color>
+    <color name="health_critical">#FF9800</color>
+    <color name="health_hazardous">#DC3545</color>
+    <color name="progress_bar_fill">#2196F3</color>
+    <color name="chart_line_optimal">#00C853</color>
+    <color name="chart_line_warning">#FF6D00</color>
+    <color name="chart_line_data">#3F51B5</color>
+    <color name="accent_yellow">#FFEB3B</color>
+    <color name="accent_orange">#FF5722</color>
+    <color name="accent_purple">#673AB7</color>
 </resources>

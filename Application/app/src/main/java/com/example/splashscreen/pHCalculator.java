@@ -21,9 +21,14 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputLayout;
+// 💥 NEW FIREBASE IMPORTS
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.CollectionReference;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Date; // Although PHLogModel uses @ServerTimestamp, this is useful
 
 public class pHCalculator extends Fragment {
 
@@ -32,18 +37,24 @@ public class pHCalculator extends Fragment {
     private TextInputLayout tilChemicalType;
     private TextView tvChemicalDetails, tvDosageResult;
     private CardView cvResult;
-    private MaterialButton btnCalculate;
+    private MaterialButton btnCalculate, btnSaveLog; // 💥 ADDED btnSaveLog
     private ImageButton btnBack;
 
     private PoolViewModel poolViewModel;
     private String poolId;
 
-    // 💥 UPDATED: Renamed constant to LITRES and set value to "L" (The symbol remains 'L')
     private static final String UNIT_LITRES = "L";
 
-    // 💥 REMOVED: UNIT_GALLONS is no longer needed
-
     private Map<String, ChemicalDosageInfo> chemicalInfoMap;
+
+    // 💥 NEW FIREBASE REFERENCES
+    private FirebaseFirestore db;
+    private FirebaseAuth auth;
+
+    // Variables to hold calculated dosage data for saving
+    private double savedDosageAmount = 0.0;
+    private String savedDosageUnit = "";
+    private String savedChemicalName = "";
 
     public pHCalculator() {}
 
@@ -51,6 +62,9 @@ public class pHCalculator extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initializeChemicalData();
+        // 💥 INITIALIZE FIREBASE
+        db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
     }
 
     @Override
@@ -76,6 +90,7 @@ public class pHCalculator extends Fragment {
         cvResult = view.findViewById(R.id.cv_result);
         btnCalculate = view.findViewById(R.id.btn_calculate);
         btnBack = view.findViewById(R.id.btn_back);
+        btnSaveLog = view.findViewById(R.id.btn_save_log); // 💥 NEW reference
 
         setupListeners();
         setupSpinners();
@@ -85,6 +100,9 @@ public class pHCalculator extends Fragment {
     private void setupListeners() {
         btnBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
         btnCalculate.setOnClickListener(v -> calculateDosage());
+
+        // 💥 NEW: Listener for Save Log Button
+        btnSaveLog.setOnClickListener(v -> saveLogToFirestore());
 
         actvChemicalType.setOnItemClickListener((parent, view, position, id) -> updateChemicalDetails(actvChemicalType.getText().toString()));
 
@@ -106,8 +124,8 @@ public class pHCalculator extends Fragment {
         actvChemicalType.addTextChangedListener(inputWatcher);
     }
 
+    // ... setupSpinners, observePoolData, updateChemicalDetails, initializeChemicalData (Same as before) ...
     private void setupSpinners() {
-        // 💥 UPDATED: Only use LITRES. We keep this a dropdown in case other metric units are added later.
         String[] volumeUnits = new String[]{UNIT_LITRES};
         ArrayAdapter<String> unitAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, volumeUnits);
         actvVolumeUnit.setAdapter(unitAdapter);
@@ -124,11 +142,11 @@ public class pHCalculator extends Fragment {
                 poolId = poolModel.getPoolId();
                 if (poolModel.getWaterCapacityLiters() != null) {
                     etPoolVolume.setText(String.valueOf(poolModel.getWaterCapacityLiters()));
-                    // 💥 UPDATED: Use UNIT_LITRES
                     actvVolumeUnit.setText(UNIT_LITRES, false);
                 }
             } else {
                 poolId = null;
+                // Consider showing a warning if no pool is selected/loaded
             }
         });
     }
@@ -153,27 +171,30 @@ public class pHCalculator extends Fragment {
                 1000.0 // ml/10,000L to drop pH by 0.1
         ));
         chemicalInfoMap.put("pH Decreaser (Sodium Bisulfate - Granular)", new ChemicalDosageInfo(
-                "Sodium Bisulfate. Safer alternative to liquid acid. Mix in bucket of water before adding to pool. Ideal for high pH.",
+                "Sodium Bisulfate ($\\text{NaHSO}_4$). Safer alternative to liquid acid. Mix in bucket of water before adding to pool. Ideal for high pH.",
                 "pH Decreaser (Granular)",
                 100.0 // grams/10,000L to drop pH by 0.1
         ));
 
         // pH Increasers
         chemicalInfoMap.put("pH Increaser (Soda Ash / Sodium Carbonate)", new ChemicalDosageInfo(
-                "Soda Ash. Highly effective. Pre-dissolve in water and add over deep end. Also increases Total Alkalinity. Ideal for low pH.",
+                "Soda Ash ($\\text{Na}_2\\text{CO}_3$). Highly effective. Pre-dissolve in water and add over deep end. Also increases Total Alkalinity. Ideal for low pH.",
                 "pH Increaser (Powder)",
                 60.0 // grams/10,000L to raise pH by 0.1
         ));
     }
 
+    // 💥 MODIFIED: Updated calculateDosage to save dosage variables
     private void calculateDosage() {
+        // Reset saved values
+        savedDosageAmount = 0.0;
+        savedDosageUnit = "";
+        savedChemicalName = "";
+
         String currentPhStr = etCurrentPh.getText().toString();
         String targetPhStr = etTargetPh.getText().toString();
         String volumeStr = etPoolVolume.getText().toString();
         String chemicalName = actvChemicalType.getText().toString();
-
-        // 💥 REMOVED: The unit check `String unit = actvVolumeUnit.getText().toString();` is now redundant
-        // as the app is metric-only, but we'll leave it in the check to avoid null pointer
 
         if (currentPhStr.isEmpty() || volumeStr.isEmpty() || chemicalName.isEmpty()) {
             Toast.makeText(getContext(), "Please fill in all required fields (*).", Toast.LENGTH_SHORT).show();
@@ -220,18 +241,13 @@ public class pHCalculator extends Fragment {
             double requiredPhChange = targetPh - currentPh;
             double phChangeAbsolute = Math.abs(requiredPhChange);
 
-            // Calculate dosage in metric base (g or ml per 10,000 LITRES for 0.1 pH change)
             double dosageRate = info.dosageRate;
             double baseVolume = 10000.0; // 10,000 Litres
 
             double dosageRequiredMetric;
 
-
-
-            // Calculation: (pH_Change / 0.1) * (Volume / Base_Volume) * Dosage_Rate
             dosageRequiredMetric = (phChangeAbsolute / 0.1) * (volume / baseVolume) * dosageRate;
 
-            // Determine final display unit and convert
             String finalUnit;
             String chemicalType;
             String amountFormat;
@@ -243,8 +259,7 @@ public class pHCalculator extends Fragment {
                 chemicalType = "of " + chemicalName.split("\\(")[0].trim();
                 amountFormat = "%.2f";
             } else {
-                // Granular/Powder: use grams (g)
-                if (volume > 40000) { // If pool is large, display in kg
+                if (volume > 40000) {
                     dosageToDisplay = dosageRequiredMetric / 1000.0; // Convert g to kg
                     finalUnit = "kg";
                     amountFormat = "%.2f";
@@ -256,6 +271,11 @@ public class pHCalculator extends Fragment {
                 chemicalType = "of " + chemicalName.split("\\(")[0].trim();
             }
 
+            // 💥 SAVE CALCULATED VALUES
+            savedDosageAmount = dosageToDisplay;
+            savedDosageUnit = finalUnit;
+            savedChemicalName = chemicalName;
+
             String resultText = String.format(amountFormat + " %s %s", dosageToDisplay, finalUnit, chemicalType);
 
             tvDosageResult.setText(resultText);
@@ -266,17 +286,58 @@ public class pHCalculator extends Fragment {
         }
     }
 
+    // 💥 NEW: Method to save the log to Firestore
+    private void saveLogToFirestore() {
+        if (poolId == null || poolId.isEmpty()) {
+            Toast.makeText(getContext(), "Error: No pool selected. Please select or create a pool first.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (cvResult.getVisibility() != View.VISIBLE || savedDosageAmount == 0.0) {
+            Toast.makeText(getContext(), "Please Calculate the dosage before saving the log.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            double currentPh = Double.parseDouble(etCurrentPh.getText().toString());
+            double targetPh = etTargetPh.getText().toString().isEmpty() ? 7.5 : Double.parseDouble(etTargetPh.getText().toString());
+            double volume = Double.parseDouble(etPoolVolume.getText().toString());
+
+            pHLogModel log = new pHLogModel(
+                    poolId,
+                    currentPh,
+                    targetPh,
+                    volume,
+                    savedDosageAmount,
+                    savedDosageUnit,
+                    savedChemicalName
+            );
+
+            // Get reference to the 'testLogs' subcollection under the current pool document
+            CollectionReference logRef = db.collection("pools").document(poolId).collection("testLogs");
+
+            logRef.add(log)
+                    .addOnSuccessListener(documentReference -> {
+                        Toast.makeText(getContext(), "pH Test Log saved successfully!", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(getContext(), "Error saving log: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    });
+
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "Failed to save log data.", Toast.LENGTH_LONG).show();
+        }
+    }
+
     private static class ChemicalDosageInfo {
         final String details;
         final String baseType;
         final double dosageRate;
 
-
         ChemicalDosageInfo(String details, String baseType, double dosageRate) {
             this.details = details;
             this.baseType = baseType;
             this.dosageRate = dosageRate;
-
         }
     }
 }
