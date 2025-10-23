@@ -1,8 +1,8 @@
 # Pool Health Calculation Explained
 
-The pool health system uses a weighted deviation model to calculate an overall health score (out of 10.0) based on how far each of your four core metrics—pH, Chlorine, Alkalinity, and Stabilizer—are from their ideal mid-point.
+The pool health system uses a weighted deviation model to calculate an overall health score (out of 10.0) based on how far each of our four core metrics—pH, Chlorine, Alkalinity, and Stabilizer—are from their ideal mid-point.
 
-This calculation is performed within the `calculateOverallHealth(TestLogModel data)` method in your `PoolHealth.java` fragment.
+This calculation is performed within the `calculateOverallHealth(TestLogModel data)` method in our `PoolHealth.java` fragment.
 
 ## 1. Individual Metric Health (Deviation-Based)
 

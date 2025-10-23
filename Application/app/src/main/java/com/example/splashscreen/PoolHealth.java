@@ -29,7 +29,9 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
     private ProgressBar pbPhHealth, pbChlorineHealth, pbAlkalinityHealth, pbStabilizerHealth;
     private CardView cardMetricPh, cardMetricChlorine, cardMetricAlkalinity, cardMetricStabilizer;
     private MaterialButton btnGoToCalculators;
-    private View gaugeRingPlaceholder;
+
+    // 💥 CORRECT TYPE: Use the specific CircularGaugeView type
+    private CircularGaugeView circularGaugeView;
 
     private FirebaseFirestore db;
     private PoolViewModel poolViewModel;
@@ -83,10 +85,13 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
     }
 
     private void initViews(View view) {
+        // These TextViews are now REQUIRED for the score display over the gauge
         tvHealthScore = view.findViewById(R.id.tv_health_score);
         tvHealthStatus = view.findViewById(R.id.tv_health_status);
         tvLastTestDate = view.findViewById(R.id.tv_last_test_date);
-        gaugeRingPlaceholder = view.findViewById(R.id.gauge_ring_placeholder);
+
+        // 💥 INITIALIZE CircularGaugeView
+        circularGaugeView = view.findViewById(R.id.gauge_ring_placeholder);
 
         tvPhValue = view.findViewById(R.id.tv_ph_value);
         tvChlorineValue = view.findViewById(R.id.tv_chlorine_value);
@@ -155,7 +160,7 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
             return;
         }
 
-        // 💥 CRITICAL FIX: Use the correct collection path: pools/{poolId}/testLogs
+        // Use the correct collection path: pools/{poolId}/testLogs
         db.collection("pools").document(poolId)
                 .collection("testLogs")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -169,7 +174,6 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
                         if (latestLog != null && (latestLog.getPh() != 0.0 || latestLog.getChlorine() != 0.0 || latestLog.getAlkalinity() != 0.0 || latestLog.getStabilizer() != 0.0)) {
                             updateUI(latestLog);
                         } else {
-
                             tvHealthStatus.setText("Invalid Test Data");
                             clearHealthMetrics();
                         }
@@ -191,10 +195,15 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
     // Reset all metric views when no data is found
     private void clearHealthMetrics() {
         // Main Display
-        tvHealthScore.setText("0.0");
+        tvHealthScore.setText("0.0"); // 💥 RE-ENABLED: Update TextView
+        tvHealthStatus.setText("NO DATA"); // 💥 RE-ENABLED: Update TextView
+        tvHealthStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.health_critical)); // Set color
         tvLastTestDate.setText("Last Test: N/A");
-        // Note: Check if R.drawable.circular_gauge_placeholder exists and is a suitable default
-        gaugeRingPlaceholder.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.circular_gauge_placeholder));
+
+        // 💥 Update Custom Circular Gauge View for "No Data" state
+        if (circularGaugeView != null) {
+            circularGaugeView.setHealthData(0.0f, "NO DATA", R.color.health_critical);
+        }
 
         // Metric Blocks
         updateMetricBlock(tvPhValue, pbPhHealth, 0.0, 7.4, 7.6, "N/A");
@@ -209,17 +218,28 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
     }
 
 
-    private void updateUI(TestLogModel data) { // 💥 FIX 3: Update parameter type to TestLogModel
+    private void updateUI(TestLogModel data) {
         // 1. Calculate Health Score
         OverallHealthResult result = calculateOverallHealth(data);
 
         // 2. Update Main Gauge
+
+        // 💥 Pass data to the Custom Circular Gauge View (for the ring drawing)
+        if (circularGaugeView != null) {
+            circularGaugeView.setHealthData(
+                    (float) result.score,
+                    result.status,
+                    result.colorResId
+            );
+        }
+
+        // 💥 RE-ENABLED: Update the TextViews placed over the gauge
         tvHealthScore.setText(String.format(Locale.getDefault(), "%.1f", result.score));
         tvHealthStatus.setText(result.status);
         tvHealthStatus.setTextColor(ContextCompat.getColor(requireContext(), result.colorResId));
-        gaugeRingPlaceholder.setBackground(ContextCompat.getDrawable(requireContext(), result.gaugeDrawableResId));
 
-        // 💥 FIX 4: Access timestamp via getter
+
+        // 💥 Access timestamp via getter
         if (data.getTimestamp() != null) {
             tvLastTestDate.setText(String.format("Last Test: %s", android.text.format.DateFormat.getMediumDateFormat(getContext()).format(data.getTimestamp())));
         } else {
@@ -227,7 +247,6 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
         }
 
         // 3. Update Metric Blocks
-        // 💥 FIX 5: Access metric values via getters
         updateMetricBlock(tvPhValue, pbPhHealth, data.getPh(), 7.4, 7.6, "%.1f");
         updateMetricBlock(tvChlorineValue, pbChlorineHealth, data.getChlorine(), 1.0, 3.0, "%.1f ppm");
         updateMetricBlock(tvAlkalinityValue, pbAlkalinityHealth, data.getAlkalinity(), 80.0, 120.0, "%.1f ppm");
@@ -238,7 +257,7 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
     // ALGORITHMS AND HELPER METHODS
     // -------------------------------------------------------------------------
 
-    private OverallHealthResult calculateOverallHealth(TestLogModel data) { // 💥 FIX 6: Update parameter type
+    private OverallHealthResult calculateOverallHealth(TestLogModel data) {
         // IDEAL RANGES (Mid-point, Min, Max)
         final double PH_MID = 7.5;
         final double CHL_MID = 2.0;
@@ -251,7 +270,6 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
         final double ALK_DEV = 40.0;
         final double STAB_DEV = 30.0;
 
-        // 💥 FIX 7: Access metric values via getters
         // Calculate raw deviation from mid-point for each metric
         double phDevPercent = Math.min(1.0, Math.abs(data.getPh() - PH_MID) / PH_DEV);
         double chlDevPercent = Math.min(1.0, Math.abs(data.getChlorine() - CHL_MID) / CHL_DEV);
@@ -271,28 +289,23 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
         // Determine Status
         String status;
         int colorResId;
-        int gaugeDrawableResId;
+        int gaugeDrawableResId = R.drawable.circular_gauge_placeholder;
 
         if (score >= 9.0) {
             status = "EXCELLENT";
             colorResId = R.color.health_excellent;
-            gaugeDrawableResId = R.drawable.circular_gauge_placeholder;
         } else if (score >= 7.0) {
             status = "GOOD";
             colorResId = R.color.health_good;
-            gaugeDrawableResId = R.drawable.circular_gauge_placeholder;
         } else if (score >= 4.0) {
             status = "CAUTION";
             colorResId = R.color.health_caution;
-            gaugeDrawableResId = R.drawable.circular_gauge_placeholder;
         } else if (score >= 2.0) {
             status = "CRITICAL";
             colorResId = R.color.health_critical;
-            gaugeDrawableResId = R.drawable.circular_gauge_placeholder;
         } else {
             status = "HAZARDOUS";
             colorResId = R.color.health_hazardous;
-            gaugeDrawableResId = R.drawable.circular_gauge_placeholder;
         }
 
         return new OverallHealthResult(score, status, colorResId, gaugeDrawableResId);
@@ -308,13 +321,12 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
             valueView.setText(String.format(Locale.getDefault(), format, currentValue));
             progressBar.setProgress(0);
 
-            // Set color to Critical/Hazardous for 0.0 of these metrics
+
             int criticalColor = R.color.health_critical;
             progressBar.getProgressDrawable().setColorFilter(
                     ContextCompat.getColor(requireContext(), criticalColor), android.graphics.PorterDuff.Mode.SRC_IN);
             return;
         }
-        // Calculate health percentage for the progress bar (0-100)
         double midOptimal = (minOptimal + maxOptimal) / 2.0;
         double range = (maxOptimal - minOptimal);
 
@@ -323,14 +335,14 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
 
         double deviation = Math.abs(currentValue - midOptimal);
 
-        // Health is 100 - (deviation mapped to 100 scale)
+
         int healthPercentage = (int) (100 - Math.min(100.0, (deviation / maxDeviation) * 100.0));
 
         // Set values
         valueView.setText(String.format(Locale.getDefault(), format, currentValue));
         progressBar.setProgress(healthPercentage);
 
-        // Set color based on percentage
+
         int color;
         if (healthPercentage >= 90) {
             color = R.color.health_excellent;

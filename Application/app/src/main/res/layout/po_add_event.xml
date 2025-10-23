@@ -17,208 +17,174 @@
         app:cardCornerRadius="0dp"
         app:cardBackgroundColor="@android:color/white"/>
 
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/bottom_actions_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:background="@color/white"
-        android:elevation="8dp"
-        app:layout_constraintBottom_toTopOf="@id/v_bottom_nav_spacer">
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_save_event"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Add Event"
-            android:textAllCaps="false"
-            android:textSize="18sp"
-            app:cornerRadius="8dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="8dp"  />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_delete_event"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Delete Event"
-            android:textAllCaps="false"
-            android:textSize="18sp"
-            app:backgroundTint="@color/black"
-            app:cornerRadius="8dp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/btn_save_event"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            />
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <View
-        android:id="@+id/v_bottom_nav_spacer"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@android:color/transparent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
-
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/card_top_bar"
-        app:layout_constraintBottom_toTopOf="@id/bottom_actions_bar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:paddingHorizontal="16dp"
         android:clipToPadding="false"
-        android:paddingBottom="16dp">
+        android:paddingHorizontal="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/card_top_bar"
+
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingTop="16dp">
+            android:orientation="vertical">
 
             <LinearLayout
                 android:id="@+id/eventTitleLayout"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_input_bg"
                 android:orientation="horizontal"
-                android:paddingHorizontal="8dp"
-                android:background="@drawable/rounded_input_bg">
+                android:paddingHorizontal="8dp">
+
                 <EditText
                     android:id="@+id/et_event_title"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
+                    android:background="@android:color/transparent"
                     android:hint="Event Title *"
                     android:inputType="textCapWords"
-                    android:background="@android:color/transparent"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="0dp"
                     android:textColor="@color/black"
                     android:textColorHint="@color/black"
-                    android:textSize="16sp"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="0dp" />
+                    android:textSize="16sp" />
+
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_gravity="center_vertical"
+                    android:contentDescription="Title Icon"
                     android:src="@drawable/event"
-                    app:tint="@color/black"
-                    android:contentDescription="Title Icon"/>
+                    app:tint="@color/black" />
             </LinearLayout>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:paddingStart="4dp"
                 android:text="Event Type"
                 android:textColor="@color/black"
-                android:textSize="14sp"
-                android:paddingStart="4dp" />
+                android:textSize="14sp" />
+
             <LinearLayout
                 android:id="@+id/eventTypeLayout"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_input_bg"
                 android:orientation="horizontal"
                 android:paddingStart="12dp"
-                android:paddingEnd="8dp"
-                android:background="@drawable/rounded_input_bg">
+                android:paddingEnd="8dp">
+
                 <Spinner
                     android:id="@+id/sp_event_type"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:popupBackground="@color/white"
-                    android:background="@android:color/transparent"/>
+                    android:background="@android:color/transparent"
+                    android:popupBackground="@color/white" />
+
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_gravity="center_vertical"
+                    android:contentDescription="Dropdown Icon"
                     android:src="@drawable/event"
-                    app:tint="@color/black"
-                    android:contentDescription="Dropdown Icon"/>
+                    app:tint="@color/black" />
             </LinearLayout>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:paddingStart="4dp"
                 android:text="Status"
                 android:textColor="@color/black"
-                android:textSize="14sp"
-                android:paddingStart="4dp" />
+                android:textSize="14sp" />
+
             <LinearLayout
                 android:id="@+id/eventStatusLayout"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_input_bg"
                 android:orientation="horizontal"
                 android:paddingStart="12dp"
-                android:paddingEnd="8dp"
-                android:background="@drawable/rounded_input_bg">
+                android:paddingEnd="8dp">
+
                 <Spinner
                     android:id="@+id/sp_event_status"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:popupBackground="@color/white"
-                    android:background="@android:color/transparent"/>
+                    android:background="@android:color/transparent"
+                    android:popupBackground="@color/white" />
+
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_gravity="center_vertical"
+                    android:contentDescription="Dropdown Icon"
                     android:src="@drawable/event"
-                    app:tint="@color/black"
-                    android:contentDescription="Dropdown Icon"/>
+                    app:tint="@color/black" />
             </LinearLayout>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:paddingStart="4dp"
                 android:text="Start"
                 android:textColor="@color/black"
-                android:textSize="14sp"
-                android:paddingStart="4dp" />
+                android:textSize="14sp" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal">
 
                 <LinearLayout
                     android:id="@+id/startDateLayout"
                     android:layout_width="0dp"
                     android:layout_height="60dp"
+                    android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="8dp"
                     android:background="@drawable/rounded_input_bg"
-                    android:layout_marginEnd="8dp">
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp">
+
                     <EditText
                         android:id="@+id/et_start_date"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:hint="Start Date"
-                        android:focusable="false"
-                        android:clickable="true"
                         android:background="@android:color/transparent"
-                        android:textColor="@color/black"
-                        android:textColorHint="@color/black"
-                        android:textSize="16sp"
+                        android:clickable="true"
+                        android:focusable="false"
+                        android:hint="Start Date"
+                        android:inputType="none"
                         android:paddingStart="8dp"
                         android:paddingEnd="0dp"
-                        android:inputType="none"/>
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black"
+                        android:textSize="16sp" />
+
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_gravity="center_vertical"
+                        android:contentDescription="Calendar Icon"
                         android:src="@drawable/calendar"
-                        app:tint="@color/black"
-                        android:contentDescription="Calendar Icon"/>
+                        app:tint="@color/black" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -226,78 +192,83 @@
                     android:layout_width="0dp"
                     android:layout_height="60dp"
                     android:layout_weight="1"
+                    android:background="@drawable/rounded_input_bg"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="8dp"
-                    android:background="@drawable/rounded_input_bg">
+                    android:paddingHorizontal="8dp">
+
                     <EditText
                         android:id="@+id/et_start_time"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:hint="Start Time"
-                        android:focusable="false"
-                        android:clickable="true"
                         android:background="@android:color/transparent"
-                        android:textColor="@color/black"
-                        android:textColorHint="@color/black"
-                        android:textSize="16sp"
+                        android:clickable="true"
+                        android:focusable="false"
+                        android:hint="Start Time"
+                        android:inputType="none"
                         android:paddingStart="8dp"
                         android:paddingEnd="0dp"
-                        android:inputType="none"/>
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black"
+                        android:textSize="16sp" />
+
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_gravity="center_vertical"
+                        android:contentDescription="Clock Icon"
                         android:src="@drawable/ic_clock_white_24dp"
-                        app:tint="@color/black"
-                        android:contentDescription="Clock Icon"/>
+                        app:tint="@color/black" />
                 </LinearLayout>
             </LinearLayout>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:paddingStart="4dp"
                 android:text="End"
                 android:textColor="@color/black"
-                android:textSize="14sp"
-                android:paddingStart="4dp" />
+                android:textSize="14sp" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal">
 
                 <LinearLayout
                     android:id="@+id/endDateLayout"
                     android:layout_width="0dp"
                     android:layout_height="60dp"
+                    android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="8dp"
                     android:background="@drawable/rounded_input_bg"
-                    android:layout_marginEnd="8dp">
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp">
+
                     <EditText
                         android:id="@+id/et_end_date"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:hint="End Date"
-                        android:focusable="false"
-                        android:clickable="true"
                         android:background="@android:color/transparent"
-                        android:textColor="@color/black"
-                        android:textColorHint="@color/black"
-                        android:textSize="16sp"
+                        android:clickable="true"
+                        android:focusable="false"
+                        android:hint="End Date"
+                        android:inputType="none"
                         android:paddingStart="8dp"
                         android:paddingEnd="0dp"
-                        android:inputType="none"/>
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black"
+                        android:textSize="16sp" />
+
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_gravity="center_vertical"
+                        android:contentDescription="Calendar Icon"
                         android:src="@drawable/calendar"
-                        app:tint="@color/black"
-                        android:contentDescription="Calendar Icon"/>
+                        app:tint="@color/black" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -305,31 +276,33 @@
                     android:layout_width="0dp"
                     android:layout_height="60dp"
                     android:layout_weight="1"
+                    android:background="@drawable/rounded_input_bg"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="8dp"
-                    android:background="@drawable/rounded_input_bg">
+                    android:paddingHorizontal="8dp">
+
                     <EditText
                         android:id="@+id/et_end_time"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:hint="End Time"
-                        android:focusable="false"
-                        android:clickable="true"
                         android:background="@android:color/transparent"
-                        android:textColor="@color/black"
-                        android:textColorHint="@color/black"
-                        android:textSize="16sp"
+                        android:clickable="true"
+                        android:focusable="false"
+                        android:hint="End Time"
+                        android:inputType="none"
                         android:paddingStart="8dp"
                         android:paddingEnd="0dp"
-                        android:inputType="none"/>
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black"
+                        android:textSize="16sp" />
+
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_gravity="center_vertical"
+                        android:contentDescription="Clock Icon"
                         android:src="@drawable/ic_clock_white_24dp"
-                        app:tint="@color/black"
-                        android:contentDescription="Clock Icon"/>
+                        app:tint="@color/black" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -338,32 +311,64 @@
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
                 android:layout_marginBottom="32dp"
+                android:background="@drawable/rounded_input_bg"
                 android:orientation="horizontal"
                 android:paddingHorizontal="8dp"
-                android:paddingVertical="8dp"
-                android:background="@drawable/rounded_input_bg">
+                android:paddingVertical="8dp">
+
                 <EditText
                     android:id="@+id/et_description"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:hint="Description"
-                    android:gravity="top"
-                    android:inputType="textMultiLine"
                     android:background="@android:color/transparent"
+                    android:gravity="top"
+                    android:hint="Description"
+                    android:inputType="textMultiLine"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="0dp"
                     android:textColor="@color/black"
                     android:textColorHint="@color/black"
-                    android:textSize="16sp"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="0dp" />
+                    android:textSize="16sp" />
+
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_gravity="top"
                     android:layout_marginTop="8dp"
+                    android:contentDescription="Description Icon"
                     android:src="@drawable/event"
-                    app:tint="@color/black"
-                    android:contentDescription="Description Icon"/>
+                    app:tint="@color/black" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/scrollable_actions_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="8dp"
+                android:paddingBottom="16dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_save_event"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="Add Event"
+                    android:textAllCaps="false"
+                    android:textSize="18sp"
+                    app:cornerRadius="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_delete_event"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="8dp"
+                    android:text="Delete Event"
+                    android:textAllCaps="false"
+                    android:textSize="18sp"
+                    app:backgroundTint="@color/black"
+                    app:cornerRadius="8dp" />
             </LinearLayout>
 
         </LinearLayout>

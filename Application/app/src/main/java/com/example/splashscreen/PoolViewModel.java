@@ -12,7 +12,6 @@ import java.util.Map;
 
 public class PoolViewModel extends ViewModel {
 
-    // 💥 CHANGED: Emitting PoolModel instead of DocumentSnapshot
     private final MutableLiveData<PoolModel> _currentPoolModel = new MutableLiveData<>();
     public LiveData<PoolModel> currentPoolModel = _currentPoolModel;
 
@@ -30,10 +29,13 @@ public class PoolViewModel extends ViewModel {
     public LiveData<Map<String, Object>> lastPhTest = _lastPhTest;
 
 
+    private final MutableLiveData<Map<String, Object>> _lastChlorineTest = new MutableLiveData<>(new HashMap<>());
+    public LiveData<Map<String, Object>> lastChlorineTest = _lastChlorineTest;
+
+
     private final MutableLiveData<Boolean> _isLoadingPool = new MutableLiveData<>(false);
     public LiveData<Boolean> isLoadingPool = _isLoadingPool;
 
-    // 💥 ADDED: Method to manually set data, avoiding a Firestore fetch
     public void setPoolDataManually(PoolModel pool) {
         if (pool != null) {
             _currentPoolModel.setValue(pool);
@@ -47,9 +49,9 @@ public class PoolViewModel extends ViewModel {
             return;
         }
 
-        // Avoid fetching if we already have the ID and aren't forcing a refresh
+
         if (pId.equals(_poolId.getValue())) {
-            // We might still want to refresh if called, but for now, we'll rely on the manual update.
+
             return;
         }
 
@@ -90,6 +92,7 @@ public class PoolViewModel extends ViewModel {
         _poolName.setValue(null);
         _waterCapacityLiters.setValue(null);
         _lastPhTest.setValue(new HashMap<>());
+        _lastChlorineTest.setValue(new HashMap<>());
     }
 
     public void setLastPhTest(Double pH, Long date) {
@@ -97,5 +100,12 @@ public class PoolViewModel extends ViewModel {
         newTest.put("pH", pH);
         newTest.put("date", date);
         _lastPhTest.setValue(newTest);
+    }
+
+    public void setLastChlorineTest(Double chlorine, Long date) {
+        Map<String, Object> newTest = new HashMap<>();
+        newTest.put("chlorine", chlorine);
+        newTest.put("date", date);
+        _lastChlorineTest.setValue(newTest);
     }
 }

@@ -26,6 +26,10 @@ public class Calculator_Selector extends Fragment implements HeaderUpdatable {
         cardPhCalculator.setOnClickListener(v -> {
             replaceFragment(new pHCalculator());
         });
+        CardView cardChlorineCalculator = view.findViewById(R.id.card_chlorine_calculator);
+        cardChlorineCalculator.setOnClickListener(v -> {
+            replaceFragment(new ChlorineCalculator());
+        });
 
 
         return view;
