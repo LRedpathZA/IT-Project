@@ -31,7 +31,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-public class PO_AddEvent extends Fragment {
+public class PO_AddEvent extends Fragment implements HeaderUpdatable {
 
     private static final String TAG = "PO_AddEvent";
 
@@ -48,7 +48,8 @@ public class PO_AddEvent extends Fragment {
 
     private final Calendar startCalendar = Calendar.getInstance();
     private final Calendar endCalendar = Calendar.getInstance();
-    private  String HOME_POOL_ID = null; // Changed initial state to null
+    private  String HOME_POOL_ID = null;
+    private String currentEventId = null;
 
     public PO_AddEvent() {}
 
@@ -66,9 +67,9 @@ public class PO_AddEvent extends Fragment {
             if (getContext() != null) Toast.makeText(getContext(), "Authentication required. Cannot save event.", Toast.LENGTH_LONG).show();
         }
 
-        // Retain the POOL_ID argument logic as a fallback, but rely on ViewModel in onViewCreated
         if (getArguments() != null) {
             HOME_POOL_ID = getArguments().getString("POOL_ID");
+            currentEventId = getArguments().getString(PO_Calendar.ARG_EVENT_ID);
         }
     }
 
@@ -79,12 +80,25 @@ public class PO_AddEvent extends Fragment {
     }
 
     @Override
+    public void updateActivityHeader() {
+        if (getActivity() instanceof MainActivity) {
+            String title = (currentEventId != null) ? "Edit Event" : "Add New Event";
+            ((MainActivity) getActivity()).updateHeader(title, true, true);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateActivityHeader();
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
 
-        // Use the ViewModel's poolId and observe changes
         poolViewModel.poolId.observe(getViewLifecycleOwner(), poolId -> {
             if (poolId != null) {
                 HOME_POOL_ID = poolId;
@@ -97,7 +111,6 @@ public class PO_AddEvent extends Fragment {
         });
 
 
-        tvTitle = view.findViewById(R.id.tv_title);
         btnSaveEvent = view.findViewById(R.id.btn_save_event);
         btnDeleteEvent = view.findViewById(R.id.btn_delete_event);
 
@@ -114,34 +127,22 @@ public class PO_AddEvent extends Fragment {
 
         setupSpinners();
 
-        String eventId;
-        if (getArguments() != null) {
-            eventId = getArguments().getString(PO_Calendar.ARG_EVENT_ID);
-        } else {
-            eventId = null;
-        }
-
-        if (eventId != null) {
-            tvTitle.setText("Edit Event");
+        if (currentEventId != null) {
             btnSaveEvent.setText("Save Changes");
             btnDeleteEvent.setVisibility(View.VISIBLE);
-            loadEventData(eventId);
-            btnSaveEvent.setOnClickListener(v -> handleEditEvent(eventId));
-            btnDeleteEvent.setOnClickListener(v -> handleDeleteEvent(eventId));
+            loadEventData(currentEventId);
+            btnSaveEvent.setOnClickListener(v -> handleEditEvent(currentEventId));
+            btnDeleteEvent.setOnClickListener(v -> handleDeleteEvent(currentEventId));
         } else {
             updateDateTimeFields(etStartDate, startCalendar);
             updateDateTimeFields(etStartTime, startCalendar);
             updateDateTimeFields(etEndDate, endCalendar);
             updateDateTimeFields(etEndTime, endCalendar);
 
-            tvTitle.setText("Add New Event");
             btnSaveEvent.setText("Add Event");
             btnDeleteEvent.setVisibility(View.GONE);
             btnSaveEvent.setOnClickListener(v -> handleAddEvent());
         }
-
-        ImageButton btnBack = view.findViewById(R.id.btn_back);
-        btnBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
 
         etStartDate.setOnClickListener(v -> showDatePicker(startCalendar, etStartDate, true));
         etStartTime.setOnClickListener(v -> showTimePicker(startCalendar, etStartTime));
@@ -336,6 +337,7 @@ public class PO_AddEvent extends Fragment {
         eventData.put("description", description);
         eventData.put("poolId", HOME_POOL_ID);
         eventData.put("createdBy", currentUserId);
+        eventData.put("poolOwnerId", currentUserId);
 
         return eventData;
     }

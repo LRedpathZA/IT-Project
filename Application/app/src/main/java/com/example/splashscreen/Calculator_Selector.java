@@ -11,9 +11,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-public class Calculator_Selector extends Fragment {
+public class Calculator_Selector extends Fragment implements HeaderUpdatable {
 
-    // Required empty public constructor
+
     public Calculator_Selector() {
     }
 
@@ -22,27 +22,7 @@ public class Calculator_Selector extends Fragment {
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.calculator_selector, container, false);
-
-        // 1. Initialize UI elements from the XML
-        ImageButton btnBack = view.findViewById(R.id.btn_back);
-        ImageButton btnProfile = view.findViewById(R.id.btn_profile);
         CardView cardPhCalculator = view.findViewById(R.id.card_ph_calculator);
-
-
-
-        btnBack.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                // Pop the current fragment off the back stack
-                getActivity().getSupportFragmentManager().popBackStack();
-            }
-        });
-
-        // Profile Button: Should show the PO_Profile fragment
-        btnProfile.setOnClickListener(v -> {
-            replaceFragment(new PO_Profile());
-        });
-
-
         cardPhCalculator.setOnClickListener(v -> {
             replaceFragment(new pHCalculator());
         });
@@ -50,7 +30,19 @@ public class Calculator_Selector extends Fragment {
 
         return view;
     }
+    @Override
+    public void updateActivityHeader() {
+        if (getActivity() instanceof MainActivity) {
+            String title =  "pH Calculator";
+            ((MainActivity) getActivity()).updateHeader(title, true, true);
+        }
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateActivityHeader();
+    }
     private void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

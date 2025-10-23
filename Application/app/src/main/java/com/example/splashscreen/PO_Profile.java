@@ -17,24 +17,20 @@ import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 
-public class PO_Profile extends Fragment {
+public class PO_Profile extends Fragment implements HeaderUpdatable {
 
-    // ViewModel declaration
     private UserViewModel userViewModel;
 
-    // UI Element declarations
     private TextView tvUserName;
     private TextView tvDetailEmail;
     private TextView tvDetailPhone;
     private TextView tvDetailLocation;
 
-    // Option View declarations (The container LinearLayouts)
     private LinearLayout optionAccountSettings;
     private LinearLayout optionSecurityPrivacy;
     private LinearLayout optionHelpCenter;
 
     public PO_Profile() {
-        // Required empty public constructor
     }
 
     public static PO_Profile newInstance() {
@@ -51,24 +47,34 @@ public class PO_Profile extends Fragment {
     }
 
     @Override
+    public void updateActivityHeader() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).updateHeader("", false, false);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateActivityHeader();
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
 
-        // 1. Initialize core UI elements
+
         MaterialButton btnLogout = view.findViewById(R.id.btn_logout);
-        ImageButton btnBack = view.findViewById(R.id.btn_back);
         tvUserName = view.findViewById(R.id.tv_user_name);
         tvDetailEmail = view.findViewById(R.id.tv_detail_email);
         tvDetailPhone = view.findViewById(R.id.tv_detail_phone);
         tvDetailLocation = view.findViewById(R.id.tv_detail_location);
 
-        // 2. Initialize Option Views (The root LinearLayouts)
         optionAccountSettings = view.findViewById(R.id.option_account_settings);
         optionSecurityPrivacy = view.findViewById(R.id.option_security_privacy);
         optionHelpCenter = view.findViewById(R.id.option_help_center);
 
-        // 3. Set up click listeners for Option Views (Toast messages for now)
         optionAccountSettings.setOnClickListener(v ->
                 Toast.makeText(getContext(), "Navigating to Account Settings...", Toast.LENGTH_SHORT).show()
         );
@@ -81,21 +87,11 @@ public class PO_Profile extends Fragment {
                 Toast.makeText(getContext(), "Navigating to Help Center...", Toast.LENGTH_SHORT).show()
         );
 
-        // 4. Set up click listeners for standard buttons
         btnLogout.setOnClickListener(v -> logoutUser());
-        btnBack.setOnClickListener(v -> {
-            if (getParentFragmentManager().getBackStackEntryCount() > 0) {
-                getParentFragmentManager().popBackStack();
-            } else if (getActivity() != null) {
-                getActivity().onBackPressed();
-            }
-        });
 
-        // 5. Observe user data
+
         observeUserData();
     }
-
-    // Removed the setupOptionMenu helper method
 
     private void observeUserData() {
         userViewModel.userData.observe(getViewLifecycleOwner(), this::updateUIWithUserData);

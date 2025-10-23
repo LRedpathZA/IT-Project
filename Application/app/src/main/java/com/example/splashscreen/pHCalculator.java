@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,24 +20,27 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputLayout;
-// 💥 NEW FIREBASE IMPORTS
+// 💥 FIREBASE IMPORTS
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.CollectionReference;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Date; // Although PHLogModel uses @ServerTimestamp, this is useful
 
-public class pHCalculator extends Fragment {
+public class pHCalculator extends Fragment implements HeaderUpdatable {
 
     private EditText etCurrentPh, etTargetPh, etPoolVolume;
     private AutoCompleteTextView actvVolumeUnit, actvChemicalType;
     private TextInputLayout tilChemicalType;
     private TextView tvChemicalDetails, tvDosageResult;
     private CardView cvResult;
-    private MaterialButton btnCalculate, btnSaveLog; // 💥 ADDED btnSaveLog
-    private ImageButton btnBack;
+    private MaterialButton btnCalculate, btnSaveLog;
+    // ImageButton btnBack; // <-- REMOVED: Caused NullPointerException and is handled by Activity header
 
     private PoolViewModel poolViewModel;
     private String poolId;
@@ -47,11 +49,10 @@ public class pHCalculator extends Fragment {
 
     private Map<String, ChemicalDosageInfo> chemicalInfoMap;
 
-    // 💥 NEW FIREBASE REFERENCES
     private FirebaseFirestore db;
     private FirebaseAuth auth;
 
-    // Variables to hold calculated dosage data for saving
+
     private double savedDosageAmount = 0.0;
     private String savedDosageUnit = "";
     private String savedChemicalName = "";
@@ -89,8 +90,8 @@ public class pHCalculator extends Fragment {
         tvDosageResult = view.findViewById(R.id.tv_dosage_result);
         cvResult = view.findViewById(R.id.cv_result);
         btnCalculate = view.findViewById(R.id.btn_calculate);
-        btnBack = view.findViewById(R.id.btn_back);
-        btnSaveLog = view.findViewById(R.id.btn_save_log); // 💥 NEW reference
+        // btnBack = view.findViewById(R.id.btn_back); // <-- REMOVED
+        btnSaveLog = view.findViewById(R.id.btn_save_log);
 
         setupListeners();
         setupSpinners();
@@ -98,10 +99,10 @@ public class pHCalculator extends Fragment {
     }
 
     private void setupListeners() {
-        btnBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
+        // btnBack.setOnClickListener(v -> getParentFragmentManager().popBackStack()); // <-- REMOVED to fix NPE
         btnCalculate.setOnClickListener(v -> calculateDosage());
 
-        // 💥 NEW: Listener for Save Log Button
+        // 💥 Listener for Save Log Button
         btnSaveLog.setOnClickListener(v -> saveLogToFirestore());
 
         actvChemicalType.setOnItemClickListener((parent, view, position, id) -> updateChemicalDetails(actvChemicalType.getText().toString()));
@@ -124,7 +125,19 @@ public class pHCalculator extends Fragment {
         actvChemicalType.addTextChangedListener(inputWatcher);
     }
 
-    // ... setupSpinners, observePoolData, updateChemicalDetails, initializeChemicalData (Same as before) ...
+    @Override
+    public void updateActivityHeader() {
+        if (getActivity() instanceof MainActivity) {
+            String title =  "pH Calculator";
+            ((MainActivity) getActivity()).updateHeader(title, true, true);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateActivityHeader();
+    }
     private void setupSpinners() {
         String[] volumeUnits = new String[]{UNIT_LITRES};
         ArrayAdapter<String> unitAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, volumeUnits);
@@ -184,8 +197,9 @@ public class pHCalculator extends Fragment {
         ));
     }
 
-    // 💥 MODIFIED: Updated calculateDosage to save dosage variables
     private void calculateDosage() {
+        // ... (calculateDosage logic remains the same) ...
+
         // Reset saved values
         savedDosageAmount = 0.0;
         savedDosageUnit = "";
@@ -242,7 +256,7 @@ public class pHCalculator extends Fragment {
             double phChangeAbsolute = Math.abs(requiredPhChange);
 
             double dosageRate = info.dosageRate;
-            double baseVolume = 10000.0; // 10,000 Litres
+            double baseVolume = 10000.0;
 
             double dosageRequiredMetric;
 
@@ -271,7 +285,7 @@ public class pHCalculator extends Fragment {
                 chemicalType = "of " + chemicalName.split("\\(")[0].trim();
             }
 
-            // 💥 SAVE CALCULATED VALUES
+
             savedDosageAmount = dosageToDisplay;
             savedDosageUnit = finalUnit;
             savedChemicalName = chemicalName;
@@ -286,7 +300,18 @@ public class pHCalculator extends Fragment {
         }
     }
 
-    // 💥 NEW: Method to save the log to Firestore
+
+    // Helper to generate a consistent document ID for the current day's log
+    private String generateDailyLogId(String poolId) {
+        // Format the date as YYYY-MM-DD
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String dateString = sdf.format(new Date());
+
+        // Use a composite key: [poolId]_[date]
+        return poolId + "_" + dateString;
+    }
+
+    // 💥 UPDATED: Method to save the log to Firestore using MERGE/UPSERT
     private void saveLogToFirestore() {
         if (poolId == null || poolId.isEmpty()) {
             Toast.makeText(getContext(), "Error: No pool selected. Please select or create a pool first.", Toast.LENGTH_LONG).show();
@@ -303,29 +328,41 @@ public class pHCalculator extends Fragment {
             double targetPh = etTargetPh.getText().toString().isEmpty() ? 7.5 : Double.parseDouble(etTargetPh.getText().toString());
             double volume = Double.parseDouble(etPoolVolume.getText().toString());
 
-            pHLogModel log = new pHLogModel(
-                    poolId,
-                    currentPh,
-                    targetPh,
-                    volume,
-                    savedDosageAmount,
-                    savedDosageUnit,
-                    savedChemicalName
-            );
+            // 1. Prepare data (only the fields we want to update/set)
+            Map<String, Object> logUpdates = new HashMap<>();
 
-            // Get reference to the 'testLogs' subcollection under the current pool document
-            CollectionReference logRef = db.collection("pools").document(poolId).collection("testLogs");
+            // Core Metric
+            logUpdates.put("ph", currentPh);
 
-            logRef.add(log)
-                    .addOnSuccessListener(documentReference -> {
-                        Toast.makeText(getContext(), "pH Test Log saved successfully!", Toast.LENGTH_SHORT).show();
+            // Dosage/Calculator Metadata - 💥 UPDATE THESE KEYS
+            logUpdates.put("targetPh", targetPh);
+            logUpdates.put("poolVolume", volume);
+            logUpdates.put("phDosageAmount", savedDosageAmount);
+            logUpdates.put("phDosageUnit", savedDosageUnit);
+            logUpdates.put("phChemicalName", savedChemicalName);
+
+            // Explicitly set timestamp
+            logUpdates.put("timestamp", new Date());
+
+            // 2. Generate the consistent Document ID
+            String dailyLogId = generateDailyLogId(poolId);
+
+            // 3. Perform the MERGE update
+            db.collection("pools").document(poolId)
+                    .collection("testLogs").document(dailyLogId)
+
+                    // Use set(logUpdates, SetOptions.merge()) to update only the fields in the map
+                    // without affecting other fields (like 'chlorine' or 'alkalinity') if they exist.
+                    .set(logUpdates, SetOptions.merge())
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(getContext(), "pH Test Log recorded successfully.", Toast.LENGTH_SHORT).show();
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(getContext(), "Error saving log: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     });
 
         } catch (Exception e) {
-            Toast.makeText(getContext(), "Failed to save log data.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "Failed to save log data: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 

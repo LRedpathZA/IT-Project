@@ -91,8 +91,16 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnProfile.setOnClickListener(v -> {
-            Fragment profileFragment = new PO_Profile();
-            replaceFragment(profileFragment, true);
+            if(userViewModel.isPoolOwner())
+            {
+                Fragment profileFragment = new PO_Profile();
+                replaceFragment(profileFragment, true);
+            }
+            else
+            {
+                Fragment profileFragment = new SP_Profile();
+                replaceFragment(profileFragment, true);
+            }
         });
 
 

@@ -12,20 +12,20 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PO_HomeScreen extends Fragment {
+public class PO_HomeScreen extends Fragment implements HeaderUpdatable { // 💥 IMPLEMENT HeaderUpdatable
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
@@ -77,6 +77,8 @@ public class PO_HomeScreen extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        CardView poolHealthcard = view.findViewById(R.id.poolHealthCard);
+        poolHealthcard.setOnClickListener(v -> navigateToPoolHealth());
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
         poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
 
@@ -96,17 +98,31 @@ public class PO_HomeScreen extends Fragment {
         initNavigation();
 
         observeUserData();
-        // 💥 UPDATED: Observe PoolModel instead of DocumentSnapshot
         observePoolData();
     }
 
     // =========================================================================================
-    //                                  ADDED REFRESH LOGIC
+    //                                  HEADER MANAGEMENT (NEW)
     // =========================================================================================
+
+    @Override
+    public void updateActivityHeader() {
+        if (getActivity() instanceof MainActivity) {
+            // Hide the main activity's centralized header since PO_HomeScreen has its own custom header/layout.
+            // Title: "" (Doesn't matter since header is hidden)
+            // Show Header: false
+            // Show Back Button: false
+            ((MainActivity) getActivity()).updateHeader("", false, false);
+        }
+    }
 
     @Override
     public void onResume() {
         super.onResume();
+
+        // 💥 Call the method to hide the main activity's header
+        updateActivityHeader();
+
         // This ensures the user data is fresh, which in turn triggers pool data load via handleHomePoolDocument
         if (auth.getCurrentUser() != null) {
             userViewModel.fetchUserData(auth.getCurrentUser().getUid());
@@ -134,13 +150,10 @@ public class PO_HomeScreen extends Fragment {
     }
 
     private void observePoolData() {
-        // 💥 CHANGED: Observe the LiveData that holds the PoolModel
         poolViewModel.currentPoolModel.observe(getViewLifecycleOwner(), poolModel -> {
             if (poolModel != null) {
-                // 💥 CHANGED: Pass the PoolModel to the display function
                 displayPoolCard(poolModel);
             } else {
-                // If the model is null (cleared or not found)
                 if (flHomePoolContent != null) {
                     flHomePoolContent.removeAllViews();
                     flHomePoolContent.addView(llAddPoolPlaceholder);
@@ -153,7 +166,6 @@ public class PO_HomeScreen extends Fragment {
     private void handleHomePoolDocument(DocumentSnapshot userDocument) {
         String fetchedPoolId = userDocument.getString("homePoolId");
 
-        // Logic to clear pool data if no home pool is set
         if (fetchedPoolId == null || fetchedPoolId.isEmpty()) {
             this.homePoolId = null;
             MainActivity.homePoolId = null;
@@ -167,16 +179,15 @@ public class PO_HomeScreen extends Fragment {
             return;
         }
 
-        // Only fetch if the ID is new or we are forcing a fresh load
         if (!fetchedPoolId.equals(this.homePoolId)) {
             this.homePoolId = fetchedPoolId;
             MainActivity.homePoolId = this.homePoolId;
-            // The PoolViewModel is now responsible for handling when to actually fetch
             poolViewModel.fetchPoolData(fetchedPoolId);
         }
     }
 
     private void initNavigation() {
+        // These listeners remain here because the icons (ivProfileIcon) are part of the PO_HomeScreen XML.
         ivProfileIcon.setOnClickListener(v -> navigateToFragment(new PO_Profile()));
         llAddPoolPlaceholder.setOnClickListener(v -> navigateToFragment(new PO_AddPool()));
     }
@@ -205,6 +216,14 @@ public class PO_HomeScreen extends Fragment {
 
         navigateToFragment(calendarFragment);
     }
+    public void navigateToPoolHealth() {
+        if (homePoolId == null) {
+            Toast.makeText(getContext(), "Pool details not loaded yet. Please wait.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        PoolHealth poolHealthFragment = new PoolHealth();
+        navigateToFragment(poolHealthFragment);
+    }
 
     private void setupProductRecyclerView() {
         List<ItemModel> initialList = new ArrayList<>();
@@ -221,16 +240,12 @@ public class PO_HomeScreen extends Fragment {
             if (requestKey.equals(REQUEST_KEY_POOL_ADDED)) {
                 String resultPoolId = bundle.getString(BUNDLE_KEY_POOL_ID);
 
-                // The manual update handles the immediate UI change via ViewModel observation.
-                // We still need to call fetchUserData to ensure the homePoolId link is confirmed
-                // and to trigger a potential pool data fetch if the ID changed or was deleted.
                 if (auth.getCurrentUser() != null) {
                     userViewModel.fetchUserData(auth.getCurrentUser().getUid());
                 }
             }
         });
     }
-
 
     private void displayPoolCard(PoolModel poolModel) {
         if (poolModel != null && flHomePoolContent != null && getContext() != null) {

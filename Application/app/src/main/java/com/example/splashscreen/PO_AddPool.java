@@ -18,7 +18,6 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -26,7 +25,6 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -35,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class PO_AddPool extends Fragment {
+public class PO_AddPool extends Fragment implements HeaderUpdatable {
 
     private EditText etPoolName, etPoolType, etWaterCapacity, etSanitizerType, etFilterRuntime, etPoolLocation;
     private MaterialButton btnAddPool;
@@ -53,6 +51,8 @@ public class PO_AddPool extends Fragment {
     private String currentPhotoUrl = null;
     private static final int PICK_IMAGE_REQUEST = 1;
 
+    private String currentPoolId;
+
     public PO_AddPool() {
     }
 
@@ -61,13 +61,32 @@ public class PO_AddPool extends Fragment {
         super.onCreate(savedInstanceState);
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+
+        if (getArguments() != null) {
+            currentPoolId = getArguments().getString(PO_HomeScreen.ARG_POOL_ID);
+        } else {
+            currentPoolId = null;
+        }
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
         return inflater.inflate(R.layout.po_add_pool, container, false);
+    }
+
+    @Override
+    public void updateActivityHeader() {
+        if (getActivity() instanceof MainActivity) {
+            String title = (currentPoolId != null) ? "Edit Pool Details" : "Add New Pool";
+            ((MainActivity) getActivity()).updateHeader(title, true, true);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateActivityHeader();
     }
 
     @Override
@@ -76,7 +95,6 @@ public class PO_AddPool extends Fragment {
 
         poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
 
-        TextView tvTitle = view.findViewById(R.id.tv_title);
         btnAddPool = view.findViewById(R.id.btn_add_pool);
         btnDeletePool = view.findViewById(R.id.btn_delete_pool);
 
@@ -93,22 +111,13 @@ public class PO_AddPool extends Fragment {
         btnDeletePhoto = view.findViewById(R.id.btn_delete_photo);
         flImageContainer = view.findViewById(R.id.fl_image_container);
 
-        String poolId;
-        if (getArguments() != null) {
-            poolId = getArguments().getString(PO_HomeScreen.ARG_POOL_ID);
-        } else {
-            poolId = null;
-        }
-
-        if (poolId != null) {
-            tvTitle.setText("Edit Pool Details");
+        if (currentPoolId != null) {
             btnAddPool.setText("Save Changes");
             btnDeletePool.setVisibility(View.VISIBLE);
-            loadPoolData(poolId);
-            btnAddPool.setOnClickListener(v -> handleEditPool(poolId));
-            btnDeletePool.setOnClickListener(v -> deletePool(poolId));
+            loadPoolData(currentPoolId);
+            btnAddPool.setOnClickListener(v -> handleEditPool(currentPoolId));
+            btnDeletePool.setOnClickListener(v -> deletePool(currentPoolId));
         } else {
-            tvTitle.setText("Add New Pool");
             btnAddPool.setText("Add Pool");
             btnDeletePool.setVisibility(View.GONE);
             btnAddPool.setOnClickListener(v -> addPool());
@@ -121,40 +130,7 @@ public class PO_AddPool extends Fragment {
         llPlaceholder.setOnClickListener(v -> openImageChooser());
         ivSelectedPhoto.setOnClickListener(v -> openImageChooser());
         btnDeletePhoto.setOnClickListener(v -> deleteSelectedPhoto());
-
-
-        ImageButton btnBack = view.findViewById(R.id.btn_back);
-        setupBackPressHandling();
-        btnBack.setOnClickListener(v -> {
-            requireActivity().getOnBackPressedDispatcher().onBackPressed();
-        });
     }
-
-    // =========================================================================================
-    //                                  BACK NAVIGATION FIX
-    // =========================================================================================
-
-    private void setupBackPressHandling() {
-        OnBackPressedCallback callback = new OnBackPressedCallback(true ) {
-            @Override
-            public void handleOnBackPressed() {
-                if (getParentFragmentManager().getBackStackEntryCount() > 0) {
-                    getParentFragmentManager().popBackStack();
-                } else if (getActivity() != null) {
-                    getActivity().finish();
-                }
-            }
-        };
-
-        requireActivity().getOnBackPressedDispatcher().addCallback(
-                getViewLifecycleOwner(),
-                callback
-        );
-    }
-
-    // =========================================================================================
-    //                                  POOL ACTION METHODS
-    // =========================================================================================
 
     private void addPool() {
         Map<String, Object> poolData = getAndValidateInputs();
@@ -199,7 +175,6 @@ public class PO_AddPool extends Fragment {
                                     Toast.makeText(getContext(), "Pool deleted successfully!", Toast.LENGTH_SHORT).show();
                                 }
 
-                                // Update ViewModel and notify Home Screen
                                 poolViewModel.clearPoolData();
                                 Bundle result = new Bundle();
                                 result.putString(PO_HomeScreen.BUNDLE_KEY_POOL_ID, null);
@@ -228,10 +203,6 @@ public class PO_AddPool extends Fragment {
                 });
     }
 
-    // =========================================================================================
-    //                                  DATA FETCHING FOR EDIT
-    // =========================================================================================
-
     private void loadPoolData(String poolId) {
         db.collection("pools").document(poolId).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -253,8 +224,6 @@ public class PO_AddPool extends Fragment {
 
                         currentPhotoUrl = documentSnapshot.getString("photoUrl");
                         if (currentPhotoUrl != null && !currentPhotoUrl.isEmpty()) {
-                            // Ensure the image URL is stored, even if we use a fake drawable
-                            // You may need to load the image via a library like Glide/Picasso for real URLs
                             ivSelectedPhoto.setImageResource(R.drawable.fake_pool);
                             ivSelectedPhoto.setVisibility(View.VISIBLE);
                             btnDeletePhoto.setVisibility(View.VISIBLE);
@@ -272,23 +241,12 @@ public class PO_AddPool extends Fragment {
                 });
     }
 
-    // =========================================================================================
-    //                                  VALIDATION AND DATA GRAB
-    // =========================================================================================
-
-    /**
-     * Creates a PoolModel object from the input data map, assigning the poolId.
-     * This is used to manually update the ViewModel without requiring a separate fetch.
-     * @param poolData The map of data ready to be saved/updated.
-     * @param poolId The ID of the pool.
-     * @return A manually created PoolModel instance.
-     */
     private PoolModel createPoolModelFromMap(Map<String, Object> poolData, String poolId) {
         PoolModel pool = new PoolModel();
 
-        // Convert numbers from Integer (user input) to Long (Firestore type) for storage
-        Long capacityLong = ((Long) poolData.get("waterCapacityLiters")).longValue();
-        Long runtimeLong = ((Long) poolData.get("filterRuntimeHours")).longValue();
+        // FIX: Retrieve as Long directly, since Firestore stores numbers as Long
+        Long capacityLong = (Long) poolData.get("waterCapacityLiters");
+        Long runtimeLong = (Long) poolData.get("filterRuntimeHours");
 
         pool.setPoolId(poolId);
         pool.setUserId((String) poolData.get("userId"));
@@ -299,14 +257,9 @@ public class PO_AddPool extends Fragment {
         pool.setFilterRuntimeHours(runtimeLong);
         pool.setLocation((String) poolData.get("location"));
         pool.setPhotoUrl((String) poolData.get("photoUrl"));
-        // 'createdAt' needs to be set if available, especially for a newly added pool
         if (poolData.containsKey("createdAt")) {
             pool.setCreatedAt((Long) poolData.get("createdAt"));
-        } else {
-            // For an update, we rely on the original value (which is not available here)
-            // but since the home screen doesn't show it, it's safe to skip for updates.
         }
-
         return pool;
     }
 
@@ -385,10 +338,9 @@ public class PO_AddPool extends Fragment {
         long createdAt = System.currentTimeMillis();
         poolData.put("createdAt", createdAt);
 
-
+        // FIX: Remove redundant (Integer) cast. It's safe to use .longValue() on the Integer.
         poolData.put("waterCapacityLiters", ((Integer)poolData.get("waterCapacityLiters")).longValue());
         poolData.put("filterRuntimeHours", ((Integer)poolData.get("filterRuntimeHours")).longValue());
-
 
         db.collection("pools")
                 .add(poolData)
@@ -402,7 +354,6 @@ public class PO_AddPool extends Fragment {
                                 if (getContext() != null) {
                                     Toast.makeText(getContext(), "Pool added and set as home pool!", Toast.LENGTH_SHORT).show();
                                 }
-
 
                                 PoolModel newPoolModel = createPoolModelFromMap(poolData, newPoolId);
                                 poolViewModel.setPoolDataManually(newPoolModel);
