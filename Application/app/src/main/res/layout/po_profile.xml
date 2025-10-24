@@ -86,7 +86,7 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="575dp"
                     android:orientation="vertical"
                     android:paddingBottom="16dp">
 
@@ -105,17 +105,17 @@
                             android:layout_marginBottom="12dp"
                             app:cardCornerRadius="30dp"
                             app:cardElevation="0dp"
-                            app:strokeWidth="2dp"
-                            app:strokeColor="@color/grey_light">
+                            app:strokeColor="@color/grey_light"
+                            app:strokeWidth="2dp">
 
                             <ImageView
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:src="@drawable/ic_profile_placeholder"
                                 android:background="@color/white"
-                                android:scaleType="centerInside"
+                                android:contentDescription="User Profile Picture"
                                 android:padding="8dp"
-                                android:contentDescription="User Profile Picture" />
+                                android:scaleType="centerInside"
+                                android:src="@drawable/ic_profile_placeholder" />
                         </com.google.android.material.card.MaterialCardView>
 
                         <TextView
@@ -135,23 +135,38 @@
                             android:stretchColumns="1">
 
                             <TableRow>
-                                <TextView style="@style/ProfileDetailLabel" android:text="Email" />
+
                                 <TextView
-                                    android:id="@+id/tv_detail_email" style="@style/ProfileDetailValue"
+                                    style="@style/ProfileDetailLabel"
+                                    android:text="Email" />
+
+                                <TextView
+                                    android:id="@+id/tv_detail_email"
+                                    style="@style/ProfileDetailValue"
                                     android:text="email@email.com" />
                             </TableRow>
 
                             <TableRow>
-                                <TextView style="@style/ProfileDetailLabel" android:text="Phone" />
+
                                 <TextView
-                                    android:id="@+id/tv_detail_phone" style="@style/ProfileDetailValue"
+                                    style="@style/ProfileDetailLabel"
+                                    android:text="Phone" />
+
+                                <TextView
+                                    android:id="@+id/tv_detail_phone"
+                                    style="@style/ProfileDetailValue"
                                     android:text="(+27) 000 1111 222" />
                             </TableRow>
 
                             <TableRow>
-                                <TextView style="@style/ProfileDetailLabel" android:text="Location" />
+
                                 <TextView
-                                    android:id="@+id/tv_detail_location" style="@style/ProfileDetailValue"
+                                    style="@style/ProfileDetailLabel"
+                                    android:text="Location" />
+
+                                <TextView
+                                    android:id="@+id/tv_detail_location"
+                                    style="@style/ProfileDetailValue"
                                     android:text="Summerstrand, Port Elizabeth" />
                             </TableRow>
                         </TableLayout>
@@ -161,8 +176,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
                         android:paddingTop="16dp"
+                        android:paddingEnd="16dp"
                         android:paddingBottom="8dp"
                         android:text="Options"
                         android:textColor="@color/black"
@@ -180,20 +195,21 @@
                             android:id="@+id/option_account_settings"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:paddingVertical="12dp"
+                            android:background="?attr/selectableItemBackground"
                             android:clickable="true"
                             android:focusable="true"
-                            android:background="?attr/selectableItemBackground">
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingVertical="12dp">
+
                             <ImageView
                                 android:id="@+id/icon_left_account"
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
-                                android:src="@drawable/ic_account_settings"
+                                android:layout_marginEnd="16dp"
                                 android:contentDescription="Account Settings Icon"
-                                app:tint="@color/black"
-                                android:layout_marginEnd="16dp"/>
+                                android:src="@drawable/ic_account_settings"
+                                app:tint="@color/black" />
 
                             <TextView
                                 android:id="@+id/tv_label_account"
@@ -201,15 +217,15 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="Account Settings"
-                                android:textSize="16sp"
-                                android:textColor="@color/black"/>
+                                android:textColor="@color/black"
+                                android:textSize="16sp" />
 
                             <ImageView
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
+                                android:contentDescription="Go to"
                                 android:src="@drawable/ic_arrow_forward_black_24dp"
-                                app:tint="@color/black"
-                                android:contentDescription="Go to"/>
+                                app:tint="@color/black" />
                         </LinearLayout>
 
                         <View style="@style/DividerLine" />
@@ -218,20 +234,21 @@
                             android:id="@+id/option_security_privacy"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:paddingVertical="12dp"
+                            android:background="?attr/selectableItemBackground"
                             android:clickable="true"
                             android:focusable="true"
-                            android:background="?attr/selectableItemBackground">
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingVertical="12dp">
+
                             <ImageView
                                 android:id="@+id/icon_left_security"
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
-                                android:src="@drawable/password"
+                                android:layout_marginEnd="16dp"
                                 android:contentDescription="Security and Privacy Icon"
-                                app:tint="@color/black"
-                                android:layout_marginEnd="16dp"/>
+                                android:src="@drawable/password"
+                                app:tint="@color/black" />
 
                             <TextView
                                 android:id="@+id/tv_label_security"
@@ -239,15 +256,15 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="Security &amp; Privacy"
-                                android:textSize="16sp"
-                                android:textColor="@color/black"/>
+                                android:textColor="@color/black"
+                                android:textSize="16sp" />
 
                             <ImageView
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
+                                android:contentDescription="Go to"
                                 android:src="@drawable/ic_arrow_forward_black_24dp"
-                                app:tint="@color/black"
-                                android:contentDescription="Go to"/>
+                                app:tint="@color/black" />
                         </LinearLayout>
 
                         <View style="@style/DividerLine" />
@@ -256,20 +273,21 @@
                             android:id="@+id/option_help_center"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:paddingVertical="12dp"
+                            android:background="?attr/selectableItemBackground"
                             android:clickable="true"
                             android:focusable="true"
-                            android:background="?attr/selectableItemBackground">
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingVertical="12dp">
+
                             <ImageView
                                 android:id="@+id/icon_left_help"
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
-                                android:src="@drawable/ic_help_center"
+                                android:layout_marginEnd="16dp"
                                 android:contentDescription="Help Center Icon"
-                                app:tint="@color/black"
-                                android:layout_marginEnd="16dp"/>
+                                android:src="@drawable/ic_help_center"
+                                app:tint="@color/black" />
 
                             <TextView
                                 android:id="@+id/tv_label_help"
@@ -277,18 +295,19 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="Help Center"
-                                android:textSize="16sp"
-                                android:textColor="@color/black"/>
+                                android:textColor="@color/black"
+                                android:textSize="16sp" />
 
                             <ImageView
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
+                                android:contentDescription="Go to"
                                 android:src="@drawable/ic_arrow_forward_black_24dp"
-                                app:tint="@color/black"
-                                android:contentDescription="Go to"/>
+                                app:tint="@color/black" />
                         </LinearLayout>
 
                     </LinearLayout>
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_logout"
                         android:layout_width="match_parent"

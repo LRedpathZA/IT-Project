@@ -30,6 +30,14 @@ public class Calculator_Selector extends Fragment implements HeaderUpdatable {
         cardChlorineCalculator.setOnClickListener(v -> {
             replaceFragment(new ChlorineCalculator());
         });
+        CardView cardAlkalinityCalculator = view.findViewById(R.id.card_alkalinity_calculator);
+        cardAlkalinityCalculator.setOnClickListener(v -> {
+            replaceFragment(new AlkalinityCalculator());
+        });
+        CardView cardStabilizerCalculator = view.findViewById(R.id.card_stabilizer_calculator);
+        cardStabilizerCalculator.setOnClickListener(v -> {
+            replaceFragment(new StabilizerCalculator());
+        });
 
 
         return view;
@@ -37,7 +45,7 @@ public class Calculator_Selector extends Fragment implements HeaderUpdatable {
     @Override
     public void updateActivityHeader() {
         if (getActivity() instanceof MainActivity) {
-            String title =  "pH Calculator";
+            String title =  " Calculator Selector";
             ((MainActivity) getActivity()).updateHeader(title, true, true);
         }
     }

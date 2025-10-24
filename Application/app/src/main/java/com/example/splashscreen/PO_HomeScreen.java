@@ -227,9 +227,9 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable { // 💥
 
     private void setupProductRecyclerView() {
         List<ItemModel> initialList = new ArrayList<>();
-        initialList.add(new ItemModel("Chlorine Tabs", "Top Seller", R.drawable.password));
-        initialList.add(new ItemModel("pH Up", "Essential", R.drawable.password));
-        initialList.add(new ItemModel("Algaecide", "Best Price", R.drawable.password));
+        initialList.add(new ItemModel("Chlorine Tabs", "Top Seller", R.drawable.fake_chlorine));
+        initialList.add(new ItemModel("pH Up", "Essential", R.drawable.fake_chlorine));
+        initialList.add(new ItemModel("Algaecide", "Best Price", R.drawable.fake_chlorine));
 
         productAdapter = new ItemAdapter(initialList);
         rvProducts.setAdapter(productAdapter);

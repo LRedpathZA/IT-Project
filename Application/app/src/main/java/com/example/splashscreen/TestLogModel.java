@@ -15,6 +15,7 @@ public class TestLogModel {
     private String poolId;
     @ServerTimestamp
     private Date timestamp;
+    private double poolVolume;
 
     // 3. PH CALCULATOR DATA
     private double targetPh;
@@ -28,7 +29,11 @@ public class TestLogModel {
     private String chlorineDosageUnit;
     private String chlorineChemicalName;
 
-    private double poolVolume;
+    // 💥 5. ALKALINITY CALCULATOR DATA (NEW FIELDS ADDED)
+    private double targetAlkalinity;
+    private double alkDosageAmount;
+    private String alkDosageUnit;
+    private String alkChemicalName;
 
 
     // ------------------------------------
@@ -36,14 +41,12 @@ public class TestLogModel {
     // ------------------------------------
 
     public TestLogModel() {
-        // Required empty public constructor for Firestore
-        // Primitives default to 0.0, Objects (Strings/Date) default to null.
-        // This is the safest constructor for mapping partial data.
     }
 
+    // Existing constructor for PH (retained for backward compatibility)
     public TestLogModel(String poolId, double currentPh, double targetPh, double poolVolume,
                         double dosageAmount, String dosageUnit, String chemicalName) {
-        this(); // Call default constructor
+        this();
 
         this.poolId = poolId;
         this.ph = currentPh;
@@ -55,9 +58,8 @@ public class TestLogModel {
         this.phChemicalName = chemicalName;
     }
 
-
     public TestLogModel(String poolId, double ph, double chlorine, double alkalinity, double stabilizer) {
-        this(); // Call default constructor
+        this();
 
         this.poolId = poolId;
         this.ph = ph;
@@ -120,4 +122,17 @@ public class TestLogModel {
 
     public String getChlorineChemicalName() { return chlorineChemicalName; }
     public void setChlorineChemicalName(String chlorineChemicalName) { this.chlorineChemicalName = chlorineChemicalName; }
+
+    // 💥 5. ALKALINITY CALCULATOR DATA (NEW GETTERS/SETTERS)
+    public double getTargetAlkalinity() { return targetAlkalinity; }
+    public void setTargetAlkalinity(double targetAlkalinity) { this.targetAlkalinity = targetAlkalinity; }
+
+    public double getAlkDosageAmount() { return alkDosageAmount; }
+    public void setAlkDosageAmount(double alkDosageAmount) { this.alkDosageAmount = alkDosageAmount; }
+
+    public String getAlkDosageUnit() { return alkDosageUnit; }
+    public void setAlkDosageUnit(String alkDosageUnit) { this.alkDosageUnit = alkDosageUnit; }
+
+    public String getAlkChemicalName() { return alkChemicalName; }
+    public void setAlkChemicalName(String alkChemicalName) { this.alkChemicalName = alkChemicalName; }
 }

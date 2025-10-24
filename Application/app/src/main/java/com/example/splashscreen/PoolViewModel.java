@@ -32,6 +32,13 @@ public class PoolViewModel extends ViewModel {
     private final MutableLiveData<Map<String, Object>> _lastChlorineTest = new MutableLiveData<>(new HashMap<>());
     public LiveData<Map<String, Object>> lastChlorineTest = _lastChlorineTest;
 
+    private final MutableLiveData<Map<String, Object>> _lastAlkalinityTest = new MutableLiveData<>(new HashMap<>());
+    public LiveData<Map<String, Object>> lastAlkalinityTest = _lastAlkalinityTest;
+
+
+    private final MutableLiveData<Map<String, Object>> _lastStabilizerTest = new MutableLiveData<>(new HashMap<>());
+    public LiveData<Map<String, Object>> lastStabilizerTest = _lastStabilizerTest;
+
 
     private final MutableLiveData<Boolean> _isLoadingPool = new MutableLiveData<>(false);
     public LiveData<Boolean> isLoadingPool = _isLoadingPool;
@@ -64,7 +71,6 @@ public class PoolViewModel extends ViewModel {
                 DocumentSnapshot document = task.getResult();
                 PoolModel pool = new PoolModel(document);
 
-                // 1. Update core LiveData
                 _currentPoolModel.setValue(pool);
                 updateIndividualFields(pool);
 
@@ -93,6 +99,9 @@ public class PoolViewModel extends ViewModel {
         _waterCapacityLiters.setValue(null);
         _lastPhTest.setValue(new HashMap<>());
         _lastChlorineTest.setValue(new HashMap<>());
+        // 💥 NEW: Reset Alkalinity and Stabilizer
+        _lastAlkalinityTest.setValue(new HashMap<>());
+        _lastStabilizerTest.setValue(new HashMap<>());
     }
 
     public void setLastPhTest(Double pH, Long date) {
@@ -107,5 +116,19 @@ public class PoolViewModel extends ViewModel {
         newTest.put("chlorine", chlorine);
         newTest.put("date", date);
         _lastChlorineTest.setValue(newTest);
+    }
+
+    // 💥 NEW: Setter for Last Alkalinity Test
+    public void setLastAlkalinityTest(Double alkalinity, Long date) {
+        Map<String, Object> newTest = new HashMap<>();
+        newTest.put("alkalinity", alkalinity);
+        newTest.put("date", date);
+        _lastAlkalinityTest.setValue(newTest);
+    }
+    public void setLastStabilizerTest(Double stabilizer, Long date) {
+        Map<String, Object> newTest = new HashMap<>();
+        newTest.put("stabilizer", stabilizer);
+        newTest.put("date", date);
+        _lastStabilizerTest.setValue(newTest);
     }
 }

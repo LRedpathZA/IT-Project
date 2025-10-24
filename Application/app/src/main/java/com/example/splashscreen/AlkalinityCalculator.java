@@ -32,10 +32,11 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public class pHCalculator extends Fragment implements HeaderUpdatable {
+public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
 
-    private EditText etCurrentPh, etTargetPh, etPoolVolume;
-    private AutoCompleteTextView actvVolumeUnit, actvChemicalType;
+    // 💥 UPDATED IDs to reference Alkalinity
+    private EditText etCurrentAlkalinity, etTargetAlkalinity, etPoolVolume;
+    private AutoCompleteTextView actvChemicalType; // Removed actvVolumeUnit
     private TextInputLayout tilChemicalType;
     private TextView tvChemicalDetails, tvDosageResult;
     private CardView cvResult;
@@ -55,8 +56,9 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
     private double savedDosageAmount = 0.0;
     private String savedDosageUnit = "";
     private String savedChemicalName = "";
+    private static final double IDEAL_ALKALINITY = 100.0; // Default target
 
-    public pHCalculator() {}
+    public AlkalinityCalculator() {}
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,7 +72,8 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.ph_calculator, container, false);
+        // 💥 Uses the XML provided in the previous turn
+        return inflater.inflate(R.layout.alkalinity_calculator, container, false);
     }
 
     @Override
@@ -79,17 +82,16 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
 
         poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
 
-        etCurrentPh = view.findViewById(R.id.et_current_ph);
-        etTargetPh = view.findViewById(R.id.et_target_ph);
+        // 💥 BINDING UPDATED ALKALINITY VIEWS
+        etCurrentAlkalinity = view.findViewById(R.id.et_current_alkalinity);
+        etTargetAlkalinity = view.findViewById(R.id.et_target_alkalinity);
         etPoolVolume = view.findViewById(R.id.et_pool_volume);
-        actvVolumeUnit = view.findViewById(R.id.actv_volume_unit);
         actvChemicalType = view.findViewById(R.id.actv_chemical_type);
         tilChemicalType = view.findViewById(R.id.til_chemical_type);
         tvChemicalDetails = view.findViewById(R.id.tv_chemical_details);
         tvDosageResult = view.findViewById(R.id.tv_dosage_result);
         cvResult = view.findViewById(R.id.cv_result);
         btnCalculate = view.findViewById(R.id.btn_calculate);
-        // btnBack = view.findViewById(R.id.btn_back); // <-- REMOVED
         btnSaveLog = view.findViewById(R.id.btn_save_log);
 
         setupListeners();
@@ -98,7 +100,6 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
     }
 
     private void setupListeners() {
-        // btnBack.setOnClickListener(v -> getParentFragmentManager().popBackStack()); // <-- REMOVED to fix NPE
         btnCalculate.setOnClickListener(v -> calculateDosage());
 
         // 💥 Listener for Save Log Button
@@ -117,17 +118,16 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
             public void afterTextChanged(Editable s) {}
         };
 
-        etCurrentPh.addTextChangedListener(inputWatcher);
-        etTargetPh.addTextChangedListener(inputWatcher);
+        etCurrentAlkalinity.addTextChangedListener(inputWatcher);
+        etTargetAlkalinity.addTextChangedListener(inputWatcher);
         etPoolVolume.addTextChangedListener(inputWatcher);
-        actvVolumeUnit.addTextChangedListener(inputWatcher);
         actvChemicalType.addTextChangedListener(inputWatcher);
     }
 
     @Override
     public void updateActivityHeader() {
         if (getActivity() instanceof MainActivity) {
-            String title =  "pH Calculator";
+            String title =  "Alkalinity Calculator";
             ((MainActivity) getActivity()).updateHeader(title, true, true);
         }
     }
@@ -137,12 +137,8 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
         super.onResume();
         updateActivityHeader();
     }
-    private void setupSpinners() {
-        String[] volumeUnits = new String[]{UNIT_LITRES};
-        ArrayAdapter<String> unitAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, volumeUnits);
-        actvVolumeUnit.setAdapter(unitAdapter);
-        actvVolumeUnit.setText(UNIT_LITRES, false);
 
+    private void setupSpinners() {
         String[] chemicalTypes = chemicalInfoMap.keySet().toArray(new String[0]);
         ArrayAdapter<String> chemicalAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, chemicalTypes);
         actvChemicalType.setAdapter(chemicalAdapter);
@@ -153,12 +149,11 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
             if (poolModel != null) {
                 poolId = poolModel.getPoolId();
                 if (poolModel.getWaterCapacityLiters() != null) {
+                    // Pool volume is pre-filled, unit is assumed to be Liters
                     etPoolVolume.setText(String.valueOf(poolModel.getWaterCapacityLiters()));
-                    actvVolumeUnit.setText(UNIT_LITRES, false);
                 }
             } else {
                 poolId = null;
-                // Consider showing a warning if no pool is selected/loaded
             }
         });
     }
@@ -173,54 +168,49 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
         cvResult.setVisibility(View.GONE);
     }
 
+    // 💥 UPDATED CHEMICAL DATA FOR ALKALINITY
     private void initializeChemicalData() {
         chemicalInfoMap = new HashMap<>();
 
-        // pH Decreasers
-        chemicalInfoMap.put("pH Decreaser (Muriatic Acid - 31%)", new ChemicalDosageInfo(
-                "Muriatic Acid (Hydrochloric Acid, HCl). Strong acid. Requires extreme caution. Add slowly to water, never water to acid. Ideal for high pH.",
-                "pH Decreaser (Liquid)",
-                1000.0 // ml/10,000L to drop pH by 0.1
-        ));
-        chemicalInfoMap.put("pH Decreaser (Sodium Bisulfate - Granular)", new ChemicalDosageInfo(
-                "Sodium Bisulfate ($\\text{NaHSO}_4$). Safer alternative to liquid acid. Mix in bucket of water before adding to pool. Ideal for high pH.",
-                "pH Decreaser (Granular)",
-                100.0 // grams/10,000L to drop pH by 0.1
+        // Alkalinity Increaser (Sodium Bicarbonate - Baking Soda)
+        chemicalInfoMap.put("Alkalinity Increaser (Sodium Bicarbonate)", new ChemicalDosageInfo(
+                "Sodium Bicarbonate (Baking Soda, $\\text{NaHCO}_3$). Safest way to raise TA. Pre-dissolve in water and broadcast over the pool surface. Slowly raise TA by no more than 20 ppm per day.",
+                "TA Increaser (Granular)",
+                150.0 // grams/10,000L to raise TA by 10 ppm
         ));
 
-        // pH Increasers
-        chemicalInfoMap.put("pH Increaser (Soda Ash / Sodium Carbonate)", new ChemicalDosageInfo(
-                "Soda Ash ($\\text{Na}_2\\text{CO}_3$). Highly effective. Pre-dissolve in water and add over deep end. Also increases Total Alkalinity. Ideal for low pH.",
-                "pH Increaser (Powder)",
-                60.0 // grams/10,000L to raise pH by 0.1
+        // Alkalinity Decreaser (Muriatic Acid - same as pH Decreaser, but applied differently)
+        chemicalInfoMap.put("Alkalinity Decreaser (Muriatic Acid - 31%)", new ChemicalDosageInfo(
+                "Muriatic Acid (Hydrochloric Acid, HCl). Decreases both TA and pH. Add slowly to water, never water to acid. Lower TA requires careful, localized addition to the deepest area.",
+                "TA Decreaser (Liquid)",
+                700.0 // ml/10,000L to drop TA by 10 ppm
         ));
     }
 
     private void calculateDosage() {
-        // ... (calculateDosage logic remains the same) ...
-
         // Reset saved values
         savedDosageAmount = 0.0;
         savedDosageUnit = "";
         savedChemicalName = "";
 
-        String currentPhStr = etCurrentPh.getText().toString();
-        String targetPhStr = etTargetPh.getText().toString();
+        String currentAlkStr = etCurrentAlkalinity.getText().toString();
+        String targetAlkStr = etTargetAlkalinity.getText().toString();
         String volumeStr = etPoolVolume.getText().toString();
         String chemicalName = actvChemicalType.getText().toString();
 
-        if (currentPhStr.isEmpty() || volumeStr.isEmpty() || chemicalName.isEmpty()) {
+        if (currentAlkStr.isEmpty() || volumeStr.isEmpty() || chemicalName.isEmpty()) {
             Toast.makeText(getContext(), "Please fill in all required fields (*).", Toast.LENGTH_SHORT).show();
             return;
         }
 
         try {
-            double currentPh = Double.parseDouble(currentPhStr);
-            double targetPh = targetPhStr.isEmpty() ? 7.5 : Double.parseDouble(targetPhStr);
+            double currentAlk = Double.parseDouble(currentAlkStr);
+            // Default target from XML is 100, but use the EditText value if available
+            double targetAlk = targetAlkStr.isEmpty() ? IDEAL_ALKALINITY : Double.parseDouble(targetAlkStr);
             double volume = Double.parseDouble(volumeStr);
 
-            if (currentPh < 0 || currentPh > 14 || targetPh < 0 || targetPh > 14) {
-                Toast.makeText(getContext(), "pH levels must be between 0 and 14.", Toast.LENGTH_SHORT).show();
+            if (currentAlk < 0 || targetAlk < 0) {
+                Toast.makeText(getContext(), "Alkalinity levels must be non-negative.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -229,19 +219,20 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
                 return;
             }
 
-            if (Math.abs(currentPh - targetPh) < 0.05) {
-                tvDosageResult.setText("No adjustment required. pH is stable.");
+            // TA is considered stable within a +/- 10 ppm range of target (e.g., 90-110 for a target of 100)
+            if (Math.abs(currentAlk - targetAlk) <= 10.0) {
+                tvDosageResult.setText("No major adjustment required. Alkalinity is stable.");
                 cvResult.setVisibility(View.VISIBLE);
                 return;
             }
 
-            if (currentPh > targetPh && !chemicalName.toLowerCase().contains("decreaser")) {
-                Toast.makeText(getContext(), "You need a pH Decreaser to lower the pH.", Toast.LENGTH_LONG).show();
+            if (currentAlk > targetAlk && !chemicalName.toLowerCase().contains("decreaser")) {
+                Toast.makeText(getContext(), "You need an Alkalinity Decreaser to lower the TA.", Toast.LENGTH_LONG).show();
                 return;
             }
 
-            if (currentPh < targetPh && !chemicalName.toLowerCase().contains("increaser")) {
-                Toast.makeText(getContext(), "You need a pH Increaser to raise the pH.", Toast.LENGTH_LONG).show();
+            if (currentAlk < targetAlk && !chemicalName.toLowerCase().contains("increaser")) {
+                Toast.makeText(getContext(), "You need an Alkalinity Increaser to raise the TA.", Toast.LENGTH_LONG).show();
                 return;
             }
 
@@ -251,15 +242,17 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
                 return;
             }
 
-            double requiredPhChange = targetPh - currentPh;
-            double phChangeAbsolute = Math.abs(requiredPhChange);
+            double requiredAlkChange = targetAlk - currentAlk;
+            double alkChangeAbsolute = Math.abs(requiredAlkChange);
 
             double dosageRate = info.dosageRate;
             double baseVolume = 10000.0;
+            double baseAlkChange = 10.0; // Dosage rate is for every 10 ppm change
 
+            // Dosage Required = (|Delta TA| / 10 ppm) * (Volume / 10000L) * Dosage Rate
             double dosageRequiredMetric;
 
-            dosageRequiredMetric = (phChangeAbsolute / 0.1) * (volume / baseVolume) * dosageRate;
+            dosageRequiredMetric = (alkChangeAbsolute / baseAlkChange) * (volume / baseVolume) * dosageRate;
 
             String finalUnit;
             String chemicalType;
@@ -268,7 +261,7 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
 
             if (info.baseType.toLowerCase().contains("liquid")) {
                 dosageToDisplay = dosageRequiredMetric / 1000.0; // Convert ml to L
-                finalUnit = UNIT_LITRES;
+                finalUnit = "L";
                 chemicalType = "of " + chemicalName.split("\\(")[0].trim();
                 amountFormat = "%.2f";
             } else {
@@ -323,38 +316,36 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
         }
 
         try {
-            double currentPh = Double.parseDouble(etCurrentPh.getText().toString());
-            double targetPh = etTargetPh.getText().toString().isEmpty() ? 7.5 : Double.parseDouble(etTargetPh.getText().toString());
+            double currentAlk = Double.parseDouble(etCurrentAlkalinity.getText().toString());
+            double targetAlk = etTargetAlkalinity.getText().toString().isEmpty() ? IDEAL_ALKALINITY : Double.parseDouble(etTargetAlkalinity.getText().toString());
             double volume = Double.parseDouble(etPoolVolume.getText().toString());
 
             // 1. Prepare data (only the fields we want to update/set)
             Map<String, Object> logUpdates = new HashMap<>();
 
-            // Core Metric
-            logUpdates.put("ph", currentPh);
+            // Core Metric 💥 UPDATED KEY
+            logUpdates.put("alkalinity", currentAlk);
 
-            // Dosage/Calculator Metadata - 💥 UPDATE THESE KEYS
-            logUpdates.put("targetPh", targetPh);
+
+            logUpdates.put("targetAlkalinity", targetAlk);
             logUpdates.put("poolVolume", volume);
-            logUpdates.put("phDosageAmount", savedDosageAmount);
-            logUpdates.put("phDosageUnit", savedDosageUnit);
-            logUpdates.put("phChemicalName", savedChemicalName);
+            logUpdates.put("alkDosageAmount", savedDosageAmount);
+            logUpdates.put("alkDosageUnit", savedDosageUnit);
+            logUpdates.put("alkChemicalName", savedChemicalName);
 
-            // Explicitly set timestamp
+
             logUpdates.put("timestamp", new Date());
 
-            // 2. Generate the consistent Document ID
+
             String dailyLogId = generateDailyLogId(poolId);
 
-            // 3. Perform the MERGE update
+
             db.collection("pools").document(poolId)
                     .collection("testLogs").document(dailyLogId)
-
                     // Use set(logUpdates, SetOptions.merge()) to update only the fields in the map
-                    // without affecting other fields (like 'chlorine' or 'alkalinity') if they exist.
                     .set(logUpdates, SetOptions.merge())
                     .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(getContext(), "pH Test Log recorded successfully.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Alkalinity Test Log recorded successfully.", Toast.LENGTH_SHORT).show();
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(getContext(), "Error saving log: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -365,6 +356,7 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
         }
     }
 
+    // Retained from pHCalculator
     private static class ChemicalDosageInfo {
         final String details;
         final String baseType;

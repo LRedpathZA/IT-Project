@@ -32,10 +32,11 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public class pHCalculator extends Fragment implements HeaderUpdatable {
+public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
 
-    private EditText etCurrentPh, etTargetPh, etPoolVolume;
-    private AutoCompleteTextView actvVolumeUnit, actvChemicalType;
+    // 💥 UPDATED IDs to reference Stabilizer/CYA
+    private EditText etCurrentCya, etTargetCya, etPoolVolume;
+    private AutoCompleteTextView actvChemicalType; // Removed actvVolumeUnit
     private TextInputLayout tilChemicalType;
     private TextView tvChemicalDetails, tvDosageResult;
     private CardView cvResult;
@@ -45,6 +46,7 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
     private String poolId;
 
     private static final String UNIT_LITRES = "L";
+    private static final double IDEAL_CYA = 40.0; // Default target
 
     private Map<String, ChemicalDosageInfo> chemicalInfoMap;
 
@@ -56,7 +58,7 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
     private String savedDosageUnit = "";
     private String savedChemicalName = "";
 
-    public pHCalculator() {}
+    public StabilizerCalculator() {}
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,7 +72,8 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.ph_calculator, container, false);
+        // 💥 Uses the XML for the Stabilizer Calculator
+        return inflater.inflate(R.layout.stabilizer_calculator, container, false);
     }
 
     @Override
@@ -79,17 +82,16 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
 
         poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
 
-        etCurrentPh = view.findViewById(R.id.et_current_ph);
-        etTargetPh = view.findViewById(R.id.et_target_ph);
+        // 💥 BINDING UPDATED STABILIZER/CYA VIEWS
+        etCurrentCya = view.findViewById(R.id.et_current_cya);
+        etTargetCya = view.findViewById(R.id.et_target_cya);
         etPoolVolume = view.findViewById(R.id.et_pool_volume);
-        actvVolumeUnit = view.findViewById(R.id.actv_volume_unit);
         actvChemicalType = view.findViewById(R.id.actv_chemical_type);
         tilChemicalType = view.findViewById(R.id.til_chemical_type);
         tvChemicalDetails = view.findViewById(R.id.tv_chemical_details);
         tvDosageResult = view.findViewById(R.id.tv_dosage_result);
         cvResult = view.findViewById(R.id.cv_result);
         btnCalculate = view.findViewById(R.id.btn_calculate);
-        // btnBack = view.findViewById(R.id.btn_back); // <-- REMOVED
         btnSaveLog = view.findViewById(R.id.btn_save_log);
 
         setupListeners();
@@ -98,12 +100,12 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
     }
 
     private void setupListeners() {
-        // btnBack.setOnClickListener(v -> getParentFragmentManager().popBackStack()); // <-- REMOVED to fix NPE
         btnCalculate.setOnClickListener(v -> calculateDosage());
 
         // 💥 Listener for Save Log Button
         btnSaveLog.setOnClickListener(v -> saveLogToFirestore());
 
+        // The CYA dropdown is read-only, so this listener is unnecessary but harmless.
         actvChemicalType.setOnItemClickListener((parent, view, position, id) -> updateChemicalDetails(actvChemicalType.getText().toString()));
 
         TextWatcher inputWatcher = new TextWatcher() {
@@ -117,17 +119,16 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
             public void afterTextChanged(Editable s) {}
         };
 
-        etCurrentPh.addTextChangedListener(inputWatcher);
-        etTargetPh.addTextChangedListener(inputWatcher);
+        etCurrentCya.addTextChangedListener(inputWatcher);
+        etTargetCya.addTextChangedListener(inputWatcher);
         etPoolVolume.addTextChangedListener(inputWatcher);
-        actvVolumeUnit.addTextChangedListener(inputWatcher);
         actvChemicalType.addTextChangedListener(inputWatcher);
     }
 
     @Override
     public void updateActivityHeader() {
         if (getActivity() instanceof MainActivity) {
-            String title =  "pH Calculator";
+            String title =  "Stabilizer (CYA) Calculator";
             ((MainActivity) getActivity()).updateHeader(title, true, true);
         }
     }
@@ -137,15 +138,13 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
         super.onResume();
         updateActivityHeader();
     }
-    private void setupSpinners() {
-        String[] volumeUnits = new String[]{UNIT_LITRES};
-        ArrayAdapter<String> unitAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, volumeUnits);
-        actvVolumeUnit.setAdapter(unitAdapter);
-        actvVolumeUnit.setText(UNIT_LITRES, false);
 
+    private void setupSpinners() {
+        // Since only one chemical is typically used to raise CYA, we preset the dropdown.
         String[] chemicalTypes = chemicalInfoMap.keySet().toArray(new String[0]);
         ArrayAdapter<String> chemicalAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, chemicalTypes);
         actvChemicalType.setAdapter(chemicalAdapter);
+        actvChemicalType.setText(chemicalTypes[0], false); // Set default value
     }
 
     private void observePoolData() {
@@ -153,12 +152,13 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
             if (poolModel != null) {
                 poolId = poolModel.getPoolId();
                 if (poolModel.getWaterCapacityLiters() != null) {
+                    // Pool volume is pre-filled, unit is assumed to be Liters
                     etPoolVolume.setText(String.valueOf(poolModel.getWaterCapacityLiters()));
-                    actvVolumeUnit.setText(UNIT_LITRES, false);
                 }
+                // Update chemical details on load
+                updateChemicalDetails(actvChemicalType.getText().toString());
             } else {
                 poolId = null;
-                // Consider showing a warning if no pool is selected/loaded
             }
         });
     }
@@ -173,54 +173,42 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
         cvResult.setVisibility(View.GONE);
     }
 
+    // 💥 UPDATED CHEMICAL DATA FOR STABILIZER (CYA)
     private void initializeChemicalData() {
         chemicalInfoMap = new HashMap<>();
 
-        // pH Decreasers
-        chemicalInfoMap.put("pH Decreaser (Muriatic Acid - 31%)", new ChemicalDosageInfo(
-                "Muriatic Acid (Hydrochloric Acid, HCl). Strong acid. Requires extreme caution. Add slowly to water, never water to acid. Ideal for high pH.",
-                "pH Decreaser (Liquid)",
-                1000.0 // ml/10,000L to drop pH by 0.1
-        ));
-        chemicalInfoMap.put("pH Decreaser (Sodium Bisulfate - Granular)", new ChemicalDosageInfo(
-                "Sodium Bisulfate ($\\text{NaHSO}_4$). Safer alternative to liquid acid. Mix in bucket of water before adding to pool. Ideal for high pH.",
-                "pH Decreaser (Granular)",
-                100.0 // grams/10,000L to drop pH by 0.1
-        ));
-
-        // pH Increasers
-        chemicalInfoMap.put("pH Increaser (Soda Ash / Sodium Carbonate)", new ChemicalDosageInfo(
-                "Soda Ash ($\\text{Na}_2\\text{CO}_3$). Highly effective. Pre-dissolve in water and add over deep end. Also increases Total Alkalinity. Ideal for low pH.",
-                "pH Increaser (Powder)",
-                60.0 // grams/10,000L to raise pH by 0.1
+        // Cyanuric Acid (Granular)
+        chemicalInfoMap.put("Cyanuric Acid (CYA Granular)", new ChemicalDosageInfo(
+                "Cyanuric Acid (CYA). Add slowly to the skimmer with the pump running, or pre-dissolve and add directly. It takes 48-72 hours to fully dissolve and register. DO NOT backwash or add fresh water for at least 48 hours after application.",
+                "CYA Increaser (Granular)",
+                100.0 // grams/10,000L to raise CYA by 10 ppm
         ));
     }
 
     private void calculateDosage() {
-        // ... (calculateDosage logic remains the same) ...
-
         // Reset saved values
         savedDosageAmount = 0.0;
         savedDosageUnit = "";
         savedChemicalName = "";
 
-        String currentPhStr = etCurrentPh.getText().toString();
-        String targetPhStr = etTargetPh.getText().toString();
+        String currentCyaStr = etCurrentCya.getText().toString();
+        String targetCyaStr = etTargetCya.getText().toString();
         String volumeStr = etPoolVolume.getText().toString();
         String chemicalName = actvChemicalType.getText().toString();
 
-        if (currentPhStr.isEmpty() || volumeStr.isEmpty() || chemicalName.isEmpty()) {
-            Toast.makeText(getContext(), "Please fill in all required fields (*).", Toast.LENGTH_SHORT).show();
+        if (currentCyaStr.isEmpty() || volumeStr.isEmpty()) {
+            Toast.makeText(getContext(), "Please fill in current Stabilizer and pool volume (*).", Toast.LENGTH_SHORT).show();
             return;
         }
 
         try {
-            double currentPh = Double.parseDouble(currentPhStr);
-            double targetPh = targetPhStr.isEmpty() ? 7.5 : Double.parseDouble(targetPhStr);
+            double currentCya = Double.parseDouble(currentCyaStr);
+            // Default target from XML is 40, but use the EditText value if available
+            double targetCya = targetCyaStr.isEmpty() ? IDEAL_CYA : Double.parseDouble(targetCyaStr);
             double volume = Double.parseDouble(volumeStr);
 
-            if (currentPh < 0 || currentPh > 14 || targetPh < 0 || targetPh > 14) {
-                Toast.makeText(getContext(), "pH levels must be between 0 and 14.", Toast.LENGTH_SHORT).show();
+            if (currentCya < 0 || targetCya < 0 || currentCya > 200 || targetCya > 200) {
+                Toast.makeText(getContext(), "CYA levels must be realistic (0-200 ppm).", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -229,19 +217,20 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
                 return;
             }
 
-            if (Math.abs(currentPh - targetPh) < 0.05) {
-                tvDosageResult.setText("No adjustment required. pH is stable.");
+            if (currentCya >= targetCya) {
+                if (currentCya > targetCya + 5) {
+                    tvDosageResult.setText("Stabilizer is too high. Dilute by draining and refilling water.");
+                } else {
+                    tvDosageResult.setText("No adjustment required. Stabilizer is stable.");
+                }
                 cvResult.setVisibility(View.VISIBLE);
                 return;
             }
 
-            if (currentPh > targetPh && !chemicalName.toLowerCase().contains("decreaser")) {
-                Toast.makeText(getContext(), "You need a pH Decreaser to lower the pH.", Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            if (currentPh < targetPh && !chemicalName.toLowerCase().contains("increaser")) {
-                Toast.makeText(getContext(), "You need a pH Increaser to raise the pH.", Toast.LENGTH_LONG).show();
+            // Since we only handle increasing CYA, this is a valid state
+            if (currentCya < targetCya && !chemicalName.toLowerCase().contains("increaser")) {
+                // This is a safety check, but the dropdown should only contain the increaser
+                Toast.makeText(getContext(), "You must use a CYA Increaser to raise the Stabilizer.", Toast.LENGTH_LONG).show();
                 return;
             }
 
@@ -251,38 +240,33 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
                 return;
             }
 
-            double requiredPhChange = targetPh - currentPh;
-            double phChangeAbsolute = Math.abs(requiredPhChange);
+            double requiredCyaChange = targetCya - currentCya;
 
             double dosageRate = info.dosageRate;
             double baseVolume = 10000.0;
+            double baseCyaChange = 10.0; // Dosage rate is for every 10 ppm change
 
+            // Dosage Required = (Delta CYA / 10 ppm) * (Volume / 10000L) * Dosage Rate
             double dosageRequiredMetric;
 
-            dosageRequiredMetric = (phChangeAbsolute / 0.1) * (volume / baseVolume) * dosageRate;
+            dosageRequiredMetric = (requiredCyaChange / baseCyaChange) * (volume / baseVolume) * dosageRate;
 
             String finalUnit;
             String chemicalType;
             String amountFormat;
             double dosageToDisplay;
 
-            if (info.baseType.toLowerCase().contains("liquid")) {
-                dosageToDisplay = dosageRequiredMetric / 1000.0; // Convert ml to L
-                finalUnit = UNIT_LITRES;
-                chemicalType = "of " + chemicalName.split("\\(")[0].trim();
+            // Stabilizer is always granular, so no 'liquid' check needed, but kept the structure
+            if (volume > 40000) {
+                dosageToDisplay = dosageRequiredMetric / 1000.0; // Convert g to kg
+                finalUnit = "kg";
                 amountFormat = "%.2f";
             } else {
-                if (volume > 40000) {
-                    dosageToDisplay = dosageRequiredMetric / 1000.0; // Convert g to kg
-                    finalUnit = "kg";
-                    amountFormat = "%.2f";
-                } else {
-                    dosageToDisplay = dosageRequiredMetric; // Display in g
-                    finalUnit = "g";
-                    amountFormat = "%.0f";
-                }
-                chemicalType = "of " + chemicalName.split("\\(")[0].trim();
+                dosageToDisplay = dosageRequiredMetric; // Display in g
+                finalUnit = "g";
+                amountFormat = "%.0f";
             }
+            chemicalType = "of " + chemicalName.split("\\(")[0].trim();
 
 
             savedDosageAmount = dosageToDisplay;
@@ -323,22 +307,22 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
         }
 
         try {
-            double currentPh = Double.parseDouble(etCurrentPh.getText().toString());
-            double targetPh = etTargetPh.getText().toString().isEmpty() ? 7.5 : Double.parseDouble(etTargetPh.getText().toString());
+            double currentCya = Double.parseDouble(etCurrentCya.getText().toString());
+            double targetCya = etTargetCya.getText().toString().isEmpty() ? IDEAL_CYA : Double.parseDouble(etTargetCya.getText().toString());
             double volume = Double.parseDouble(etPoolVolume.getText().toString());
 
             // 1. Prepare data (only the fields we want to update/set)
             Map<String, Object> logUpdates = new HashMap<>();
 
-            // Core Metric
-            logUpdates.put("ph", currentPh);
+            // Core Metric 💥 UPDATED KEY
+            logUpdates.put("stabilizer", currentCya);
 
-            // Dosage/Calculator Metadata - 💥 UPDATE THESE KEYS
-            logUpdates.put("targetPh", targetPh);
+            // Dosage/Calculator Metadata 💥 UPDATED KEYS
+            logUpdates.put("targetStabilizer", targetCya);
             logUpdates.put("poolVolume", volume);
-            logUpdates.put("phDosageAmount", savedDosageAmount);
-            logUpdates.put("phDosageUnit", savedDosageUnit);
-            logUpdates.put("phChemicalName", savedChemicalName);
+            logUpdates.put("cyaDosageAmount", savedDosageAmount);
+            logUpdates.put("cyaDosageUnit", savedDosageUnit);
+            logUpdates.put("cyaChemicalName", savedChemicalName);
 
             // Explicitly set timestamp
             logUpdates.put("timestamp", new Date());
@@ -349,12 +333,10 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
             // 3. Perform the MERGE update
             db.collection("pools").document(poolId)
                     .collection("testLogs").document(dailyLogId)
-
                     // Use set(logUpdates, SetOptions.merge()) to update only the fields in the map
-                    // without affecting other fields (like 'chlorine' or 'alkalinity') if they exist.
                     .set(logUpdates, SetOptions.merge())
                     .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(getContext(), "pH Test Log recorded successfully.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Stabilizer (CYA) Test Log recorded successfully.", Toast.LENGTH_SHORT).show();
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(getContext(), "Error saving log: " + e.getMessage(), Toast.LENGTH_LONG).show();
