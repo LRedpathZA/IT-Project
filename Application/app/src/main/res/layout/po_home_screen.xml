@@ -80,7 +80,9 @@
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="16dp"
                 app:cardCornerRadius="8dp"
-                app:cardElevation="2dp">
+                app:cardElevation="2dp"
+                android:clickable="true"
+                android:focusable="true">
 
                 <LinearLayout
                     android:id="@+id/ll_weather_content"
@@ -90,8 +92,6 @@
                     android:padding="16dp"
                     android:background="@color/PrimaryColour"
                     android:gravity="center_vertical"
-                    android:clickable="true"
-                    android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground">
                     <ImageView
                         android:id="@+id/iv_weather_icon"

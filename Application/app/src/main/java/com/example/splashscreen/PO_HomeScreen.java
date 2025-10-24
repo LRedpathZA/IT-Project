@@ -77,8 +77,10 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable { // 💥
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        CardView poolHealthcard = view.findViewById(R.id.poolHealthCard);
-        poolHealthcard.setOnClickListener(v -> navigateToPoolHealth());
+        CardView poolHealthCard = view.findViewById(R.id.poolHealthCard);
+        poolHealthCard.setOnClickListener(v -> navigateToWeatherScreen());
+        CardView weatherBanner = view.findViewById(R.id.weatherCard);
+        weatherBanner.setOnClickListener(v -> navigateToWeatherScreen());
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
         poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
 
@@ -223,6 +225,11 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable { // 💥
         }
         PoolHealth poolHealthFragment = new PoolHealth();
         navigateToFragment(poolHealthFragment);
+    }
+    public void navigateToWeatherScreen() {
+        Toast.makeText(getContext(), "Working", Toast.LENGTH_LONG).show();
+        WeatherLocation weatherLocation = new WeatherLocation();
+        navigateToFragment(weatherLocation);
     }
 
     private void setupProductRecyclerView() {
