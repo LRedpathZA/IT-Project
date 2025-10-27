@@ -129,10 +129,8 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
         cardMetricStabilizer.setOnClickListener(metricClickListener);
 
         btnGoToCalculators.setOnClickListener(v -> {
-            // TODO: Implement navigation to your main Calculator selection screen
-            // EXAMPLE: Replace this with the desired navigation logic to your calculator Fragment
             getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new pHCalculator()) // Assuming pHCalculator is your entry point for now
+                    .replace(R.id.fragment_container, new Calculator_Selector())
                     .addToBackStack(null)
                     .commit();
         });

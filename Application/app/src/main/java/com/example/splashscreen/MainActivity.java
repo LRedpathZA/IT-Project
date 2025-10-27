@@ -264,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
     private void populatePoMenu(FrameLayout drawerContainer) {
         // ... (Drawer population code remains the same)
         setMenuItemLabel(drawerContainer, R.id.btnMessages, "Messages");
-        setMenuItemLabel(drawerContainer, R.id.btnSummary, "My Pool Summary");
+        setMenuItemLabel(drawerContainer, R.id.btnSummary, "My Pool Health");
         setMenuItemLabel(drawerContainer, R.id.btnTips, "Pool Tips & Articles");
         setMenuItemLabel(drawerContainer, R.id.btnLoadshedding, "Load Shedding Alerts");
         setMenuItemLabel(drawerContainer, R.id.btnRestrictions, "Water Restrictions");
@@ -273,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
         setMenuItemLabel(drawerContainer, R.id.btnTutorial, "Tutorial Videos");
         setMenuItemLabel(drawerContainer, R.id.btnRegisterBusiness, "Register as Business");
 
-        findViewById(R.id.btnTips).setOnClickListener(v -> navTest());
+
     }
 
     private void navTest() {
@@ -294,11 +294,6 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btnRegisterBusiness).setVisibility(View.GONE);
     }
 
-    /**
-     * Replaces the current fragment with an option to add to the back stack.
-     * @param fragment The fragment to display.
-     * @param addToBackStack True if the fragment should be added to the back stack (i.e., not a root fragment).
-     */
     private void replaceFragment(Fragment fragment, boolean addToBackStack) {
         // Clear back stack when navigating to a root/main screen (like Home or Calculator Selector)
         if (!addToBackStack) {

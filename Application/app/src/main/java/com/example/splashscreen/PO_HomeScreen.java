@@ -25,7 +25,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PO_HomeScreen extends Fragment implements HeaderUpdatable { // 💥 IMPLEMENT HeaderUpdatable
+public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
@@ -78,7 +78,7 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable { // 💥
         super.onViewCreated(view, savedInstanceState);
 
         CardView poolHealthCard = view.findViewById(R.id.poolHealthCard);
-        poolHealthCard.setOnClickListener(v -> navigateToWeatherScreen());
+        poolHealthCard.setOnClickListener(v -> navigateToPoolHealth());
         CardView weatherBanner = view.findViewById(R.id.weatherCard);
         weatherBanner.setOnClickListener(v -> navigateToWeatherScreen());
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
@@ -103,17 +103,10 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable { // 💥
         observePoolData();
     }
 
-    // =========================================================================================
-    //                                  HEADER MANAGEMENT (NEW)
-    // =========================================================================================
 
     @Override
     public void updateActivityHeader() {
         if (getActivity() instanceof MainActivity) {
-            // Hide the main activity's centralized header since PO_HomeScreen has its own custom header/layout.
-            // Title: "" (Doesn't matter since header is hidden)
-            // Show Header: false
-            // Show Back Button: false
             ((MainActivity) getActivity()).updateHeader("", false, false);
         }
     }

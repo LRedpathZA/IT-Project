@@ -14,11 +14,11 @@
     <item
         android:id="@+id/nav_calendar"
         android:icon="@drawable/calendar"
-        android:title="Calendar" />
+        android:title="Schedule" />
 
     <item
     android:id="@+id/nav_marketplace_po"
-    android:icon="@drawable/ic_cart"
+    android:icon="@drawable/marketplace"
     android:title="Marketplace" />
 
 </menu>

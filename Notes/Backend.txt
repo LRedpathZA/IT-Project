@@ -1,0 +1,5 @@
+events collection: MUST include a serviceProviderId field, or a bookedByUserId field, or both to filter for SP-specific events.
+
+pools collection: Needs a isPublic: boolean field, and potentially a poolOwnerUserId field to directly link it to a PO.
+
+serviceRelationships collection: (As discussed previously) This is key for linking SPs to private pools.

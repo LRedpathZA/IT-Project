@@ -73,7 +73,7 @@
                 android:padding="8dp"
                 android:background="@android:color/transparent"
                 android:contentDescription="Cart"
-                android:src="@drawable/ic_cart"
+                android:src="@drawable/marketplace"
                 app:tint="@color/black"
                 app:layout_constraintEnd_toStartOf="@id/btn_profile"
                 app:layout_constraintTop_toTopOf="parent"
