@@ -8,6 +8,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint; // 💥 NEW: Use GeoPoint for coordinates
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class UserViewModel extends ViewModel {
     private final MutableLiveData<DocumentSnapshot> _userData = new MutableLiveData<>();
@@ -16,9 +20,12 @@ public class UserViewModel extends ViewModel {
     private final MutableLiveData<Integer> _userRole = new MutableLiveData<>();
     public LiveData<Integer> userRole = _userRole;
 
-
     private final MutableLiveData<String> _username = new MutableLiveData<>();
     public LiveData<String> username = _username;
+
+    // 💥 NEW: LiveData for storing user's preferred location (GeoPoint)
+    private final MutableLiveData<GeoPoint> _userLocation = new MutableLiveData<>();
+    public LiveData<GeoPoint> userLocation = _userLocation;
 
 
     private static final int ROLE_POOL_OWNER = 1;
@@ -46,6 +53,10 @@ public class UserViewModel extends ViewModel {
                     _username.setValue(document.getString("name"));
                     Long roleLong = document.getLong("role_id");
 
+                    // 💥 Extract and store location if present
+                    GeoPoint savedLocation = document.getGeoPoint("location");
+                    _userLocation.setValue(savedLocation);
+
                     if (roleLong != null) {
                         int role = roleLong.intValue();
                         _userRole.setValue(role);
@@ -58,6 +69,34 @@ public class UserViewModel extends ViewModel {
             }
         });
     }
+
+    /**
+     * Saves the user's current location (latitude and longitude) to Firestore.
+     * @param lat The latitude.
+     * @param lon The longitude.
+     */
+    public void saveUserLocation(double lat, double lon) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        if (userId == null) return;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference docRef = db.collection("users").document(userId);
+
+        GeoPoint newLocation = new GeoPoint(lat, lon);
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("location", newLocation);
+
+        docRef.update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    _userLocation.setValue(newLocation); // Update LiveData on success
+                    // Log or Toast success if needed
+                })
+                .addOnFailureListener(e -> {
+                    // Log or Toast failure
+                });
+    }
+
 
     public boolean isPoolOwner() {
         Integer role = _userRole.getValue();
