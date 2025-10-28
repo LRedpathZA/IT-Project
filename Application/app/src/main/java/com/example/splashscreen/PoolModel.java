@@ -1,6 +1,7 @@
 package com.example.splashscreen;
 
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.GeoPoint;
 
 
 public class PoolModel {
@@ -11,7 +12,7 @@ public class PoolModel {
     private Long waterCapacityLiters;
     private String sanitizerType;
     private Long filterRuntimeHours;
-    private String location;
+    private GeoPoint location;
     private String photoUrl;
     private Long createdAt;
 
@@ -27,7 +28,7 @@ public class PoolModel {
             this.waterCapacityLiters = document.getLong("waterCapacityLiters");
             this.sanitizerType = document.getString("sanitizerType");
             this.filterRuntimeHours = document.getLong("filterRuntimeHours");
-            this.location = document.getString("location");
+            this.location = document.getGeoPoint("location");
             this.photoUrl = document.getString("photoUrl");
             this.createdAt = document.getLong("createdAt");
         }
@@ -61,7 +62,7 @@ public class PoolModel {
         return filterRuntimeHours;
     }
 
-    public String getLocation() {
+    public GeoPoint getLocation() {
         return location;
     }
 
@@ -101,7 +102,7 @@ public class PoolModel {
         this.filterRuntimeHours = filterRuntimeHours;
     }
 
-    public void setLocation(String location) {
+    public void setLocation(GeoPoint location) {
         this.location = location;
     }
 

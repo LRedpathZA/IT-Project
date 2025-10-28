@@ -28,6 +28,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -255,7 +256,7 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         pool.setWaterCapacityLiters(capacityLong);
         pool.setSanitizerType((String) poolData.get("sanitizerType"));
         pool.setFilterRuntimeHours(runtimeLong);
-        pool.setLocation((String) poolData.get("location"));
+        pool.setLocation((GeoPoint) poolData.get("location"));
         pool.setPhotoUrl((String) poolData.get("photoUrl"));
         if (poolData.containsKey("createdAt")) {
             pool.setCreatedAt((Long) poolData.get("createdAt"));

@@ -4,8 +4,11 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint; // 💥 Import GeoPoint
+import android.util.Log;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -69,6 +72,7 @@ public class PoolViewModel extends ViewModel {
             _isLoadingPool.setValue(false);
             if (task.isSuccessful() && task.getResult() != null && task.getResult().exists()) {
                 DocumentSnapshot document = task.getResult();
+                // 💥 ASSUMES PoolModel constructor reads GeoPoint field
                 PoolModel pool = new PoolModel(document);
 
                 _currentPoolModel.setValue(pool);
@@ -90,6 +94,8 @@ public class PoolViewModel extends ViewModel {
         } else {
             _waterCapacityLiters.setValue(0);
         }
+
+        // 💥 NOTE: No need to explicitly update _userLocation here, as it's on the UserViewModel (though we agreed to remove it)
     }
 
     public void clearPoolData() {
@@ -104,6 +110,34 @@ public class PoolViewModel extends ViewModel {
         _lastStabilizerTest.setValue(new HashMap<>());
     }
 
+    public void savePoolLocation(String poolId, double lat, double lon) {
+        if (poolId == null || poolId.isEmpty()) return;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference docRef = db.collection("pools").document(poolId);
+
+        GeoPoint newLocation = new GeoPoint(lat, lon);
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("location", newLocation); // Save as GeoPoint
+
+        docRef.update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    // Update the LiveData/Model on success
+                    PoolModel current = _currentPoolModel.getValue();
+                    if (current != null) {
+                        // 💥 ASSUMES PoolModel has setLocation(GeoPoint)
+                        current.setLocation(newLocation);
+                        _currentPoolModel.setValue(current); // Trigger LiveData update
+                        Log.d("PoolViewModel", "Pool location saved successfully.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("PoolViewModel", "Error updating pool location: " + e.getMessage());
+                });
+    }
+
+    // ... (Test Setters are unchanged) ...
     public void setLastPhTest(Double pH, Long date) {
         Map<String, Object> newTest = new HashMap<>();
         newTest.put("pH", pH);
