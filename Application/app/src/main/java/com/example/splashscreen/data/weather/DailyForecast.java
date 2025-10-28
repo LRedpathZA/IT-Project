@@ -13,6 +13,16 @@ public class DailyForecast {
     @SerializedName("weather")
     private List<WeatherCondition> weather;
 
+    // --- Default Constructor (required by Gson) ---
+    public DailyForecast() {}
+
+    // 💥 NEW: Constructor to support the DailyForecastMapper logic
+    public DailyForecast(long datetime, Temperature temperature, List<WeatherCondition> weather) {
+        this.datetime = datetime;
+        this.temperature = temperature;
+        this.weather = weather;
+    }
+
     // --- Getters ---
     public long getDatetime() { return datetime; }
     public Temperature getTemperature() { return temperature; }

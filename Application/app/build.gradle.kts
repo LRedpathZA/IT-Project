@@ -35,6 +35,12 @@ android {
 }
 
 dependencies {
+    // Don't know what these do
+
+    implementation("androidx.annotation:annotation:1.6.0")
+
+    implementation("androidx.activity:activity-ktx:1.8.2")
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

@@ -22,17 +22,19 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager; // 💥 NEW
-import androidx.recyclerview.widget.RecyclerView;     // 💥 NEW
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
-import com.example.splashscreen.DailyForecastAdapter; // 💥 NEW
-import com.example.splashscreen.data.weather.DailyForecast;  // 💥 NEW
+import com.example.splashscreen.DailyForecastAdapter;
+import com.example.splashscreen.data.weather.DailyForecast;
+import com.example.splashscreen.data.weather.HourlyForecastItem; // 💥 NEW
 import com.example.splashscreen.data.weather.WeatherResponse;
 import com.example.splashscreen.network.RetrofitClient;
 import com.example.splashscreen.network.WeatherApiService;
+import com.example.splashscreen.utils.DailyForecastMapper; // 💥 NEW
 
 import java.io.IOException;
 import java.util.Collections;
@@ -48,37 +50,35 @@ public class WeatherLocation extends Fragment {
     private static final String TAG = "WeatherLocation";
     private static final String LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION;
 
-    // 💥 NEW: OpenWeatherMap Constants
+    // OpenWeatherMap Constants
     private static final String OWM_API_KEY = "030115f383b16e050cfbee9fb65dafd9";
     private static final String WEATHER_UNITS = "metric"; // For Celsius
-    private static final String EXCLUDE_PARTS = "minutely,hourly,alerts"; // 💥 MODIFIED: Excluding hourly for now, only focusing on daily/current
+    // 💥 MODIFIED: EXCLUDE_PARTS is NO LONGER NEEDED since we are using two specific free API endpoints.
+    // The '/weather' and '/forecast' endpoints don't use the 'exclude' parameter.
 
     private FusedLocationProviderClient fusedLocationClient;
-    private TextView tvStatus, tvCoordinates, tvLocationAddress, tvCurrentTemp, tvForecastHeader; // 💥 tvForecastHeader added
-    private RecyclerView rvDailyForecast; // 💥 NEW
+    private TextView tvStatus, tvCoordinates, tvLocationAddress, tvCurrentTemp, tvForecastHeader;
+    private RecyclerView rvDailyForecast;
     private Button btnFetchLocation;
 
-    // Executor for running Geocoding in the background
+    // Executors
     private final ExecutorService geocodeExecutor = Executors.newSingleThreadExecutor();
-    // 💥 NEW: Executor for running Network calls in the background
     private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
 
     // 1. Register the Activity Result Launcher for permission request
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
-                    // Permission granted. Fetch the location!
                     Toast.makeText(getContext(), "Location access granted!", Toast.LENGTH_SHORT).show();
                     tvStatus.setText("Status: Permission granted. Fetching location...");
-                    getLocationAndAddress(); // Call the location retrieval method
+                    getLocationAndAddress();
                 } else {
-                    // Permission denied. Show the status message.
                     tvStatus.setText("Status: Location Permission NOT Granted. Cannot fetch weather.");
                     tvCoordinates.setText("Coordinates: N/A");
                     tvLocationAddress.setText("Location: Permission Denied");
-                    tvCurrentTemp.setVisibility(View.GONE); // Hide temp on failure
-                    tvForecastHeader.setVisibility(View.GONE); // 💥 Hide header on failure
-                    rvDailyForecast.setVisibility(View.GONE);  // 💥 Hide RecyclerView on failure
+                    tvCurrentTemp.setVisibility(View.GONE);
+                    tvForecastHeader.setVisibility(View.GONE);
+                    rvDailyForecast.setVisibility(View.GONE);
                     Toast.makeText(getContext(), "Location access denied. Please enable it in settings.", Toast.LENGTH_LONG).show();
                 }
             });
@@ -102,13 +102,13 @@ public class WeatherLocation extends Fragment {
         tvCoordinates = view.findViewById(R.id.tv_coordinates);
         tvLocationAddress = view.findViewById(R.id.tv_location_address);
         tvCurrentTemp = view.findViewById(R.id.tv_current_temp);
-        tvForecastHeader = view.findViewById(R.id.tv_forecast_header); // 💥 BIND HEADER
-        rvDailyForecast = view.findViewById(R.id.rv_daily_forecast);    // 💥 BIND RECYCLERVIEW
+        tvForecastHeader = view.findViewById(R.id.tv_forecast_header);
+        rvDailyForecast = view.findViewById(R.id.rv_daily_forecast);
         btnFetchLocation = view.findViewById(R.id.btn_fetch_location);
 
         // Set up RecyclerView
         rvDailyForecast.setLayoutManager(new LinearLayoutManager(getContext()));
-        rvDailyForecast.setHasFixedSize(true); // Optimization
+        rvDailyForecast.setHasFixedSize(true);
 
         btnFetchLocation.setOnClickListener(v -> checkPermissionAndFetchLocation());
 
@@ -142,7 +142,6 @@ public class WeatherLocation extends Fragment {
         tvStatus.setText("Status: Requesting fresh location...");
 
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // This case should ideally not be hit if checkPermissionAndFetchLocation is done correctly
             tvStatus.setText("Status: Permission not granted to call location.");
             return;
         }
@@ -151,8 +150,9 @@ public class WeatherLocation extends Fragment {
                     if (location != null) {
                         displayCoordinates(location);
                         startGeocoding(location);
-                        // 💥 NEW: Start fetching weather data
-                        fetchWeather(location.getLatitude(), location.getLongitude());
+                        // 💥 NEW: Fetch both current and forecast data separately
+                        fetchCurrentWeather(location.getLatitude(), location.getLongitude());
+                        fetchFiveDayForecast(location.getLatitude(), location.getLongitude());
                     } else {
                         tvStatus.setText("Status: Location is NULL. Try enabling GPS/Location services.");
                         tvCoordinates.setText("Coordinates: N/A");
@@ -205,7 +205,8 @@ public class WeatherLocation extends Fragment {
                     String displayAddress = (city != null ? city : "Unknown City") + ", " + (country != null ? country : "Unknown Country");
 
                     tvLocationAddress.setText("Location: " + displayAddress);
-                    tvStatus.setText("Status: Location found and geocoded successfully.");
+                    // Do NOT override the "Status: Location found..." if current weather has already started
+                    // tvStatus.setText("Status: Location found and geocoded successfully.");
                 } else {
                     tvLocationAddress.setText("Location: Address not found for these coordinates.");
                     tvStatus.setText("Status: Geocoding failed (No address found).");
@@ -220,54 +221,79 @@ public class WeatherLocation extends Fragment {
         }
     }
 
+    // ----------------------------------------------------------------------------------
+    // 💥 NEW: Separate methods for Current Weather and Forecast
+    // ----------------------------------------------------------------------------------
+
     /**
-     * Fetches weather data from OpenWeatherMap API in the background.
+     * Fetches CURRENT weather data from OpenWeatherMap API in the background. (Uses /weather)
      */
-    private void fetchWeather(double lat, double lon) {
-        // Show status update without overriding Geocoding messages
-        updateUI(() -> tvStatus.append("\nStatus: Requesting weather data..."));
+    private void fetchCurrentWeather(double lat, double lon) {
+        updateUI(() -> tvStatus.append("\nStatus: Requesting current weather..."));
 
         networkExecutor.execute(() -> {
             try {
                 WeatherApiService apiService = RetrofitClient.getWeatherApiService();
 
-                // Execute the API call synchronously on the background thread
-                Response<WeatherResponse> response = apiService.getWeather(
-                        lat,
-                        lon,
-                        WEATHER_UNITS,
-                        EXCLUDE_PARTS,
-                        OWM_API_KEY
+                // 💥 Use the specific getCurrentWeather endpoint
+                Response<WeatherResponse> response = apiService.getCurrentWeather(
+                        lat, lon, WEATHER_UNITS, OWM_API_KEY
                 ).execute();
 
-                // Handle the response
                 if (response.isSuccessful() && response.body() != null) {
-                    WeatherResponse weatherResponse = response.body();
-                    updateWeatherUI(weatherResponse);
+                    updateCurrentWeatherUI(response.body());
                 } else {
                     String error = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
-                    Log.e(TAG, "API Error Code: " + response.code() + ", Body: " + error);
-                    updateUI(() -> tvStatus.append("\nWeather: Failed (Code: " + response.code() + ")."));
+                    Log.e(TAG, "Current Weather API Error Code: " + response.code() + ", Body: " + error);
+                    updateUI(() -> tvStatus.append("\nCurrent Weather: Failed (Code: " + response.code() + ")."));
                 }
             } catch (IOException e) {
-                Log.e(TAG, "Network or IO Error: " + e.getMessage());
-                updateUI(() -> tvStatus.append("\nWeather: Network error."));
+                Log.e(TAG, "Current Weather Network/IO Error: " + e.getMessage());
+                updateUI(() -> tvStatus.append("\nCurrent Weather: Network error."));
             }
         });
     }
 
     /**
-     * Updates the UI with parsed weather data (Runs on the Main Thread).
+     * Fetches 5-day/3-hour forecast data from OpenWeatherMap API in the background. (Uses /forecast)
      */
-    private void updateWeatherUI(WeatherResponse response) {
+    private void fetchFiveDayForecast(double lat, double lon) {
+        updateUI(() -> tvStatus.append("\nStatus: Requesting 5-day forecast..."));
+
+        networkExecutor.execute(() -> {
+            try {
+                WeatherApiService apiService = RetrofitClient.getWeatherApiService();
+
+                // 💥 Use the specific getThreeHourForecast endpoint
+                Response<WeatherResponse> response = apiService.getThreeHourForecast(
+                        lat, lon, WEATHER_UNITS, OWM_API_KEY
+                ).execute();
+
+                if (response.isSuccessful() && response.body() != null) {
+                    updateForecastUI(response.body());
+                } else {
+                    String error = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
+                    Log.e(TAG, "Forecast API Error Code: " + response.code() + ", Body: " + error);
+                    updateUI(() -> tvStatus.append("\nForecast: Failed (Code: " + response.code() + ")."));
+                }
+            } catch (IOException e) {
+                Log.e(TAG, "Forecast Network/IO Error: " + e.getMessage());
+                updateUI(() -> tvStatus.append("\nForecast: Network error."));
+            }
+        });
+    }
+
+    /**
+     * Updates the UI with parsed CURRENT weather data (Runs on the Main Thread).
+     */
+    private void updateCurrentWeatherUI(WeatherResponse response) {
         if (!isAdded() || getActivity() == null) return;
 
-        // Post the UI update back to the main thread
         updateUI(() -> {
             try {
-                // --- Current Weather UI Update ---
-                double temp = response.getCurrent().getTemperature();
-                String description = response.getCurrent().getWeather().get(0).getDetailedDescription();
+                // 💥 FIX: Access data using the new structure
+                double temp = response.getMain().getTemperature();
+                String description = response.getWeatherConditions().get(0).getDetailedDescription();
 
                 String weatherSummary = String.format(Locale.getDefault(),
                         "%.1f°C (%s)",
@@ -276,33 +302,55 @@ public class WeatherLocation extends Fragment {
 
                 tvCurrentTemp.setText("Current Temp: " + weatherSummary);
                 tvCurrentTemp.setVisibility(View.VISIBLE);
-
-                // --- Daily Forecast UI Update ---
-                List<DailyForecast> dailyList = response.getDaily();
-                if (dailyList != null && dailyList.size() > 1) {
-                    // Show the forecast header and RecyclerView
-                    tvForecastHeader.setVisibility(View.VISIBLE);
-                    rvDailyForecast.setVisibility(View.VISIBLE);
-
-                    // Skip the first item as it's the current day (which we already displayed above)
-                    List<DailyForecast> nextSevenDays = dailyList.subList(1, Math.min(dailyList.size(), 8));
-
-                    DailyForecastAdapter adapter = new DailyForecastAdapter(nextSevenDays);
-                    rvDailyForecast.setAdapter(adapter);
-                } else {
-                    tvForecastHeader.setVisibility(View.GONE);
-                    rvDailyForecast.setVisibility(View.GONE);
-                }
-
-                // Final status update for success
-                tvStatus.setText("Status: Location and weather fetched successfully.");
-                Toast.makeText(getContext(), "Weather data fetched!", Toast.LENGTH_SHORT).show();
+                tvStatus.append("\nCurrent Weather fetched.");
 
             } catch (Exception e) {
-                Log.e(TAG, "Error processing weather data: " + e.getMessage());
+                Log.e(TAG, "Error processing current weather data: " + e.getMessage());
                 tvCurrentTemp.setText("Current Temp: Error processing data");
                 tvCurrentTemp.setVisibility(View.VISIBLE);
-                tvForecastHeader.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    /**
+     * Processes 3-hourly forecast and updates the RecyclerView (Runs on the Main Thread).
+     */
+    private void updateForecastUI(WeatherResponse response) {
+        if (!isAdded() || getActivity() == null) return;
+
+        updateUI(() -> {
+            try {
+                List<HourlyForecastItem> hourlyItems = response.getForecastList();
+
+                if (hourlyItems != null && !hourlyItems.isEmpty()) {
+
+                    // 💥 Use the Mapper to convert 3-hourly items into daily summaries
+                    DailyForecastMapper mapper = new DailyForecastMapper();
+                    List<DailyForecast> dailyList = mapper.mapToDailyForecast(hourlyItems);
+
+                    if (dailyList.size() > 0) {
+                        tvForecastHeader.setVisibility(View.VISIBLE);
+                        rvDailyForecast.setVisibility(View.VISIBLE);
+
+                        // We skip the first item if it's the current day (mapper handles this)
+                        DailyForecastAdapter adapter = new DailyForecastAdapter(dailyList);
+                        rvDailyForecast.setAdapter(adapter);
+                        tvStatus.append("\nForecast data mapped and displayed.");
+                    } else {
+                        tvForecastHeader.setText("Forecast data loaded but insufficient for daily display.");
+                        tvForecastHeader.setVisibility(View.VISIBLE);
+                        rvDailyForecast.setVisibility(View.GONE);
+                    }
+
+                } else {
+                    tvForecastHeader.setText("Forecast data list is empty.");
+                    tvForecastHeader.setVisibility(View.VISIBLE);
+                    rvDailyForecast.setVisibility(View.GONE);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error processing forecast data: " + e.getMessage());
+                tvForecastHeader.setText("Forecast: Error processing data");
+                tvForecastHeader.setVisibility(View.VISIBLE);
                 rvDailyForecast.setVisibility(View.GONE);
             }
         });
@@ -319,6 +367,6 @@ public class WeatherLocation extends Fragment {
         super.onDestroy();
         // Always shut down the executors when the fragment is destroyed
         geocodeExecutor.shutdown();
-        networkExecutor.shutdown(); // 💥 Shut down the network executor too
+        networkExecutor.shutdown();
     }
 }
