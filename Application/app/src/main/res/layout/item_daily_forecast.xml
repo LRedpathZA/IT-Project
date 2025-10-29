@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingVertical="12dp"
-    android:background="@drawable/rounded_card_bg_white">
+    android:padding="20dp"
+    android:background="@drawable/rounded_input_bg">
 
     <TextView
         android:id="@+id/tv_day_of_week"
