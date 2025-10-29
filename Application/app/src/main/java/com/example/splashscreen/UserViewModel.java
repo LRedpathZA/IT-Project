@@ -8,7 +8,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-// import com.google.firebase.firestore.GeoPoint; // 💥 REMOVED
+import com.google.firebase.firestore.GeoPoint;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +23,11 @@ public class UserViewModel extends ViewModel {
     private final MutableLiveData<String> _username = new MutableLiveData<>();
     public LiveData<String> username = _username;
 
-    // 💥 REMOVED: LiveData for storing user's preferred location (_userLocation)
+    private final MutableLiveData<GeoPoint> _spLocationGeoPoint = new MutableLiveData<>();
+    public LiveData<GeoPoint> spLocationGeoPoint = _spLocationGeoPoint;
+
+    private final MutableLiveData<String> _spLocationAddress = new MutableLiveData<>();
+    public LiveData<String> spLocationAddress = _spLocationAddress;
 
     private static final int ROLE_POOL_OWNER = 1;
     private static final int ROLE_SERVICE_PROVIDER = 2;
@@ -50,11 +54,14 @@ public class UserViewModel extends ViewModel {
                     _username.setValue(document.getString("name"));
                     Long roleLong = document.getLong("role_id");
 
-                    // 💥 REMOVED: Extract and store location if present (GeoPoint)
-
                     if (roleLong != null) {
                         int role = roleLong.intValue();
                         _userRole.setValue(role);
+
+                        if (role == ROLE_SERVICE_PROVIDER) {
+                            _spLocationGeoPoint.setValue(document.getGeoPoint("location"));
+                            _spLocationAddress.setValue(document.getString("locationAddress"));
+                        }
                     }
                 } else {
                     //((MainActivity) getActivity()).logoutUser();
@@ -74,5 +81,12 @@ public class UserViewModel extends ViewModel {
     public boolean isServiceProvider() {
         Integer role = _userRole.getValue();
         return role != null && role == ROLE_SERVICE_PROVIDER;
+    }
+
+    public Map<String, Object> updateLocationFields(double lat, double lon, String address) {
+        Map<String, Object> locationData = new HashMap<>();
+        locationData.put("location", new GeoPoint(lat, lon));
+        locationData.put("locationAddress", address);
+        return locationData;
     }
 }

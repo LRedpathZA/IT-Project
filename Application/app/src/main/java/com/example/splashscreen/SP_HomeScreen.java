@@ -29,7 +29,6 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
     private ImageView ivSPProfileIcon;
 
     public SP_HomeScreen() {
-        // Required empty public constructor
     }
 
     @Override
@@ -42,7 +41,6 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Initialize Views
         rvClients = view.findViewById(R.id.rv_my_clients);
         rvServices = view.findViewById(R.id.rv_upcoming_services);
         rvPublicPools = view.findViewById(R.id.rv_public_pools);

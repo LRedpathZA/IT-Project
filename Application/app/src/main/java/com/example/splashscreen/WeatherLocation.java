@@ -67,22 +67,18 @@ public class WeatherLocation extends Fragment {
     private final ExecutorService geocodeExecutor = Executors.newSingleThreadExecutor();
     private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
 
-    // 1. Register the Activity Result Launcher for permission request
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
-                    // If permission is granted after request, always treat this as a NEW fetch/refresh
                     Toast.makeText(getContext(), "Location access granted!", Toast.LENGTH_SHORT).show();
                     tvStatus.setText("Status: Permission granted. Fetching new location...");
-                    getLocationAndAddress(true); // Treat as a refresh/new acquisition
+                    getLocationAndAddress(true);
                 } else {
-                    // Permission denied flow remains the same
-                    // ...
+                    tvStatus.setText("Status: Location permission denied. Cannot fetch live location.");
                 }
             });
 
     public WeatherLocation() {
-        // Required empty public constructor
     }
 
     @Override
@@ -90,7 +86,7 @@ public class WeatherLocation extends Fragment {
         super.onCreate(savedInstanceState);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
-        poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class); // Get PoolViewModel
+        poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
     }
 
     @Override
@@ -106,7 +102,6 @@ public class WeatherLocation extends Fragment {
         rvDailyForecast = view.findViewById(R.id.rv_daily_forecast);
         btnFetchLocation = view.findViewById(R.id.btn_fetch_location);
 
-        // Set up RecyclerView
         rvDailyForecast.setLayoutManager(new LinearLayoutManager(getContext()));
         rvDailyForecast.setHasFixedSize(true);
 
@@ -123,37 +118,43 @@ public class WeatherLocation extends Fragment {
     }
 
     private void checkSavedLocationOrRequestNew() {
-        // 💥 CHANGE: Check the PoolViewModel for the saved location
         GeoPoint savedLocation = null;
+        String savedAddress = null;
         PoolModel currentPool = poolViewModel.currentPoolModel.getValue();
+
         if (currentPool != null) {
-            savedLocation = currentPool.getLocation(); // ASSUMES PoolModel has getLocation()
+            savedLocation = currentPool.getLocation();
+            savedAddress = currentPool.getLocationAddress();
         }
 
         if (savedLocation != null) {
             tvStatus.setText("Status: Using saved pool location data...");
-            // Use saved coordinates to fetch weather
+
             double lat = savedLocation.getLatitude();
             double lon = savedLocation.getLongitude();
 
-            // 💥 Display the coordinates from the saved GeoPoint
             displayCoordinates(savedLocation);
+
+            if (savedAddress != null && !savedAddress.isEmpty()) {
+                tvLocationAddress.setText("Location: " + savedAddress + " (SAVED)");
+            } else {
+                // If GeoPoint is saved but address isn't, geocode it now
+                startGeocoding(lat, lon, true);
+            }
 
             fetchCurrentWeather(lat, lon);
             fetchFiveDayForecast(lat, lon);
         } else {
-            // No saved location, proceed with permission check and acquisition
             checkPermissionAndFetchLocation(false);
         }
     }
+
     private void checkPermissionAndFetchLocation(boolean isRefresh) {
-        // Reset visibility when starting a new fetch attempt
         tvCurrentTemp.setVisibility(View.GONE);
         tvForecastHeader.setVisibility(View.GONE);
         rvDailyForecast.setVisibility(View.GONE);
 
         if (!isRefresh) {
-            // Only set status text for the initial load if no location was found
             tvStatus.setText("Status: No saved location. Requesting permission to find you...");
         } else {
             tvStatus.setText("Status: Refreshing location. Requesting permission...");
@@ -162,9 +163,8 @@ public class WeatherLocation extends Fragment {
         if (ContextCompat.checkSelfPermission(requireContext(), LOCATION_PERMISSION)
                 == PackageManager.PERMISSION_GRANTED) {
             tvStatus.append("\nStatus: Permission granted. Fetching new location...");
-            getLocationAndAddress(isRefresh); // Pass isRefresh flag
+            getLocationAndAddress(isRefresh);
         } else {
-            // Permission denied flow remains the same
             requestPermissionLauncher.launch(LOCATION_PERMISSION);
         }
     }
@@ -181,26 +181,25 @@ public class WeatherLocation extends Fragment {
                 .addOnSuccessListener(requireActivity(), location -> {
                     if (location != null) {
                         displayCoordinates(location);
-                        startGeocoding(location);
+                        startGeocoding(location.getLatitude(), location.getLongitude(), false); // Geocode fresh location
 
                         String currentPoolId = poolViewModel.poolId.getValue();
-                        // 💥 CRITICAL: Save the new location to the POOL document
+
                         if (currentPoolId != null) {
-                            // Check if it's a refresh OR if the pool model currently lacks location data
                             boolean shouldSave = isRefresh || (poolViewModel.currentPoolModel.getValue() != null && poolViewModel.currentPoolModel.getValue().getLocation() == null);
 
+                            // We save location (GeoPoint + Address) in the POOL document via the ViewModel
                             if(shouldSave) {
-                                poolViewModel.savePoolLocation(currentPoolId, location.getLatitude(), location.getLongitude());
-                                tvStatus.append("\nStatus: Location saved to current pool.");
+                                // Since we need the address string to save, we'll rely on the geocoding callback to trigger the save.
+                                // For now, we fetch weather immediately.
+                                tvStatus.append("\nStatus: Location acquired. Waiting for geocoding to save to pool...");
                             } else if (isRefresh) {
-                                // This path is generally covered by the first check, but ensures the status is updated if location already existed
-                                tvStatus.append("\nStatus: Location refreshed and saved to current pool.");
+                                tvStatus.append("\nStatus: Location refreshed.");
                             }
                         } else {
                             tvStatus.append("\nStatus: Cannot save location. No active pool is selected.");
                         }
 
-                        // Fetch weather data
                         fetchCurrentWeather(location.getLatitude(), location.getLongitude());
                         fetchFiveDayForecast(location.getLatitude(), location.getLongitude());
                     } else {
@@ -221,7 +220,6 @@ public class WeatherLocation extends Fragment {
         tvCoordinates.setText("Coordinates: " + coords);
     }
 
-    // 💥 NEW: Overload for displaying coordinates from a GeoPoint (saved location)
     private void displayCoordinates(GeoPoint geoPoint) {
         String coords = String.format(Locale.getDefault(),
                 "Lat: %.4f, Lng: %.4f (SAVED)",
@@ -230,12 +228,14 @@ public class WeatherLocation extends Fragment {
         tvCoordinates.setText("Coordinates: " + coords);
     }
 
-    private void startGeocoding(Location location) {
+    // 💥 MODIFIED: Take lat/lon and a flag if this is from a saved GeoPoint lacking an address
+    private void startGeocoding(double lat, double lon, boolean isSavedLocation) {
         tvStatus.append("\nStatus: Geocoding coordinates...");
-        geocodeExecutor.execute(() -> getAddressFromCoordinates(location));
+        geocodeExecutor.execute(() -> getAddressFromCoordinates(lat, lon, isSavedLocation));
     }
 
-    private void getAddressFromCoordinates(Location location) {
+    // 💥 MODIFIED: Takes lat/lon and isSavedLocation flag
+    private void getAddressFromCoordinates(double lat, double lon, boolean isSavedLocation) {
         if (!Geocoder.isPresent()) {
             updateUI(() -> {
                 tvLocationAddress.setText("Location: Geocoder not available on this device.");
@@ -246,23 +246,35 @@ public class WeatherLocation extends Fragment {
 
         Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
         try {
-            List<Address> addresses = geocoder.getFromLocation(
-                    location.getLatitude(),
-                    location.getLongitude(),
-                    1);
+            List<Address> addresses = geocoder.getFromLocation(lat, lon, 1);
 
             updateUI(() -> {
                 if (addresses != null && !addresses.isEmpty()) {
                     Address address = addresses.get(0);
-                    String city = address.getLocality();
-                    String country = address.getCountryName();
 
-                    String displayAddress = (city != null ? city : "Unknown City") + ", " + (country != null ? country : "Unknown Country");
+                    String displayAddress = (address.getAddressLine(0) != null) ?
+                            address.getAddressLine(0) :
+                            (address.getLocality() != null ? address.getLocality() : "Unknown Area");
 
-                    tvLocationAddress.setText("Location: " + displayAddress);
+                    String statusSuffix = isSavedLocation ? " (RE-GEOCODED)" : " (LIVE)";
+                    tvLocationAddress.setText("Location: " + displayAddress + statusSuffix);
+
+//                    // 💥 CRITICAL: If this was a fresh location OR a saved location without an address, update the pool model
+//                    if (!isSavedLocation || (isSavedLocation && poolViewModel.currentPoolModel.getValue().getLocationAddress() == null)) {
+//                        String currentPoolId = poolViewModel.poolId.getValue();
+//                        if (currentPoolId != null) {
+//                            poolViewModel.savePoolLocationWithAddress(
+//                                    currentPoolId,
+//                                    lat,
+//                                    lon,
+//                                    displayAddress);
+//                            tvStatus.append("\nStatus: Location and Address saved to current pool.");
+//                        }
+//                    }
+
                 } else {
                     tvLocationAddress.setText("Location: Address not found for these coordinates.");
-                    tvStatus.setText("Status: Geocoding failed (No address found).");
+                    tvStatus.append("\nStatus: Geocoding failed (No address found).");
                 }
             });
 
@@ -278,11 +290,6 @@ public class WeatherLocation extends Fragment {
     // Weather Fetching Methods (Unchanged)
     // ----------------------------------------------------------------------------------
 
-    // ... (fetchCurrentWeather, fetchFiveDayForecast, updateCurrentWeatherUI, updateForecastUI are unchanged) ...
-
-    /**
-     * Fetches CURRENT weather data from OpenWeatherMap API in the background. (Uses /weather)
-     */
     private void fetchCurrentWeather(double lat, double lon) {
         updateUI(() -> tvStatus.append("\nStatus: Requesting current weather..."));
 
@@ -290,7 +297,6 @@ public class WeatherLocation extends Fragment {
             try {
                 WeatherApiService apiService = RetrofitClient.getWeatherApiService();
 
-                // 💥 Use the specific getCurrentWeather endpoint
                 Response<WeatherResponse> response = apiService.getCurrentWeather(
                         lat, lon, WEATHER_UNITS, OWM_API_KEY
                 ).execute();
@@ -309,9 +315,6 @@ public class WeatherLocation extends Fragment {
         });
     }
 
-    /**
-     * Fetches 5-day/3-hour forecast data from OpenWeatherMap API in the background. (Uses /forecast)
-     */
     private void fetchFiveDayForecast(double lat, double lon) {
         updateUI(() -> tvStatus.append("\nStatus: Requesting 5-day forecast..."));
 
@@ -319,7 +322,6 @@ public class WeatherLocation extends Fragment {
             try {
                 WeatherApiService apiService = RetrofitClient.getWeatherApiService();
 
-                // 💥 Use the specific getThreeHourForecast endpoint
                 Response<WeatherResponse> response = apiService.getThreeHourForecast(
                         lat, lon, WEATHER_UNITS, OWM_API_KEY
                 ).execute();
@@ -338,15 +340,11 @@ public class WeatherLocation extends Fragment {
         });
     }
 
-    /**
-     * Updates the UI with parsed CURRENT weather data (Runs on the Main Thread).
-     */
     private void updateCurrentWeatherUI(WeatherResponse response) {
         if (!isAdded() || getActivity() == null) return;
 
         updateUI(() -> {
             try {
-                // 💥 FIX: Access data using the new structure
                 double temp = response.getMain().getTemperature();
                 String description = response.getWeatherConditions().get(0).getDetailedDescription();
 
@@ -367,9 +365,6 @@ public class WeatherLocation extends Fragment {
         });
     }
 
-    /**
-     * Processes 3-hourly forecast and updates the RecyclerView (Runs on the Main Thread).
-     */
     private void updateForecastUI(WeatherResponse response) {
         if (!isAdded() || getActivity() == null) return;
 
@@ -379,7 +374,6 @@ public class WeatherLocation extends Fragment {
 
                 if (hourlyItems != null && !hourlyItems.isEmpty()) {
 
-                    // 💥 Use the Mapper to convert 3-hourly items into daily summaries
                     DailyForecastMapper mapper = new DailyForecastMapper();
                     List<DailyForecast> dailyList = mapper.mapToDailyForecast(hourlyItems);
 
@@ -387,7 +381,6 @@ public class WeatherLocation extends Fragment {
                         tvForecastHeader.setVisibility(View.VISIBLE);
                         rvDailyForecast.setVisibility(View.VISIBLE);
 
-                        // We skip the first item if it's the current day (mapper handles this)
                         DailyForecastAdapter adapter = new DailyForecastAdapter(dailyList);
                         rvDailyForecast.setAdapter(adapter);
                         tvStatus.append("\nForecast data mapped and displayed.");
@@ -421,7 +414,6 @@ public class WeatherLocation extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // Always shut down the executors when the fragment is destroyed
         geocodeExecutor.shutdown();
         networkExecutor.shutdown();
     }

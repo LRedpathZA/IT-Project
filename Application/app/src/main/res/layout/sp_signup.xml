@@ -43,7 +43,7 @@
             android:hint="Business Name"
             android:inputType="textPersonName"
             android:background="@android:color/transparent"
-            android:textColor="@color/PrimaryColour"
+            android:textColor="@color/black"
             android:textColorHint="#888888"/>
 
         <ImageView
@@ -76,7 +76,7 @@
             android:hint="Email Address"
             android:inputType="textEmailAddress"
             android:background="@android:color/transparent"
-            android:textColor="@color/PrimaryColour"
+            android:textColor="@color/black"
             android:textColorHint="#888888"/>
 
         <ImageView
@@ -110,7 +110,7 @@
             android:inputType="phone"
             android:maxLength="10"
             android:background="@android:color/transparent"
-            android:textColor="@color/PrimaryColour"
+            android:textColor="@color/black"
             android:textColorHint="#888888"/>
 
         <ImageView
@@ -143,7 +143,7 @@
             android:hint="Password"
             android:inputType="textPassword"
             android:background="@android:color/transparent"
-            android:textColor="@color/PrimaryColour"
+            android:textColor="@color/black"
             android:textColorHint="#888888"/>
 
         <ImageView
@@ -174,7 +174,7 @@
             android:hint="Confirm Password"
             android:inputType="textPassword"
             android:background="@android:color/transparent"
-            android:textColor="@color/PrimaryColour"
+            android:textColor="@color/black"
             android:textColorHint="#888888"/>
 
         <ImageView
@@ -186,37 +186,54 @@
     </LinearLayout>
 
 
-    <!-- Location -->
     <LinearLayout
-        android:id="@+id/locationLayout"
+        android:id="@+id/locationInputSection"
         android:layout_width="0dp"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginHorizontal="32dp"
-        android:orientation="horizontal"
-        android:background="@drawable/rounded_input_bg"
-        android:padding="8dp"
+        android:orientation="vertical"
         app:layout_constraintTop_toBottomOf="@id/passwordLayout2"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@color/white_transparent_50">
 
-        <EditText
-            android:id="@+id/locationEditText"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:hint="Location"
-            android:inputType="text"
-            android:background="@android:color/transparent"
-            android:textColor="@color/PrimaryColour"
-            android:textColorHint="#888888"/>
+        <Button
+            android:id="@+id/btn_fetch_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Get Business Location"
+            android:backgroundTint="@color/SecondaryColour"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/location"
-            android:layout_marginStart="12dp"/>
+        <TextView
+            android:id="@+id/tv_location_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Status: Location not set."
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="4dp"
+            android:textSize="14sp"/>
+
+        <TextView
+            android:id="@+id/tv_location_address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Address: Not available"
+            android:textColor="@android:color/darker_gray"
+            android:layout_marginBottom="4dp"
+            android:textSize="12sp"/>
+
+        <TextView
+            android:id="@+id/tv_coordinates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Coords: Not available"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="12sp"/>
+
     </LinearLayout>
 
 
@@ -230,7 +247,7 @@
         android:text="Sign Up"
         android:textColor="@android:color/white"
         android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/locationLayout"
+        app:layout_constraintTop_toBottomOf="@id/locationInputSection"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 

@@ -13,6 +13,7 @@ public class PoolModel {
     private String sanitizerType;
     private Long filterRuntimeHours;
     private GeoPoint location;
+    private String locationAddress;
     private String photoUrl;
     private Long createdAt;
 
@@ -29,6 +30,7 @@ public class PoolModel {
             this.sanitizerType = document.getString("sanitizerType");
             this.filterRuntimeHours = document.getLong("filterRuntimeHours");
             this.location = document.getGeoPoint("location");
+            this.locationAddress = document.getString("locationAddress");
             this.photoUrl = document.getString("photoUrl");
             this.createdAt = document.getLong("createdAt");
         }
@@ -64,6 +66,10 @@ public class PoolModel {
 
     public GeoPoint getLocation() {
         return location;
+    }
+
+    public String getLocationAddress() {
+        return locationAddress;
     }
 
     public String getPhotoUrl() {
@@ -104,6 +110,11 @@ public class PoolModel {
 
     public void setLocation(GeoPoint location) {
         this.location = location;
+    }
+
+
+    public void setLocationAddress(String locationAddress) {
+        this.locationAddress = locationAddress;
     }
 
     public void setPhotoUrl(String photoUrl) {

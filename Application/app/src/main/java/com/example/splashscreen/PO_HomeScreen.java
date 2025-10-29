@@ -254,7 +254,7 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
             String poolName = poolModel.getName();
             String poolType = poolModel.getType();
             String sanitizerType = poolModel.getSanitizerType();
-           // GeoPoint poolLocation = poolModel.getLocation();
+            String poolLocation = poolModel.getLocationAddress();
             Long capacity = poolModel.getWaterCapacityLiters();
             String poolId = poolModel.getPoolId();
 
@@ -282,7 +282,7 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
             if (tvPoolName != null) tvPoolName.setText(poolName);
             if (tvPoolType != null) tvPoolType.setText(String.format("%s | %s", poolType, sanitizerType));
             if (tvPoolCapacity != null && capacity != null) tvPoolCapacity.setText(String.format("%dL", capacity));
-        //    if (tvPoolLocation != null) tvPoolLocation.setText(poolLocation);
+            if (tvPoolLocation != null) tvPoolLocation.setText(poolLocation);
 
 
             llAddPoolPlaceholder.setVisibility(View.GONE);

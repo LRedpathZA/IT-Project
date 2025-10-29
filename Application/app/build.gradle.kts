@@ -52,6 +52,10 @@ dependencies {
 
     //Location
     implementation(libs.play.services.location)
+    implementation(libs.play.services.maps)
+// Use the latest stable version
+    implementation(libs.play.services.location.v2101)
+// Match this version if needed
 
     //Networking
     implementation(libs.retrofit)

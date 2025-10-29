@@ -21,7 +21,8 @@ public class NotificationHelper {
     public enum NotificationType {
         INFORMATIONAL,
         ERROR,
-        CONFIRMATION
+        CONFIRMATION,
+        SUCCESS
     }
 // TODO: Implement a proper dialogue, current one works but not Flexible
     public static void showNotification(View parentView, String title, String message, NotificationType type) {
@@ -40,6 +41,11 @@ public class NotificationHelper {
 
         // Set the content based on the notification type
         switch (type) {
+            case SUCCESS:
+                notificationTitle.setText(title);
+                icon.setImageResource(R.drawable.launcher_icon); // We need to change this
+                cardView.setCardBackgroundColor(ContextCompat.getColor(parentView.getContext(), R.color.PrimaryColour)); // And change this
+                break;
             case CONFIRMATION:
                 notificationTitle.setText(title);
                 icon.setImageResource(R.drawable.launcher_icon); // We need to change this

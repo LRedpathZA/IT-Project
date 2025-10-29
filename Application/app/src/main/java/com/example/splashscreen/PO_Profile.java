@@ -16,15 +16,17 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.GeoPoint; // Added for clarity, though not strictly needed here
 
 public class PO_Profile extends Fragment implements HeaderUpdatable {
 
     private UserViewModel userViewModel;
+    private PoolViewModel poolViewModel; // 💥 NEW: Reference to PoolViewModel
 
     private TextView tvUserName;
     private TextView tvDetailEmail;
     private TextView tvDetailPhone;
-    private TextView tvDetailLocation;
+    private TextView tvDetailLocation; // This will show the main pool's address
 
     private LinearLayout optionAccountSettings;
     private LinearLayout optionSecurityPrivacy;
@@ -63,6 +65,7 @@ public class PO_Profile extends Fragment implements HeaderUpdatable {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
+        poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class); // 💥 Initialize PoolViewModel
 
 
         MaterialButton btnLogout = view.findViewById(R.id.btn_logout);
@@ -91,6 +94,7 @@ public class PO_Profile extends Fragment implements HeaderUpdatable {
 
 
         observeUserData();
+        observePoolData(); // 💥 NEW: Observe pool data for the location
     }
 
     private void observeUserData() {
@@ -100,12 +104,28 @@ public class PO_Profile extends Fragment implements HeaderUpdatable {
         });
     }
 
+    // 💥 NEW: Observer for the PoolViewModel's current pool model
+    private void observePoolData() {
+        poolViewModel.currentPoolModel.observe(getViewLifecycleOwner(), poolModel -> {
+            if (tvDetailLocation != null) {
+                if (poolModel != null) {
+                    String address = poolModel.getLocationAddress(); // Get the saved address string
+                    tvDetailLocation.setText(address != null && !address.isEmpty()
+                            ? address
+                            : "No primary pool address set");
+                } else {
+                    tvDetailLocation.setText("No primary pool selected");
+                }
+            }
+        });
+    }
+
     private void updateUIWithUserData(DocumentSnapshot document) {
         if (document != null && document.exists()) {
             // Name
             if (tvUserName != null) {
                 String name = document.getString("name");
-                tvUserName.setText(name != null ? name : "User Name");
+                tvUserName.setText(name != null ? name : "Pool Owner");
             }
 
             // Email
@@ -120,11 +140,6 @@ public class PO_Profile extends Fragment implements HeaderUpdatable {
                 tvDetailPhone.setText(phone != null ? phone : "N/A");
             }
 
-            // Location
-            if (tvDetailLocation != null) {
-                String location = document.getString("location");
-                tvDetailLocation.setText(location != null ? location : "N/A");
-            }
 
         } else if (Boolean.FALSE.equals(userViewModel.isLoading.getValue())) {
             Toast.makeText(getContext(), "Failed to load profile details.", Toast.LENGTH_SHORT).show();
