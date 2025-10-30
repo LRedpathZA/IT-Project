@@ -1,30 +1,25 @@
 package com.example.splashscreen.data.weather;
 
-import com.google.gson.annotations.SerializedName;
-import java.util.List;
-
+// Represents an aggregated daily forecast (derived from HourlyForecastItem data)
 public class DailyForecast {
-    @SerializedName("dt")
-    private long datetime; // Unix timestamp
+    private long dateMillis;
+    private double maxTemp;
+    private double minTemp;
+    private String iconCode;
+    private String weatherDescription;
 
-    @SerializedName("temp")
-    private Temperature temperature; // Nested object for min/max/day temp
-
-    @SerializedName("weather")
-    private List<WeatherCondition> weather;
-
-    // --- Default Constructor (required by Gson) ---
-    public DailyForecast() {}
-
-    // 💥 NEW: Constructor to support the DailyForecastMapper logic
-    public DailyForecast(long datetime, Temperature temperature, List<WeatherCondition> weather) {
-        this.datetime = datetime;
-        this.temperature = temperature;
-        this.weather = weather;
+    public DailyForecast(long dateMillis, double maxTemp, double minTemp, String iconCode, String weatherDescription) {
+        this.dateMillis = dateMillis;
+        this.maxTemp = maxTemp;
+        this.minTemp = minTemp;
+        this.iconCode = iconCode;
+        this.weatherDescription = weatherDescription;
     }
 
     // --- Getters ---
-    public long getDatetime() { return datetime; }
-    public Temperature getTemperature() { return temperature; }
-    public List<WeatherCondition> getWeather() { return weather; }
+    public long getDateMillis() { return dateMillis; }
+    public double getMaxTemp() { return maxTemp; }
+    public double getMinTemp() { return minTemp; }
+    public String getIconCode() { return iconCode; }
+    public String getWeatherDescription() { return weatherDescription; }
 }

@@ -4,18 +4,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/weather_background_gradient"> <TextView
-    android:id="@+id/tv_city_country"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="32dp"
-    android:textColor="@android:color/white"
-    android:textSize="24sp"
-    android:textStyle="bold"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent"
-    tools:text="Pretoria, South Africa" />
+    android:background="@drawable/gradient_background_upleft">
+
+    <TextView
+        android:id="@+id/tv_city_country"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="36dp"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Pretoria, South Africa" />
 
     <TextView
         android:id="@+id/tv_date_time"
@@ -38,14 +41,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_date_time"
-        app:srcCompat="@drawable/ic_weather_sunny" /> <TextView
+        app:srcCompat="@drawable/sunny" /> <TextView
         android:id="@+id/tv_current_temp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:textColor="@android:color/white"
         android:textSize="72sp"
-        android:textStyle="light"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/iv_weather_icon"
@@ -131,7 +134,7 @@
         android:orientation="horizontal"
         android:layout_marginHorizontal="32dp"
         android:layout_marginTop="24dp"
-        android:background="@drawable/rounded_input_bg_dark"
+        android:background="@drawable/rounded_input_bg"
         android:padding="16dp"
         android:gravity="center_vertical"
         app:layout_constraintTop_toBottomOf="@id/details_cards_layout">
@@ -141,7 +144,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="7-Day Forecast"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -149,7 +152,8 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:contentDescription="Go to forecast"
-            android:src="@drawable/ic_arrow_right_white" />
+            android:src="@drawable/ic_arrow_forward_black_24dp"
+            app:tint="@color/black" />
 
     </LinearLayout>
 

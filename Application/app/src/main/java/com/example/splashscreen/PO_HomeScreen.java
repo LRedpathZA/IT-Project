@@ -18,6 +18,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.splashscreen.ui.weather.WeatherContainerFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -222,8 +223,8 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
     }
     public void navigateToWeatherScreen() {
         Toast.makeText(getContext(), "Working", Toast.LENGTH_LONG).show();
-        WeatherLocation weatherLocation = new WeatherLocation();
-        navigateToFragment(weatherLocation);
+        WeatherContainerFragment weatherScreen = new WeatherContainerFragment();
+        navigateToFragment(weatherScreen);
     }
 
     private void setupProductRecyclerView() {
