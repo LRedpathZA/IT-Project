@@ -4,30 +4,61 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="20dp"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp"
+    android:layout_marginBottom="8dp"
     android:background="@drawable/rounded_input_bg">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_start_center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.25" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_end_center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.75" />
 
     <TextView
         android:id="@+id/tv_day_of_week"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minWidth="40dp"
         android:textColor="@android:color/black"
         android:textSize="16sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:text="Mon" />
+        tools:text="Monday" />
+
+    <TextView
+        android:id="@+id/tv_day_forecast_temp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="45dp"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textAlignment="viewEnd"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:text="26°C" />
 
     <ImageView
         android:id="@+id/iv_day_forecast_icon"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:contentDescription="Forecast Icon"
-        app:layout_constraintStart_toEndOf="@id/tv_day_of_week"
+        app:layout_constraintStart_toStartOf="@id/guideline_start_center"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/tv_day_forecast_desc"
-        app:layout_constraintHorizontal_bias="0.3"
+        app:layout_constraintHorizontal_chainStyle="packed"
         tools:src="@drawable/sunny" />
 
     <TextView
@@ -37,22 +68,11 @@
         android:layout_marginStart="8dp"
         android:textColor="@android:color/black"
         android:textSize="16sp"
-        app:layout_constraintEnd_toStartOf="@id/tv_day_forecast_temp"
+        app:layout_constraintEnd_toStartOf="@id/guideline_end_center"
         app:layout_constraintStart_toEndOf="@id/iv_day_forecast_icon"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:text="Partly Cloudy" />
-
-    <TextView
-        android:id="@+id/tv_day_forecast_temp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/black"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:text="26°C" />
+        tools:text="Partly Cloudy"
+        android:textAlignment="viewStart" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
