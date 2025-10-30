@@ -174,7 +174,7 @@
                     android:id="@+id/ivSettingsIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
                     android:src="@drawable/settings"
-                    app:tint="@color/black" /> <TextView
+            /> <TextView
                 android:id="@+id/tvSettingsText"
                 style="@style/NavDrawerMenuItemTextStyle"
                 android:text="Settings"
@@ -188,7 +188,7 @@
                     android:id="@+id/ivTutorialIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
                     android:src="@drawable/tutorial"
-                    app:tint="@color/black" /> <TextView
+                 /> <TextView
                 android:id="@+id/tvTutorialText"
                 style="@style/NavDrawerMenuItemTextStyle"
                 android:text="Tutorial Videos"

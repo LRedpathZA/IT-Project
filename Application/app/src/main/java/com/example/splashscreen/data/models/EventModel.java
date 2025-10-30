@@ -1,12 +1,11 @@
 
 
-package com.example.splashscreen;
+package com.example.splashscreen.data.models;
 
 // Imports for Firestore (Long) and formatting (Calendar)
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 public class EventModel {
     public String id;

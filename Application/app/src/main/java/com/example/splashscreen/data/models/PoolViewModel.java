@@ -1,4 +1,4 @@
-package com.example.splashscreen;
+package com.example.splashscreen.data.models;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

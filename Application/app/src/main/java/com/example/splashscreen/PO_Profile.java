@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -14,9 +13,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.splashscreen.data.models.PoolViewModel;
+import com.example.splashscreen.data.models.UserViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.GeoPoint; // Added for clarity, though not strictly needed here
 
 public class PO_Profile extends Fragment implements HeaderUpdatable {
 

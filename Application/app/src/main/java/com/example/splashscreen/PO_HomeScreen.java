@@ -18,6 +18,10 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.splashscreen.data.models.ItemModel;
+import com.example.splashscreen.data.models.PoolModel;
+import com.example.splashscreen.data.models.PoolViewModel;
+import com.example.splashscreen.data.models.UserViewModel;
 import com.example.splashscreen.ui.weather.WeatherContainerFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;

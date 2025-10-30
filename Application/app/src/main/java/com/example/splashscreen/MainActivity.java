@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.splashscreen.data.models.UserViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -233,6 +234,17 @@ public class MainActivity extends AppCompatActivity {
             if (itemId == R.id.nav_home_sp) {
                 selectedFragment = new SP_HomeScreen();
             }
+            else if (itemId == R.id.nav_clients) {
+                selectedFragment = new ClientListFragment();
+            }
+            else if (itemId == R.id.nav_schedule_sp) {
+                selectedFragment = new SP_HomeScreen();
+            }
+            else if (itemId == R.id.nav_inventory) {
+                selectedFragment = new SP_HomeScreen();
+            }
+
+
         }
 
 
@@ -290,8 +302,6 @@ public class MainActivity extends AppCompatActivity {
         setMenuItemLabel(drawerContainer, R.id.btnHelp, "Help & Support");
         setMenuItemLabel(drawerContainer, R.id.btnSettings, "Settings");
         setMenuItemLabel(drawerContainer, R.id.btnTutorial, "Tutorial");
-        findViewById(R.id.btnTips).setVisibility(View.GONE);
-        findViewById(R.id.btnRegisterBusiness).setVisibility(View.GONE);
     }
 
     private void replaceFragment(Fragment fragment, boolean addToBackStack) {

@@ -1,4 +1,4 @@
-package com.example.splashscreen;
+package com.example.splashscreen.data.models;
 
 public class ItemModel {
     private String title;

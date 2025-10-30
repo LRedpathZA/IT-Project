@@ -1,4 +1,4 @@
-package com.example.splashscreen;
+package com.example.splashscreen.data.models;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.GeoPoint;

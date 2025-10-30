@@ -17,6 +17,9 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.splashscreen.data.models.EventModel;
+import com.example.splashscreen.data.models.PoolViewModel;
+import com.example.splashscreen.data.models.UserViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;

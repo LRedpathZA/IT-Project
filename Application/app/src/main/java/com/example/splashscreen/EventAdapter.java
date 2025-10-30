@@ -6,6 +6,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.splashscreen.data.models.EventModel;
+
 import java.util.List;
 
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingVertical="12dp"
+    android:paddingHorizontal="16dp"
+    android:gravity="center_vertical"
+    android:minHeight="64dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?attr/selectableItemBackground">
+
+    <ImageView
+        android:id="@+id/iv_detail_row_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="16dp"
+        app:tint="@color/black"
+        tools:src="@drawable/calendar"
+        android:contentDescription="Detail Icon" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_detail_row_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="10sp"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            tools:text="Date of Birth" />
+
+        <TextView
+            android:id="@+id/tv_detail_row_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            tools:text="16th Aug, 1981" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/iv_detail_row_arrow"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_arrow_forward_black_24dp"
+        app:tint="@color/black"
+        android:visibility="visible"
+        android:contentDescription="Navigation Arrow" />
+
+</LinearLayout>

@@ -18,13 +18,13 @@ import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.splashscreen.data.models.PoolViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputLayout;
 // 💥 FIREBASE IMPORTS
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.firestore.CollectionReference;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
