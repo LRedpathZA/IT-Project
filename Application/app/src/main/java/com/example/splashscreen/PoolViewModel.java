@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.GeoPoint; // 💥 Import GeoPoint
+import com.google.firebase.firestore.GeoPoint;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -72,7 +72,7 @@ public class PoolViewModel extends ViewModel {
             _isLoadingPool.setValue(false);
             if (task.isSuccessful() && task.getResult() != null && task.getResult().exists()) {
                 DocumentSnapshot document = task.getResult();
-                // 💥 ASSUMES PoolModel constructor reads GeoPoint field
+
                 PoolModel pool = new PoolModel(document);
 
                 _currentPoolModel.setValue(pool);

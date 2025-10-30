@@ -56,7 +56,7 @@ public class DailyForecastAdapter extends RecyclerView.Adapter<DailyForecastAdap
         private final TextView tvDayOfWeek;
         private final ImageView ivDayForecastIcon;
         private final TextView tvDayForecastTemp;
-        private final TextView tvDayForecastDesc; // 💥 BIND NEW FIELD
+        private final TextView tvDayForecastDesc;
 
         public DailyForecastViewHolder(@NonNull View itemView) {
             super(itemView);

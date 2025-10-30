@@ -35,7 +35,9 @@ public class UserViewModel extends ViewModel {
     private final MutableLiveData<Boolean> _isLoading = new MutableLiveData<>(false);
     public LiveData<Boolean> isLoading = _isLoading;
 
-
+    public GeoPoint getSpLocationGeoPoint() {
+        return _spLocationGeoPoint.getValue();
+    }
     public void fetchUserData(String userId) {
         if (_userData.getValue() != null) {
             return;

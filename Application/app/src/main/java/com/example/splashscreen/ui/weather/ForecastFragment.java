@@ -12,6 +12,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.splashscreen.HeaderUpdatable;
+import com.example.splashscreen.MainActivity;
 import com.example.splashscreen.R;
 import com.example.splashscreen.data.weather.DailyForecast;
 import com.example.splashscreen.data.weather.DailyForecastAdapter;
@@ -26,18 +28,44 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ForecastFragment extends Fragment {
+public class ForecastFragment extends Fragment implements HeaderUpdatable {
 
-    private static final String API_KEY = "030115f383b16e050cfbee9fb65dafd9"; // ⚠️ Replace with your actual key
-    private static final double DEFAULT_LAT = 25.5701;
-    private static final double DEFAULT_LON = -33.918;
+    private static final String API_KEY = "030115f383b16e050cfbee9fb65dafd9";
+
+    // 💥 NEW: Fields to store dynamic coordinates
+    private double latitude;
+    private double longitude;
+
+    private static final String ARG_LAT = "arg_lat";
+    private static final String ARG_LON = "arg_lon";
 
     private RecyclerView recyclerView;
-    private DailyForecastAdapter adapter; // ⚠️ Will need to be created next
+    private DailyForecastAdapter adapter;
 
-    public static ForecastFragment newInstance() {
-        return new ForecastFragment();
+    // 💥 UPDATED: newInstance now accepts coordinates
+    public static ForecastFragment newInstance(double lat, double lon) {
+        ForecastFragment fragment = new ForecastFragment();
+        Bundle args = new Bundle();
+        args.putDouble(ARG_LAT, lat);
+        args.putDouble(ARG_LON, lon);
+        fragment.setArguments(args);
+        return fragment;
     }
+
+    // 💥 NEW: Retrieve the arguments in onCreate
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            this.latitude = getArguments().getDouble(ARG_LAT);
+            this.longitude = getArguments().getDouble(ARG_LON);
+        } else {
+            // Fallback to a default or handle error if coordinates are missing
+            this.latitude = 0.0;
+            this.longitude = 0.0;
+        }
+    }
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -48,10 +76,23 @@ public class ForecastFragment extends Fragment {
         fetchForecastWeather();
         return view;
     }
+    @Override
+    public void updateActivityHeader() {
+        if (getActivity() instanceof MainActivity) {
+            String title =  "Week Forecast";
+            ((MainActivity) getActivity()).updateHeader(title, true, true);
+        }
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateActivityHeader();
+    }
     private void fetchForecastWeather() {
         WeatherApiService apiService = RetrofitClient.getWeatherApiService();
-        Call<WeatherResponse> call = apiService.getThreeHourForecast(DEFAULT_LAT, DEFAULT_LON, "metric", API_KEY);
+
+        Call<WeatherResponse> call = apiService.getThreeHourForecast(this.latitude, this.longitude, "metric", API_KEY);
 
         call.enqueue(new Callback<WeatherResponse>() {
             @Override
@@ -63,7 +104,7 @@ public class ForecastFragment extends Fragment {
 
                     // 2. Update the RecyclerView
                     if (dailyForecasts != null && !dailyForecasts.isEmpty()) {
-                        adapter = new DailyForecastAdapter(dailyForecasts); // ⚠️ Adapter creation
+                        adapter = new DailyForecastAdapter(dailyForecasts);
                         recyclerView.setAdapter(adapter);
                     } else {
                         Toast.makeText(getContext(), "No forecast data available.", Toast.LENGTH_SHORT).show();

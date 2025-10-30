@@ -13,8 +13,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.splashscreen.ui.weather.WeatherContainerFragment;
+import com.google.firebase.auth.FirebaseAuth;
+
+import com.google.firebase.firestore.GeoPoint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +32,9 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
     private RecyclerView rvProducts;
     private TextView spGreeting;
     private ImageView ivSPProfileIcon;
+
+    private UserViewModel userViewModel;
+    private GeoPoint spCurrentLocation = null;
 
     public SP_HomeScreen() {
     }
@@ -48,10 +56,14 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         spGreeting = view.findViewById(R.id.spGreeting);
         ivSPProfileIcon = view.findViewById(R.id.ivSPProfileIcon);
         ivSPProfileIcon.setOnClickListener(v -> navigateToFragment(new SP_Profile()));
+        userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
+        View weatherBanner = view.findViewById(R.id.weatherCard);
+        weatherBanner.setOnClickListener(v -> navigateToWeatherScreen());
+
 
         // 2. Set Greeting (Simulated User Data)
-        String spName = "Swimpool Centre";
-        spGreeting.setText(String.format("Hello, %s", spName));
+//        String spName = "Swimpool Centre";
+//        spGreeting.setText(String.format("Hello, %s", spName));
 
         // 3. Load Dummy Data
         loadClientData();
@@ -64,10 +76,32 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         TextView tvWeatherLocation = view.findViewById(R.id.tv_weather_location);
         ImageView ivWeatherIcon = view.findViewById(R.id.iv_weather_icon);
 
-        tvWeatherTemp.setText("24°C / Sunny");
-        tvWeatherLocation.setText("Pretoria, South Africa");
+//        tvWeatherTemp.setText("24°C / Sunny");
+//        tvWeatherLocation.setText("Pretoria, South Africa");
+          observeLocationAndUserData();
         // Ensure you have a 'sunny' drawable defined for this to work
         // ivWeatherIcon.setImageResource(R.drawable.sunny);
+    }
+    private void observeLocationAndUserData() {
+        // Observe the GeoPoint, which is populated when fetchUserData runs
+        userViewModel.spLocationGeoPoint.observe(getViewLifecycleOwner(), geoPoint -> {
+            this.spCurrentLocation = geoPoint;
+            // TODO: In a later step, you'll call a weather API fetch here to update the home screen banner.
+        });
+
+        // Observe the user name to set the greeting
+        userViewModel.username.observe(getViewLifecycleOwner(), username -> {
+            if (username != null && !username.isEmpty()) {
+                spGreeting.setText(String.format("Hello, %s", username));
+            } else {
+                spGreeting.setText("Hello, Service Provider");
+            }
+        });
+
+        // Ensure user data is fetched if it wasn't already (e.g., if the user came straight from login)
+        if (userViewModel.userData.getValue() == null && FirebaseAuth.getInstance().getCurrentUser() != null) {
+            userViewModel.fetchUserData(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        }
     }
 //TODO: REMOVE ALL THIS DUMMY TESTING DATA FOR NOW !!!! :>
     @Override
@@ -93,6 +127,18 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         } else if (getContext() != null) {
             Toast.makeText(getContext(), "Navigation failed.", Toast.LENGTH_SHORT).show();
         }
+    }
+    public void navigateToWeatherScreen() {
+        if (spCurrentLocation == null) {
+            Toast.makeText(getContext(), "Location not available. Please ensure your business location is set.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        double lat = spCurrentLocation.getLatitude();
+        double lon = spCurrentLocation.getLongitude();
+
+        WeatherContainerFragment weatherScreen = WeatherContainerFragment.newInstance(lat, lon);
+        navigateToFragment(weatherScreen);
     }
     // ------------------------------------------
     // DUMMY DATA LOADING METHODS

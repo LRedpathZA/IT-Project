@@ -49,7 +49,7 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
     private TextView tvPoolName;
     private TextView tvPoolType;
     private TextView tvPoolCapacity;
-    private TextView tvPoolLocation;
+    private TextView tvPoolLocation, tvWeatherLocation;
     private ImageView ivPoolImage;
     private View poolCardView;
 
@@ -91,6 +91,7 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
         llAddPoolPlaceholder = view.findViewById(R.id.ll_add_pool_placeholder);
         flHomePoolContent = view.findViewById(R.id.fl_home_pool_content);
         rvProducts = view.findViewById(R.id.rv_products);
+        tvWeatherLocation = view.findViewById(R.id.tv_weather_location);
 
         View calendarCardContainer = view.findViewById(R.id.calendarCard);
         if (calendarCardContainer != null) {
@@ -222,8 +223,23 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
         navigateToFragment(poolHealthFragment);
     }
     public void navigateToWeatherScreen() {
-        Toast.makeText(getContext(), "Working", Toast.LENGTH_LONG).show();
-        WeatherContainerFragment weatherScreen = new WeatherContainerFragment();
+        PoolModel poolModel = poolViewModel.currentPoolModel.getValue();
+
+        if (poolModel == null) {
+            Toast.makeText(getContext(), "Pool location not loaded. Cannot fetch weather.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        GeoPoint location = poolModel.getLocation();
+
+        if (location == null) {
+            Toast.makeText(getContext(), "Pool location is missing coordinates.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        double lat = location.getLatitude();
+        double lon = location.getLongitude();
+        WeatherContainerFragment weatherScreen = WeatherContainerFragment.newInstance(lat, lon);
         navigateToFragment(weatherScreen);
     }
 
@@ -273,6 +289,8 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
                 tvPoolType = poolCardView.findViewById(R.id.tv_pool_type);
                 tvPoolCapacity = poolCardView.findViewById(R.id.tv_pool_capacity);
                 tvPoolLocation = poolCardView.findViewById(R.id.tv_pool_location);
+
+
                 ivPoolImage = poolCardView.findViewById(R.id.iv_pool_image);
 
                 if (ivPoolImage != null) {
@@ -284,6 +302,7 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
             if (tvPoolType != null) tvPoolType.setText(String.format("%s | %s", poolType, sanitizerType));
             if (tvPoolCapacity != null && capacity != null) tvPoolCapacity.setText(String.format("%dL", capacity));
             if (tvPoolLocation != null) tvPoolLocation.setText(poolLocation);
+            tvWeatherLocation.setText(poolLocation);
 
 
             llAddPoolPlaceholder.setVisibility(View.GONE);

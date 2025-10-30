@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/gradient_background_upleft">
+    android:background="@drawable/full_blue_gradient">
 
     <TextView
         android:id="@+id/tv_city_country"
@@ -143,7 +143,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="7-Day Forecast"
+            android:text="5-Day Forecast"
             android:textColor="@android:color/black"
             android:textSize="16sp"
             android:textStyle="bold" />
