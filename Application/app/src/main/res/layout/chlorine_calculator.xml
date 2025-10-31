@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/login_background"
+    android:background="@drawable/bg"
     tools:context=".ChlorineCalculator">
 
     <androidx.cardview.widget.CardView
@@ -50,55 +50,59 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@color/white_transparent_50"
                     android:orientation="vertical"
                     android:padding="20dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
                         android:text="Required Inputs"
                         android:textColor="@color/black"
                         android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="12dp"/>
+                        android:textStyle="bold" />
 
                     <LinearLayout
                         android:id="@+id/currentChlorineLayout"
                         android:layout_width="match_parent"
                         android:layout_height="60dp"
                         android:layout_marginBottom="16dp"
+                        android:background="@drawable/rounded_input_bg"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="8dp"
-                        android:background="@drawable/rounded_input_bg">
+                        android:paddingHorizontal="8dp">
+
                         <EditText
                             android:id="@+id/et_current_chlorine"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
+                            android:background="@android:color/transparent"
                             android:hint="Current Chlorine Level (e.g., 0.5) *"
                             android:inputType="numberDecimal"
                             android:maxLength="4"
-                            android:background="@android:color/transparent"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="0dp"
                             android:textColor="@color/black"
                             android:textColorHint="@color/black"
-                            android:textSize="16sp"
-                            android:paddingStart="8dp"
-                            android:paddingEnd="0dp" />
+                            android:textSize="16sp" />
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="ppm"
-                            android:textSize="16sp"
-                            android:textColor="@color/black"
                             android:layout_gravity="center_vertical"
-                            android:layout_marginEnd="4dp"/>
+                            android:layout_marginEnd="4dp"
+                            android:text="ppm"
+                            android:textColor="@color/black"
+                            android:textSize="16sp" />
+
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:layout_gravity="center_vertical"
+                            android:contentDescription="Chlorine Icon"
                             android:src="@drawable/chlorine"
-                            app:tint="@color/black"
-                            android:contentDescription="Chlorine Icon"/>
+                            app:tint="@color/black" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -106,78 +110,82 @@
                         android:layout_width="match_parent"
                         android:layout_height="60dp"
                         android:layout_marginBottom="16dp"
+                        android:background="@drawable/rounded_input_bg"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="8dp"
-                        android:background="@drawable/rounded_input_bg">
+                        android:paddingHorizontal="8dp">
+
                         <EditText
                             android:id="@+id/et_target_chlorine"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
+                            android:background="@android:color/transparent"
                             android:hint="Target Chlorine (Ideal 2.0 - 3.0)"
                             android:inputType="numberDecimal"
                             android:maxLength="4"
-                            android:background="@android:color/transparent"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="0dp"
                             android:textColor="@color/black"
                             android:textColorHint="@color/black"
-                            android:textSize="16sp"
-                            android:paddingStart="8dp"
-                            android:paddingEnd="0dp" />
+                            android:textSize="16sp" />
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="ppm"
-                            android:textSize="16sp"
-                            android:textColor="@color/black"
                             android:layout_gravity="center_vertical"
-                            android:layout_marginEnd="4dp"/>
+                            android:layout_marginEnd="4dp"
+                            android:text="ppm"
+                            android:textColor="@color/black"
+                            android:textSize="16sp" />
+
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:layout_gravity="center_vertical"
+                            android:contentDescription="Target Icon"
                             android:src="@drawable/water_drop"
-                            app:tint="@color/black"
-                            android:contentDescription="Target Icon"/>
+                            app:tint="@color/black" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/poolVolumeLayout"
                         android:layout_width="match_parent"
                         android:layout_height="60dp"
+                        android:background="@drawable/rounded_input_bg"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="8dp"
-                        android:background="@drawable/rounded_input_bg">
+                        android:paddingHorizontal="8dp">
+
                         <EditText
                             android:id="@+id/et_pool_volume_chl"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
+                            android:background="@android:color/transparent"
                             android:hint="Pool Volume *"
                             android:inputType="numberDecimal"
                             android:maxLength="10"
-                            android:background="@android:color/transparent"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="0dp"
                             android:textColor="@color/black"
                             android:textColorHint="@color/black"
-                            android:textSize="16sp"
-                            android:paddingStart="8dp"
-                            android:paddingEnd="0dp" />
+                            android:textSize="16sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="L"
-                            android:textSize="16sp"
-                            android:textColor="@color/black"
                             android:layout_gravity="center_vertical"
-                            android:layout_marginEnd="8dp"/>
+                            android:layout_marginEnd="8dp"
+                            android:text="L"
+                            android:textColor="@color/black"
+                            android:textSize="16sp" />
 
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:layout_gravity="center_vertical"
+                            android:contentDescription="Volume Icon"
                             android:src="@drawable/water_capacity"
-                            app:tint="@color/black"
-                            android:contentDescription="Volume Icon"/>
+                            app:tint="@color/black" />
                     </LinearLayout>
 
                 </LinearLayout>

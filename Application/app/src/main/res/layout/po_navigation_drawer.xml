@@ -5,7 +5,7 @@
     android:layout_width="300dp"
     android:layout_height="match_parent"
     android:layout_gravity="start"
-    android:background="@drawable/gradient_background_upleft"
+    android:background="@drawable/pbg"
     android:orientation="vertical"
     android:fitsSystemWindows="true">
 
@@ -86,99 +86,120 @@
                 android:id="@+id/btnMessages"
                 style="@style/NavDrawerMenuItemStyle"
                 android:contentDescription="Messages">
+
                 <ImageView
                     android:id="@+id/ivMessagesIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
                     android:src="@drawable/message"
-                    app:tint="@color/black" /> <TextView
-                android:id="@+id/tvMessagesText"
-                style="@style/NavDrawerMenuItemTextStyle"
-                android:text="Messages"
-                android:textColor="@color/black" /> </LinearLayout>
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvMessagesText"
+                    style="@style/NavDrawerMenuItemTextStyle"
+                    android:text="Messages"
+                    android:textColor="@color/white" /> </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/btnSummary"
                 style="@style/NavDrawerMenuItemStyle"
                 android:contentDescription="My Pool Summary">
+
                 <ImageView
                     android:id="@+id/ivSummaryIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
                     android:src="@drawable/pool"
-                    app:tint="@color/black" /> <TextView
-                android:id="@+id/tvSummaryText"
-                style="@style/NavDrawerMenuItemTextStyle"
-                android:text="My Pool Summary"
-                android:textColor="@color/black" /> </LinearLayout>
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvSummaryText"
+                    style="@style/NavDrawerMenuItemTextStyle"
+                    android:text="My Pool Summary"
+                    android:textColor="@color/white" /> </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/btnTips"
                 style="@style/NavDrawerMenuItemStyle"
                 android:contentDescription="Pool Tips &amp; Articles">
+
                 <ImageView
                     android:id="@+id/ivTipsIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
                     android:src="@drawable/tips"
-                    app:tint="@color/black" /> <TextView
-                android:id="@+id/tvTipsText"
-                style="@style/NavDrawerMenuItemTextStyle"
-                android:text="Pool Tips &amp; Articles"
-                android:textColor="@color/black" /> </LinearLayout>
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvTipsText"
+                    style="@style/NavDrawerMenuItemTextStyle"
+                    android:text="Pool Tips &amp; Articles"
+                    android:textColor="@color/white" /> </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/btnLoadshedding"
                 style="@style/NavDrawerMenuItemStyle"
                 android:contentDescription="Load Shedding Alerts">
+
                 <ImageView
                     android:id="@+id/ivLoadsheddingIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
                     android:src="@drawable/loadshedding"
-                    app:tint="@color/black" /> <TextView
-                android:id="@+id/tvLoadsheddingText"
-                style="@style/NavDrawerMenuItemTextStyle"
-                android:text="Load Shedding Alerts"
-                android:textColor="@color/black" /> </LinearLayout>
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvLoadsheddingText"
+                    style="@style/NavDrawerMenuItemTextStyle"
+                    android:text="Load Shedding Alerts"
+                    android:textColor="@color/white" /> </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/btnRestrictions"
                 style="@style/NavDrawerMenuItemStyle"
                 android:contentDescription="Water Restrictions">
+
                 <ImageView
                     android:id="@+id/ivRestrictionsIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
                     android:src="@drawable/water_restriction"
-                    app:tint="@color/black" /> <TextView
-                android:id="@+id/tvRestrictionsText"
-                style="@style/NavDrawerMenuItemTextStyle"
-                android:text="Water Restrictions"
-                android:textColor="@color/black" /> </LinearLayout>
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvRestrictionsText"
+                    style="@style/NavDrawerMenuItemTextStyle"
+                    android:text="Water Restrictions"
+                    android:textColor="@color/white" /> </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/btnHelp"
                 style="@style/NavDrawerMenuItemStyle"
                 android:contentDescription="Help &amp; Support">
+
                 <ImageView
                     android:id="@+id/ivHelpIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
                     android:src="@drawable/help"
-                    app:tint="@color/black" /> <TextView
-                android:id="@+id/tvHelpText"
-                style="@style/NavDrawerMenuItemTextStyle"
-                android:text="Help &amp; Support"
-                android:textColor="@color/black" /> </LinearLayout>
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvHelpText"
+                    style="@style/NavDrawerMenuItemTextStyle"
+                    android:text="Help &amp; Support"
+                    android:textColor="@color/white" /> </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/btnSettings"
                 style="@style/NavDrawerMenuItemStyle"
                 android:contentDescription="Settings">
+
                 <ImageView
                     android:id="@+id/ivSettingsIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
                     android:src="@drawable/settings"
-            /> <TextView
-                android:id="@+id/tvSettingsText"
-                style="@style/NavDrawerMenuItemTextStyle"
-                android:text="Settings"
-                android:textColor="@color/black" /> </LinearLayout>
+                    android:tint="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvSettingsText"
+                    style="@style/NavDrawerMenuItemTextStyle"
+                    android:text="Settings"
+                    android:textColor="@color/white" /> </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/btnTutorial"
@@ -188,11 +209,13 @@
                     android:id="@+id/ivTutorialIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
                     android:src="@drawable/tutorial"
-                 /> <TextView
-                android:id="@+id/tvTutorialText"
-                style="@style/NavDrawerMenuItemTextStyle"
-                android:text="Tutorial Videos"
-                android:textColor="@color/black" /> </LinearLayout>
+                 />
+
+                <TextView
+                    android:id="@+id/tvTutorialText"
+                    style="@style/NavDrawerMenuItemTextStyle"
+                    android:text="Tutorial Videos"
+                    android:textColor="@color/white" /> </LinearLayout>
 
             <View android:layout_width="match_parent"
                 android:layout_height="1dp"
@@ -202,15 +225,18 @@
             android:id="@+id/btnRegisterBusiness"
             style="@style/NavDrawerMenuItemStyle"
             android:contentDescription="Register as Business">
+
             <ImageView
                 android:id="@+id/ivBusinessIcon"
                 style="@style/NavDrawerMenuItemIconStyle"
                 android:src="@drawable/business"
-                app:tint="@color/black" /> <TextView
-            android:id="@+id/tvBusinessText"
-            style="@style/NavDrawerMenuItemTextStyle"
-            android:text="Register as Business"
-            android:textColor="@color/black" /> </LinearLayout>
+                app:tint="@color/white" />
+
+            <TextView
+                android:id="@+id/tvBusinessText"
+                style="@style/NavDrawerMenuItemTextStyle"
+                android:text="Register as Business"
+                android:textColor="@color/white" /> </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
@@ -218,31 +244,31 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:background="@android:color/transparent"
         android:gravity="center"
-        android:paddingVertical="16dp"
-        android:background="@android:color/transparent">
+        android:orientation="horizontal"
+        android:paddingVertical="16dp">
 
         <ImageView
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:src="@drawable/facebook"
+            android:layout_marginHorizontal="12dp"
             android:contentDescription="Facebook"
-            android:layout_marginHorizontal="12dp"/>
+            android:src="@drawable/facebook" />
 
         <ImageView
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:src="@drawable/linkedin"
+            android:layout_marginHorizontal="12dp"
             android:contentDescription="LinkedIn"
-            android:layout_marginHorizontal="12dp"/>
+            android:src="@drawable/linkedin" />
 
         <ImageView
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:src="@drawable/instagram"
+            android:layout_marginHorizontal="12dp"
             android:contentDescription="Instagram"
-            android:layout_marginHorizontal="12dp"/>
+            android:src="@drawable/instagram" />
 
     </LinearLayout>
 

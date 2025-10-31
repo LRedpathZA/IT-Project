@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/login_background"
+    android:background="@drawable/bg"
     tools:context=".AlkalinityCalculator">
 
     <androidx.cardview.widget.CardView
@@ -47,115 +47,6 @@
                 app:cardElevation="4dp"
                 android:layout_marginBottom="16dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Required Inputs"
-                        android:textColor="@color/black"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="12dp"/>
-
-                    <LinearLayout
-                        android:id="@+id/currentAlkalinityLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="60dp"
-                        android:layout_marginBottom="16dp"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="8dp"
-                        android:background="@drawable/rounded_input_bg">
-                        <EditText
-                            android:id="@+id/et_current_alkalinity"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:hint="Current Alkalinity (ppm) *"
-                            android:inputType="number"
-                            android:maxLength="3"
-                            android:background="@android:color/transparent"
-                            android:textColor="@color/black"
-                            android:textColorHint="@color/black"
-                            android:textSize="16sp"
-                            android:paddingStart="8dp"
-                            android:paddingEnd="0dp" />
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_gravity="center_vertical"
-                            android:src="@drawable/alkalinity"
-                            app:tint="@color/black"
-                            android:contentDescription="Alkalinity Icon"/>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/targetAlkalinityLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="60dp"
-                        android:layout_marginBottom="16dp"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="8dp"
-                        android:background="@drawable/rounded_input_bg">
-                        <EditText
-                            android:id="@+id/et_target_alkalinity"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:hint="Target Alkalinity (Ideal 80 - 120 ppm)"
-                            android:inputType="number"
-                            android:maxLength="3"
-                            android:background="@android:color/transparent"
-                            android:textColor="@color/black"
-                            android:textColorHint="@color/black"
-                            android:textSize="16sp"
-                            android:paddingStart="8dp"
-                            android:paddingEnd="0dp" />
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_gravity="center_vertical"
-                            android:src="@drawable/alkalinity"
-                            app:tint="@color/black"
-                            android:contentDescription="Target Icon"/>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/poolVolumeLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="60dp"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="8dp"
-                        android:background="@drawable/rounded_input_bg">
-                        <EditText
-                            android:id="@+id/et_pool_volume"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                            android:hint="Pool Volume (Liters) *"
-                            android:inputType="numberDecimal"
-                            android:maxLength="10"
-                            android:background="@android:color/transparent"
-                            android:textColor="@color/black"
-                            android:textColorHint="@color/black"
-                            android:textSize="16sp"
-                            android:paddingStart="8dp"
-                            android:paddingEnd="0dp" />
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_gravity="center_vertical"
-                            android:src="@drawable/water_capacity"
-                            app:tint="@color/black"
-                            android:contentDescription="Volume Icon"/>
-                    </LinearLayout>
-
-                </LinearLayout>
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
@@ -299,6 +190,121 @@
                 android:layout_marginBottom="16dp"
                 app:cornerRadius="12dp"
                 android:backgroundTint="@color/PrimaryColour"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="Required Inputs"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/currentAlkalinityLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/rounded_input_bg"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp">
+
+                    <EditText
+                        android:id="@+id/et_current_alkalinity"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:hint="Current Alkalinity (ppm) *"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="0dp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black"
+                        android:textSize="16sp" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center_vertical"
+                        android:contentDescription="Alkalinity Icon"
+                        android:src="@drawable/alkalinity"
+                        app:tint="@color/black" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/targetAlkalinityLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/rounded_input_bg"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp">
+
+                    <EditText
+                        android:id="@+id/et_target_alkalinity"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:hint="Target Alkalinity (Ideal 80 - 120 ppm)"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="0dp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black"
+                        android:textSize="16sp" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center_vertical"
+                        android:contentDescription="Target Icon"
+                        android:src="@drawable/alkalinity"
+                        app:tint="@color/black" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/poolVolumeLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:background="@drawable/rounded_input_bg"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp">
+
+                    <EditText
+                        android:id="@+id/et_pool_volume"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:hint="Pool Volume (Liters) *"
+                        android:inputType="numberDecimal"
+                        android:maxLength="10"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="0dp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black"
+                        android:textSize="16sp" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center_vertical"
+                        android:contentDescription="Volume Icon"
+                        android:src="@drawable/water_capacity"
+                        app:tint="@color/black" />
+                </LinearLayout>
+
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>

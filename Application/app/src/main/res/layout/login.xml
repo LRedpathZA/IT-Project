@@ -10,7 +10,7 @@
 
     <!-- Welcome Text -->
     <TextView
-        android:id="@+id/welcomeText"
+        android:id="@+id/Header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Welcome Back,"
@@ -31,7 +31,7 @@
         android:textSize="28sp"
         android:textStyle="bold"
         android:textColor="@color/white"
-        app:layout_constraintTop_toBottomOf="@id/welcomeText"
+        app:layout_constraintTop_toBottomOf="@id/Header"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="24dp"
         android:layout_marginStart="32dp"/>

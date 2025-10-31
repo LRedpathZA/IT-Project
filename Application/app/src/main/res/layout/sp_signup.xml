@@ -9,7 +9,7 @@
     tools:context=".SP_SignUp">
 
     <TextView
-        android:id="@+id/welcomeText"
+        android:id="@+id/Header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Register your business account"
@@ -31,7 +31,7 @@
         android:orientation="horizontal"
         android:padding="8dp"
         android:background="@drawable/rounded_input_bg"
-        app:layout_constraintTop_toBottomOf="@id/welcomeText"
+        app:layout_constraintTop_toBottomOf="@id/Header"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
