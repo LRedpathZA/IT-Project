@@ -59,13 +59,7 @@
             android:orientation="vertical"
             android:paddingBottom="80dp">
 
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="2dp" />
+
 
             <include
                 android:id="@+id/card_your_business"

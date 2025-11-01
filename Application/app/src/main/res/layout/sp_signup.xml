@@ -1,265 +1,297 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     android:background="@drawable/login_background"
     tools:context=".SP_SignUp">
 
-    <TextView
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="32dp"> <TextView
         android:id="@+id/Header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Register your business account"
-        android:textSize="22sp"
-        android:textColor="@android:color/black"
-        android:fontFamily="sans-serif-medium"
-        android:layout_marginTop="60dp"
         android:layout_marginStart="32dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <!-- Business Name -->
-    <LinearLayout
-        android:id="@+id/businessNameLayout"
-        android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginHorizontal="32dp"
-        android:orientation="horizontal"
-        android:padding="8dp"
-        android:background="@drawable/rounded_input_bg"
-        app:layout_constraintTop_toBottomOf="@id/Header"
+        android:layout_marginTop="60dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="Register your business account"
+        android:textColor="@android:color/black"
+        android:textSize="22sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <EditText
-            android:id="@+id/businessNameEditText"
+        <LinearLayout
+            android:id="@+id/businessOwnerLayout"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:hint="Business Name"
-            android:inputType="textPersonName"
-            android:background="@android:color/transparent"
-            android:textColor="@color/black"
-            android:textColorHint="#888888"/>
+            android:layout_height="60dp"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="40dp"
+            android:background="@drawable/rounded_input_bg"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/Header">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/profile"
-            android:layout_marginStart="12dp"/>
-    </LinearLayout>
+            <EditText
+                android:id="@+id/ownerNameEditText" android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint="Owner Name"
+                android:inputType="textPersonName"
+                android:textColor="@color/black"
+                android:textColorHint="#888888" />
 
-    <!-- Email -->
-    <LinearLayout
-        android:id="@+id/emailLayout"
-        android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginHorizontal="32dp"
-        android:orientation="horizontal"
-        android:background="@drawable/rounded_input_bg"
-        android:padding="8dp"
-        app:layout_constraintTop_toBottomOf="@id/businessNameLayout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="12dp"
+                android:src="@drawable/profile" />
+        </LinearLayout>
 
-        <EditText
-            android:id="@+id/emailEditText"
+        <LinearLayout
+            android:id="@+id/businessNameLayout"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:hint="Email Address"
-            android:inputType="textEmailAddress"
-            android:background="@android:color/transparent"
-            android:textColor="@color/black"
-            android:textColorHint="#888888"/>
+            android:layout_height="60dp"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/rounded_input_bg"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/businessOwnerLayout">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/email"
-            android:layout_marginStart="12dp"/>
-    </LinearLayout>
+            <EditText
+                android:id="@+id/businessNameEditText"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint="Business Name"
+                android:inputType="textPersonName"
+                android:textColor="@color/black"
+                android:textColorHint="#888888" />
 
-    <!-- Phone -->
-    <LinearLayout
-        android:id="@+id/phoneLayout"
-        android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginHorizontal="32dp"
-        android:orientation="horizontal"
-        android:background="@drawable/rounded_input_bg"
-        android:padding="8dp"
-        app:layout_constraintTop_toBottomOf="@id/emailLayout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="12dp"
+                android:src="@drawable/profile" />
+        </LinearLayout>
 
-        <EditText
-            android:id="@+id/phoneEditText"
+        <LinearLayout
+            android:id="@+id/emailLayout"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:hint="Phone Number"
-            android:inputType="phone"
-            android:maxLength="10"
-            android:background="@android:color/transparent"
-            android:textColor="@color/black"
-            android:textColorHint="#888888"/>
+            android:layout_height="60dp"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/rounded_input_bg"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/businessNameLayout">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/phone"
-            android:layout_marginStart="12dp"/>
-    </LinearLayout>
+            <EditText
+                android:id="@+id/emailEditText"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint="Email Address"
+                android:inputType="textEmailAddress"
+                android:textColor="@color/black"
+                android:textColorHint="#888888" />
 
-    <!-- Password -->
-    <LinearLayout
-        android:id="@+id/passwordLayout1"
-        android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginHorizontal="32dp"
-        android:orientation="horizontal"
-        android:background="@drawable/rounded_input_bg"
-        android:padding="8dp"
-        app:layout_constraintTop_toBottomOf="@id/phoneLayout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="12dp"
+                android:src="@drawable/email" />
+        </LinearLayout>
 
-        <EditText
-            android:id="@+id/passwordEditText1"
+        <LinearLayout
+            android:id="@+id/phoneLayout"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:hint="Password"
-            android:inputType="textPassword"
-            android:background="@android:color/transparent"
-            android:textColor="@color/black"
-            android:textColorHint="#888888"/>
+            android:layout_height="60dp"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/rounded_input_bg"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/emailLayout">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/password"
-            android:layout_marginStart="12dp"/>
-    </LinearLayout>
-    <LinearLayout
-        android:id="@+id/passwordLayout2"
-        android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginHorizontal="32dp"
-        android:orientation="horizontal"
-        android:background="@drawable/rounded_input_bg"
-        android:padding="8dp"
-        app:layout_constraintTop_toBottomOf="@id/passwordLayout1"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+            <EditText
+                android:id="@+id/phoneEditText"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint="Phone Number"
+                android:inputType="phone"
+                android:maxLength="10"
+                android:textColor="@color/black"
+                android:textColorHint="#888888" />
 
-        <EditText
-            android:id="@+id/passwordEditText"
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="12dp"
+                android:src="@drawable/phone" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/passwordLayout1"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:hint="Confirm Password"
-            android:inputType="textPassword"
-            android:background="@android:color/transparent"
-            android:textColor="@color/black"
-            android:textColorHint="#888888"/>
+            android:layout_height="60dp"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/rounded_input_bg"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/phoneLayout">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/password"
-            android:layout_marginStart="12dp"/>
-    </LinearLayout>
+            <EditText
+                android:id="@+id/passwordEditText1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:textColor="@color/black"
+                android:textColorHint="#888888" />
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="12dp"
+                android:src="@drawable/password" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/passwordLayout2"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/rounded_input_bg"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/passwordLayout1">
+
+            <EditText
+                android:id="@+id/confirmPasswordEditText" android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint="Confirm Password"
+                android:inputType="textPassword"
+                android:textColor="@color/black"
+                android:textColorHint="#888888" />
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="12dp"
+                android:src="@drawable/password" />
+        </LinearLayout>
 
 
-    <LinearLayout
-        android:id="@+id/locationInputSection"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginHorizontal="32dp"
-        android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/passwordLayout2"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:background="@color/white_transparent_50">
+        <LinearLayout
+            android:id="@+id/locationInputSection"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="16dp"
+            android:background="@color/white_transparent_50"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/passwordLayout2">
+
+            <Button
+                android:id="@+id/btn_fetch_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="@color/SecondaryColour"
+                android:text="Get Business Location"
+                android:textColor="@android:color/white"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_location_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="Status: Location not set."
+                android:textColor="@android:color/black"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tv_location_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="Address: Not available"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tv_coordinates"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Coords: Not available"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
 
         <Button
-            android:id="@+id/btn_fetch_location"
-            android:layout_width="match_parent"
+            android:id="@+id/signupButton"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Get Business Location"
-            android:backgroundTint="@color/SecondaryColour"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="32dp"
+            android:backgroundTint="@color/PrimaryColour"
+            android:text="Sign Up"
             android:textColor="@android:color/white"
             android:textStyle="bold"
-            android:layout_marginBottom="8dp"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/locationInputSection" />
 
         <TextView
-            android:id="@+id/tv_location_status"
-            android:layout_width="match_parent"
+            android:id="@+id/loginLink"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Status: Location not set."
-            android:textColor="@android:color/black"
-            android:layout_marginBottom="4dp"
-            android:textSize="14sp"/>
+            android:layout_marginTop="24dp"
+            android:text="Already have an account? Log In"
+            android:textColor="#0A57FF"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/signupButton" />
 
-        <TextView
-            android:id="@+id/tv_location_address"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Address: Not available"
-            android:textColor="@android:color/darker_gray"
-            android:layout_marginBottom="4dp"
-            android:textSize="12sp"/>
-
-        <TextView
-            android:id="@+id/tv_coordinates"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Coords: Not available"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="12sp"/>
-
-    </LinearLayout>
-
-
-    <Button
-        android:id="@+id/signupButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:layout_marginHorizontal="32dp"
-        android:backgroundTint="@color/PrimaryColour"
-        android:text="Sign Up"
-        android:textColor="@android:color/white"
-        android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/locationInputSection"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/loginLink"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Already have an account? Log In"
-        android:textColor="#0A57FF"
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@id/signupButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
