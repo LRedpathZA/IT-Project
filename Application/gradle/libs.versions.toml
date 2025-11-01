@@ -1,6 +1,6 @@
 [versions]
 activityKtx = "1.11.0"
-agp = "8.12.2"
+agp = "8.12.3"
 annotation = "1.9.1"
 converterGson = "3.0.0"
 coreSplashscreen = "1.0.1"
