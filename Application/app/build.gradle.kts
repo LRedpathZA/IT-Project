@@ -59,13 +59,11 @@ dependencies {
 
     //Networking
     implementation(libs.retrofit)
-
     //Converter for parsing JSON responses into Java objects
     implementation(libs.converter.gson)
 
 
     // --- Coroutines (Recommended for modern Android concurrency) ---
-// Since we are in a Fragment, using Coroutines is cleaner than AsyncTask or pure Executors
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
 // LifecycleScope for Fragments

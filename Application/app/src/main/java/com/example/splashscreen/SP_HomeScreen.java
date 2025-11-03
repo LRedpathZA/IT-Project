@@ -162,10 +162,12 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
     private void setupPublicPoolsListener() {
         // 1. Initialize RecyclerView and Adapter, implementing the click listener
         List<PoolModel> publicPoolsList = new ArrayList<>();
-        PublicPoolCardAdapter adapter = new PublicPoolCardAdapter(publicPoolsList, pool -> {
-            // Handle pool card click event
-            Toast.makeText(getContext(), "Tapped pool: " + pool.getName(), Toast.LENGTH_SHORT).show();
-            // TODO: Navigate to SP_PoolDetailFragment.newInstance(pool.getPoolId())
+        PublicPoolCardAdapter adapter = new PublicPoolCardAdapter(publicPoolsList, new PublicPoolCardAdapter.OnPoolClickListener() {
+            @Override
+            public void onPoolClick(PoolModel pool) {
+                // Navigate to the new detail fragment
+                navigateToFragment(SP_PoolDetailFragment.newInstance(pool.getPoolId()));
+            }
         });
 
         rvPublicPools.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
