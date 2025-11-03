@@ -199,6 +199,7 @@
                     android:id="@+id/ivTutorialIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
                     android:src="@drawable/tutorial"
+                    app:tint="@color/white"
    />
 
                 <TextView

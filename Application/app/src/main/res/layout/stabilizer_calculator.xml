@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg"
+    android:background="@drawable/pbg"
     tools:context=".StabilizerCalculator">
 
     <androidx.cardview.widget.CardView
@@ -39,7 +39,7 @@
                 android:layout_marginBottom="16dp"
                 android:text="Calculate Stabilizer (CYA)"
                 android:textColor="@color/black"
-                android:textSize="20sp"
+                android:textSize="25sp"
                 android:textStyle="bold" />
 
             <androidx.cardview.widget.CardView
@@ -212,7 +212,7 @@
                         android:layout_marginTop="12dp"
                         android:text="Note: Stabilizer level can only be reduced by draining and replacing water. This calculator only supports raising the level."
                         android:textColor="@color/PrimaryColour"
-                        android:textSize="12sp" />
+                        android:textSize="13sp" />
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -246,7 +246,7 @@
                         android:layout_height="wrap_content"
                         android:text="Cyanuric Acid (CYA) must be dissolved slowly, usually in the skimmer or pre-mixed. Do not backwash or add fresh water for 48 hours after application."
                         android:textColor="@color/grey_dark"
-                        android:textSize="14sp" />
+                        android:textSize="15sp" />
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -266,7 +266,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_horizontal"
+                    android:background="@color/PrimaryColour"
                     android:orientation="vertical"
+
                     android:padding="20dp">
 
                     <TextView
@@ -291,7 +293,7 @@
                         style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:backgroundTint="@color/PrimaryColour"
+                        android:backgroundTint="@color/PrimaryColour_Dark"
                         android:text="Save Test Log"
                         android:textColor="@color/white"
                         app:rippleColor="@color/white_transparent_50" />
@@ -308,7 +310,8 @@
                 android:backgroundTint="@color/PrimaryColour"
                 android:paddingVertical="12dp"
                 android:text="Calculate Dosage"
-                app:cornerRadius="12dp" />
+                app:cornerRadius="12dp"
+                android:textSize="20dp"/>
 
         </LinearLayout>
     </ScrollView>

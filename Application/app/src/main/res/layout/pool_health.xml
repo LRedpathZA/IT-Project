@@ -304,6 +304,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
+                    android:background="@color/PrimaryColour"
                     android:padding="16dp">
                     <TextView
                         android:layout_width="match_parent"
@@ -317,7 +318,7 @@
                         android:layout_height="wrap_content"
                         android:text="Regular testing ensures optimal pool enjoyment and safety."
                         android:textColor="@color/white_transparent_50"
-                        android:textSize="14sp"
+                        android:textSize="18sp"
                         android:layout_marginBottom="8dp"/>
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_go_to_calculators"

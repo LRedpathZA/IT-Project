@@ -319,7 +319,7 @@
                         android:text="Log out"
                         android:textAllCaps="false"
                         android:textSize="18sp"
-                        app:backgroundTint="@color/black"
+                        android:background="@color/PrimaryColour"
                         app:cornerRadius="8dp" />
 
                 </LinearLayout>

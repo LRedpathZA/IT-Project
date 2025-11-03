@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg"
+    android:background="@drawable/pbg"
     tools:context=".PO_HomeScreen">
 
     <androidx.cardview.widget.CardView
@@ -36,7 +36,7 @@
                     android:layout_height="wrap_content"
                     android:text="Hello, Guest"
                     android:textColor="@android:color/black"
-                    android:textSize="18sp"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -168,7 +168,7 @@
                 android:layout_marginTop="16dp"
                 android:text="Your Home Pool"
                 android:textColor="@color/black"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
             <androidx.cardview.widget.CardView
@@ -285,7 +285,7 @@
                 android:layout_marginTop="16dp"
                 android:text="Maintenance Events"
                 android:textColor="@color/black"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
             <androidx.cardview.widget.CardView
                 android:id="@+id/calendarCard"
@@ -324,7 +324,7 @@
                     android:layout_weight="1"
                     android:text="Top Products"
                     android:textColor="@color/black"
-                    android:textSize="18sp"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
 
                 <ImageButton

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg"
+    android:background="@drawable/pbg"
     tools:context=".AlkalinityCalculator">
 
     <androidx.cardview.widget.CardView
@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:text="Set Your Target Alkalinity"
                 android:textColor="@color/black"
-                android:textSize="20sp"
+                android:textSize="25sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="16dp"/>
 
@@ -91,7 +91,7 @@
                         android:layout_height="wrap_content"
                         android:text="Note: Alkalinity must be in range (80-120 ppm) for stable pH."
                         android:textColor="@color/PrimaryColour"
-                        android:textSize="12sp"
+                        android:textSize="14sp"
                         android:layout_marginTop="12dp"/>
 
                 </LinearLayout>
@@ -146,36 +146,38 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:foregroundTint="@color/PrimaryColour"
+                    android:gravity="center_horizontal"
                     android:orientation="vertical"
-                    android:padding="20dp"
-                    android:gravity="center_horizontal">
+                    android:background="@color/PrimaryColour"
+                    android:padding="20dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
                         android:text="Required Dosage"
                         android:textColor="@color/white"
-                        android:textSize="18sp"
-                        android:layout_marginBottom="8dp"/>
+                        android:textSize="18sp" />
 
                     <TextView
                         android:id="@+id/tv_dosage_result"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        tools:text="1.5 kg of Alkalinity Increaser"
                         android:textColor="@color/white"
                         android:textSize="32sp"
-                        android:textStyle="bold"/>
+                        android:textStyle="bold"
+                        tools:text="1.5 kg of Alkalinity Increaser" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_save_log"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:backgroundTint="@color/PrimaryColour_Dark"
                         android:text="Save Test Log"
                         android:textColor="@color/white"
-                        android:backgroundTint="@color/PrimaryColour"
-                        app:rippleColor="@color/white_transparent_50"/>
+                        app:rippleColor="@color/white_transparent_50" />
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -235,8 +237,7 @@
                         android:layout_height="24dp"
                         android:layout_gravity="center_vertical"
                         android:contentDescription="Alkalinity Icon"
-                        android:src="@drawable/alkalinity"
-                        app:tint="@color/black" />
+                        android:src="@drawable/alkalinity" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -268,8 +269,7 @@
                         android:layout_height="24dp"
                         android:layout_gravity="center_vertical"
                         android:contentDescription="Target Icon"
-                        android:src="@drawable/alkalinity"
-                        app:tint="@color/black" />
+                        android:src="@drawable/alkalinity" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -300,8 +300,7 @@
                         android:layout_height="24dp"
                         android:layout_gravity="center_vertical"
                         android:contentDescription="Volume Icon"
-                        android:src="@drawable/water_capacity"
-                        app:tint="@color/black" />
+                        android:src="@drawable/water_capacity" />
                 </LinearLayout>
 
             </LinearLayout>

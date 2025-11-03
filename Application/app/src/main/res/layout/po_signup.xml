@@ -123,6 +123,7 @@
             android:layout_height="wrap_content"
             android:text="I accept the terms of service"
             android:textColor="@android:color/darker_gray"
+            android:textSize="16dp"
             android:layout_marginBottom="24dp" />
 
         <!-- Sign Up Button -->
@@ -144,7 +145,8 @@
             android:text="Already have an account? Log In"
             android:textColor="#0A57FF"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp"
+            android:textSize="16dp"/>
 
         <!-- Business Link -->
         <TextView
@@ -153,6 +155,7 @@
             android:layout_height="wrap_content"
             android:text="Partner with us. Register your business"
             android:textColor="#0A57FF"
+            android:textSize="16dp"
             android:layout_gravity="center_horizontal" />
 
     </LinearLayout>

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg"
+    android:background="@drawable/pbg"
     tools:context=".SP_HomeScreen">
 
     <androidx.cardview.widget.CardView
@@ -37,7 +37,7 @@
                     android:layout_height="wrap_content"
                     android:text="Hello, Swimpool Centre"
                     android:textColor="@android:color/black"
-                    android:textSize="18sp"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
 
                 <TextView
