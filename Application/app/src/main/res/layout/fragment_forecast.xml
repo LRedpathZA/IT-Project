@@ -10,7 +10,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_marginTop="16dp"
-    android:text="7-Day Forecast"
+    android:text="5-Day Forecast"
     android:textColor="@android:color/black"
     android:textSize="20sp"
     android:textStyle="bold"

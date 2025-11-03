@@ -12,7 +12,7 @@
     android:contentDescription="Detail Icon"
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintTop_toTopOf="parent"
-    tools:src="@drawable/sunny" />
+    tools:src="@drawable/sun" />
 
     <TextView
         android:id="@+id/tv_detail_value"

@@ -1,5 +1,7 @@
 package com.example.splashscreen.ui.weather;
 
+import com.example.splashscreen.R;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -106,6 +108,10 @@ public class TodayWeatherFragment extends Fragment implements HeaderUpdatable {
         tvWindValue = view.findViewById(R.id.card_wind).findViewById(R.id.tv_detail_value);
         ImageView ivWindIcon =  view.findViewById(R.id.card_wind).findViewById(R.id.iv_detail_icon);
         ivHumidityIcon.setImageResource(R.drawable.humidity);
+        TextView tvHumidityLabel = view.findViewById(R.id.card_humidity).findViewById(R.id.tv_detail_label);
+        tvHumidityLabel.setText("Humidity");
+        TextView tvWindLabel = view.findViewById(R.id.card_wind).findViewById(R.id.tv_detail_label);
+        tvWindLabel.setText("Wind");
         ivWindIcon.setImageResource(R.drawable.wind);
 
         // Set the listener to navigate to the 7-Day Forecast screen

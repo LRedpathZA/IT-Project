@@ -17,9 +17,14 @@ public class PoolModel {
     private String photoUrl;
     private Long createdAt;
 
+    // ⭐ NEW FIELD for Public Visibility
+    private boolean isPublic;
+
     public PoolModel() {
+        // Required empty public constructor for Firestore
     }
 
+    // Constructor to map fields from a Firestore DocumentSnapshot
     public PoolModel(DocumentSnapshot document) {
         if (document != null && document.exists()) {
             this.poolId = document.getId();
@@ -33,9 +38,34 @@ public class PoolModel {
             this.locationAddress = document.getString("locationAddress");
             this.photoUrl = document.getString("photoUrl");
             this.createdAt = document.getLong("createdAt");
+
+            // ⭐ INITIALIZE NEW FIELD
+            // Use Boolean.TRUE as default if the field is null (e.g., for older documents)
+            Boolean isPublicObject = document.getBoolean("isPublic");
+            this.isPublic = isPublicObject != null ? isPublicObject : false;
         }
     }
 
+    // Constructor for creating a new object (Add all parameters here if used)
+    public PoolModel(String poolId, String userId, String name, String type, Long waterCapacityLiters,
+                     String sanitizerType, Long filterRuntimeHours, GeoPoint location,
+                     String locationAddress, String photoUrl, Long createdAt, boolean isPublic) {
+        this.poolId = poolId;
+        this.userId = userId;
+        this.name = name;
+        this.type = type;
+        this.waterCapacityLiters = waterCapacityLiters;
+        this.sanitizerType = sanitizerType;
+        this.filterRuntimeHours = filterRuntimeHours;
+        this.location = location;
+        this.locationAddress = locationAddress;
+        this.photoUrl = photoUrl;
+        this.createdAt = createdAt;
+        this.isPublic = isPublic;
+    }
+
+
+    // --- GETTERS ---
     public String getPoolId() {
         return poolId;
     }
@@ -80,6 +110,12 @@ public class PoolModel {
         return createdAt;
     }
 
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+
+    // --- SETTERS ---
     public void setPoolId(String poolId) {
         this.poolId = poolId;
     }
@@ -123,5 +159,9 @@ public class PoolModel {
 
     public void setCreatedAt(Long createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 }

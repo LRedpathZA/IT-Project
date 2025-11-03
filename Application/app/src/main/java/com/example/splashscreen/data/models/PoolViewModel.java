@@ -18,7 +18,6 @@ public class PoolViewModel extends ViewModel {
     private final MutableLiveData<PoolModel> _currentPoolModel = new MutableLiveData<>();
     public LiveData<PoolModel> currentPoolModel = _currentPoolModel;
 
-
     private final MutableLiveData<String> _poolId = new MutableLiveData<>();
     public LiveData<String> poolId = _poolId;
 
@@ -27,6 +26,10 @@ public class PoolViewModel extends ViewModel {
 
     private final MutableLiveData<String> _poolName = new MutableLiveData<>();
     public LiveData<String> poolName = _poolName;
+
+    private final MutableLiveData<Boolean> _isPublic = new MutableLiveData<>();
+    public LiveData<Boolean> isPublic = _isPublic;
+
 
     private final MutableLiveData<Map<String, Object>> _lastPhTest = new MutableLiveData<>(new HashMap<>());
     public LiveData<Map<String, Object>> lastPhTest = _lastPhTest;
@@ -88,14 +91,14 @@ public class PoolViewModel extends ViewModel {
         _poolId.setValue(pool.getPoolId());
         _poolName.setValue(pool.getName());
 
+        _isPublic.setValue(pool.isPublic());
+
         Long capacityLong = pool.getWaterCapacityLiters();
         if (capacityLong != null) {
             _waterCapacityLiters.setValue(capacityLong.intValue());
         } else {
             _waterCapacityLiters.setValue(0);
         }
-
-        // 💥 NOTE: No need to explicitly update _userLocation here, as it's on the UserViewModel (though we agreed to remove it)
     }
 
     public void clearPoolData() {
@@ -103,11 +106,36 @@ public class PoolViewModel extends ViewModel {
         _poolId.setValue(null);
         _poolName.setValue(null);
         _waterCapacityLiters.setValue(null);
+        _isPublic.setValue(false); // ⭐ NEW: Reset isPublic state
         _lastPhTest.setValue(new HashMap<>());
         _lastChlorineTest.setValue(new HashMap<>());
-        // 💥 NEW: Reset Alkalinity and Stabilizer
         _lastAlkalinityTest.setValue(new HashMap<>());
         _lastStabilizerTest.setValue(new HashMap<>());
+    }
+
+    public void savePoolVisibility(String poolId, boolean isPublic) {
+        if (poolId == null || poolId.isEmpty()) return;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference docRef = db.collection("pools").document(poolId);
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("isPublic", isPublic);
+
+        docRef.update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    // Update the LiveData/Model on success
+                    PoolModel current = _currentPoolModel.getValue();
+                    if (current != null) {
+                        current.setPublic(isPublic);
+                        _currentPoolModel.setValue(current); // Trigger LiveData update
+                        _isPublic.setValue(isPublic); // Update individual field LiveData
+                        Log.d("PoolViewModel", "Pool visibility saved successfully to: " + isPublic);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("PoolViewModel", "Error updating pool visibility: " + e.getMessage());
+                });
     }
 
     public void savePoolLocation(String poolId, double lat, double lon) {
@@ -126,7 +154,6 @@ public class PoolViewModel extends ViewModel {
                     // Update the LiveData/Model on success
                     PoolModel current = _currentPoolModel.getValue();
                     if (current != null) {
-                        // 💥 ASSUMES PoolModel has setLocation(GeoPoint)
                         current.setLocation(newLocation);
                         _currentPoolModel.setValue(current); // Trigger LiveData update
                         Log.d("PoolViewModel", "Pool location saved successfully.");
@@ -152,7 +179,6 @@ public class PoolViewModel extends ViewModel {
         _lastChlorineTest.setValue(newTest);
     }
 
-    // 💥 NEW: Setter for Last Alkalinity Test
     public void setLastAlkalinityTest(Double alkalinity, Long date) {
         Map<String, Object> newTest = new HashMap<>();
         newTest.put("alkalinity", alkalinity);

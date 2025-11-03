@@ -30,7 +30,7 @@
             android:layout_height="95dp"
             android:layout_marginStart="24dp"
             android:layout_marginTop="16dp"
-            android:background="@drawable/circle_white_border"
+
             android:contentDescription="User Profile Image"
             android:padding="4dp"
             android:scaleType="centerCrop"

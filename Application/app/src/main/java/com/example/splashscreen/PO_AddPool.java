@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,7 +68,7 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
     private final ExecutorService geocodeExecutor = Executors.newSingleThreadExecutor();
     private GeoPoint currentGeoPoint = null;
     private GeoPoint loadedGeoPoint = null;
-    private String currentLocationAddress = null; // 💥 ADDED: Human-readable address to save
+    private String currentLocationAddress = null;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -76,6 +77,8 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
     private String currentPhotoUrl = null;
     private static final int PICK_IMAGE_REQUEST = 1;
     private String currentPoolId;
+
+    private Switch switchIsPublic;
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -153,6 +156,7 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         etFilterRuntime = view.findViewById(R.id.et_filter_runtime);
 
         switchLocationEnabled = view.findViewById(R.id.switch_location_enabled);
+        switchIsPublic = view.findViewById(R.id.switch_is_public);
         llLocationDetails = view.findViewById(R.id.ll_location_details);
         tvLocationStatus = view.findViewById(R.id.tv_location_status);
         tvLocationAddress = view.findViewById(R.id.tv_location_address);
@@ -393,6 +397,9 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
                         etPoolType.setText(documentSnapshot.getString("type"));
                         etSanitizerType.setText(documentSnapshot.getString("sanitizerType"));
 
+                        Boolean isPublic = documentSnapshot.getBoolean("isPublic");
+                        switchIsPublic.setChecked(Objects.requireNonNullElse(isPublic, false));
+
                         loadedGeoPoint = documentSnapshot.getGeoPoint("location");
                         String loadedAddress = documentSnapshot.getString("locationAddress"); // 💥 Load the address string
 
@@ -459,7 +466,9 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         pool.setSanitizerType((String) poolData.get("sanitizerType"));
         pool.setFilterRuntimeHours(runtimeLong);
         pool.setLocation((GeoPoint) poolData.get("location"));
-        pool.setLocationAddress((String) poolData.get("locationAddress")); // 💥 Set the address string
+        pool.setLocationAddress((String) poolData.get("locationAddress"));
+        Boolean isPublicObj = (Boolean) poolData.get("isPublic");
+        pool.setPublic(isPublicObj != null ? isPublicObj : false);
         pool.setPhotoUrl((String) poolData.get("photoUrl"));
         if (poolData.containsKey("createdAt")) {
             pool.setCreatedAt((Long) poolData.get("createdAt"));
@@ -518,7 +527,7 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
             etFilterRuntime.setError("Invalid run time number");
             return null;
         }
-
+        boolean isPublic = switchIsPublic.isChecked();
         Map<String, Object> poolData = new HashMap<>();
         poolData.put("userId", userId);
         poolData.put("name", poolName);
@@ -526,6 +535,8 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         poolData.put("waterCapacityLiters", waterCapacity);
         poolData.put("sanitizerType", sanitizerType);
         poolData.put("filterRuntimeHours", filterRuntime);
+
+        poolData.put("isPublic", isPublic);
 
         if (currentGeoPoint != null) {
             poolData.put("location", currentGeoPoint);

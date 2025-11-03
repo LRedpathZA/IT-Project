@@ -31,7 +31,6 @@
             android:src="@drawable/ic_profile_placeholder"
             android:contentDescription="User Profile Image"
             android:scaleType="centerCrop"
-            android:background="@drawable/circle_white_border"
             android:padding="4dp"
             app:tint="@null"
             app:layout_constraintTop_toBottomOf="@id/top_spacer"
