@@ -6,12 +6,12 @@ public class IconMapper {
 
     public static int getIcon(String iconCode) {
         if (iconCode == null || iconCode.isEmpty()) {
-            return R.drawable.sunny;
+            return R.drawable.sun;
         }
         // Clean the code and use a switch statement for mapping
         switch (iconCode) {
             case "01d": // Clear sky (day)
-                return R.drawable.sunny;
+                return R.drawable.sun;
             case "01n": // Clear sky (night)
                 return R.drawable.clear_night;
 
@@ -24,7 +24,7 @@ public class IconMapper {
 
             case "04d": // Broken clouds (day)
             case "04n": // Broken clouds (night)
-                return R.drawable.clouds; // Overcast clouds
+                return R.drawable.cloud; // Overcast clouds
 
             case "09d": // Shower rain (day)
             case "09n": // Shower rain (night)
@@ -48,7 +48,7 @@ public class IconMapper {
                 return R.drawable.mist;
 
             default:
-                return R.drawable.sunny; // Default placeholder for unknown codes
+                return R.drawable.sun; // Default placeholder for unknown codes
         }
     }
 }

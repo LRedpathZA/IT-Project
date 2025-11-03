@@ -150,7 +150,7 @@
                 android:layout_height="24dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="12dp"
-                android:src="@drawable/phone" />
+                android:src="@drawable/call" />
         </LinearLayout>
 
         <LinearLayout

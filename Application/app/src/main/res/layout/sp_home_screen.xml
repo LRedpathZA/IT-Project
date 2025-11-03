@@ -97,7 +97,7 @@
                         android:id="@+id/iv_weather_icon"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@drawable/sunny"
+                        android:src="@drawable/sun"
                         android:contentDescription="Weather Icon" />
 
                     <LinearLayout
