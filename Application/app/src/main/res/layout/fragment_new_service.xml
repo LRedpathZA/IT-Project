@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg"
+    android:background="@drawable/pbg"
     tools:context=".YourProductsActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -17,23 +17,25 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="match_parent"
+            android:background="@color/white_transparent_50"
+            android:backgroundTint="@color/white_transparent_50"
             android:foregroundTint="@color/white_transparent_50"
             app:navigationIcon="@drawable/ic_arrow_back_white_24dp"
             app:navigationIconTint="@color/black"
-            app:title="Your Products" />
+            app:title="Your Services" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/add_product_button"
+        android:id="@+id/create_product_button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:text="Add a Product"
+        android:backgroundTint="@color/white_transparent_50"
+        android:text="Add a Service"
         android:textColor="@android:color/black"
-        android:backgroundTint="#F0F0F0"
         app:cornerRadius="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -52,9 +54,11 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/add_product_button"
+        app:layout_constraintTop_toBottomOf="@id/create_product_button"
         app:layout_constraintVertical_bias="0.0"
         app:spanCount="2"
         tools:itemCount="6"
         tools:listitem="@layout/item_generic_list_card" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
