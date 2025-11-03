@@ -27,6 +27,10 @@ public class PoolViewModel extends ViewModel {
     private final MutableLiveData<String> _poolName = new MutableLiveData<>();
     public LiveData<String> poolName = _poolName;
 
+    // 💥 NEW: LiveData for the Owner's Name (securely retrieved from PoolModel)
+    private final MutableLiveData<String> _ownerName = new MutableLiveData<>();
+    public LiveData<String> ownerName = _ownerName;
+
     private final MutableLiveData<Boolean> _isPublic = new MutableLiveData<>();
     public LiveData<Boolean> isPublic = _isPublic;
 
@@ -91,6 +95,8 @@ public class PoolViewModel extends ViewModel {
         _poolId.setValue(pool.getPoolId());
         _poolName.setValue(pool.getName());
 
+        _ownerName.setValue(pool.getOwnerName());
+
         _isPublic.setValue(pool.isPublic());
 
         Long capacityLong = pool.getWaterCapacityLiters();
@@ -105,13 +111,15 @@ public class PoolViewModel extends ViewModel {
         _currentPoolModel.setValue(null);
         _poolId.setValue(null);
         _poolName.setValue(null);
+        _ownerName.setValue(null);
         _waterCapacityLiters.setValue(null);
-        _isPublic.setValue(false); // ⭐ NEW: Reset isPublic state
+        _isPublic.setValue(false);
         _lastPhTest.setValue(new HashMap<>());
         _lastChlorineTest.setValue(new HashMap<>());
         _lastAlkalinityTest.setValue(new HashMap<>());
         _lastStabilizerTest.setValue(new HashMap<>());
     }
+
 
     public void savePoolVisibility(String poolId, boolean isPublic) {
         if (poolId == null || poolId.isEmpty()) return;

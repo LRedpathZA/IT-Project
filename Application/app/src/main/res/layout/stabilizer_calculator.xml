@@ -94,7 +94,7 @@
                             android:layout_gravity="center_vertical"
                             android:contentDescription="CYA Icon"
                             android:src="@drawable/pool"
-                            app:tint="@color/black" />
+                          />
                     </LinearLayout>
 
                     <LinearLayout
@@ -128,7 +128,7 @@
                             android:layout_gravity="center_vertical"
                             android:contentDescription="Target Icon"
                             android:src="@drawable/water_drop"
-                            app:tint="@color/black" />
+                             />
                     </LinearLayout>
 
                     <LinearLayout
@@ -160,7 +160,7 @@
                             android:layout_gravity="center_vertical"
                             android:contentDescription="Volume Icon"
                             android:src="@drawable/water_capacity"
-                            app:tint="@color/black" />
+                        />
                     </LinearLayout>
 
                 </LinearLayout>

@@ -33,6 +33,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.splashscreen.data.models.PoolModel;
 import com.example.splashscreen.data.models.PoolViewModel;
+import com.example.splashscreen.data.models.UserViewModel;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.material.button.MaterialButton;
@@ -73,6 +74,7 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private PoolViewModel poolViewModel;
+    private UserViewModel userViewModel;
     private Uri selectedImageUri = null;
     private String currentPhotoUrl = null;
     private static final int PICK_IMAGE_REQUEST = 1;
@@ -143,6 +145,7 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         super.onViewCreated(view, savedInstanceState);
 
         poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
+        userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
 
         btnAddPool = view.findViewById(R.id.btn_add_pool);
         btnDeletePool = view.findViewById(R.id.btn_delete_pool);
@@ -485,6 +488,7 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
             }
             return null;
         }
+        String ownerName = userViewModel.username.getValue();
 
         String poolName = etPoolName.getText().toString().trim();
         String poolType = etPoolType.getText().toString().trim();
@@ -537,6 +541,7 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         poolData.put("filterRuntimeHours", filterRuntime);
 
         poolData.put("isPublic", isPublic);
+        poolData.put("ownerName", ownerName);
 
         if (currentGeoPoint != null) {
             poolData.put("location", currentGeoPoint);

@@ -17,8 +17,11 @@ public class PoolModel {
     private String photoUrl;
     private Long createdAt;
 
-    // ⭐ NEW FIELD for Public Visibility
+    // ⭐ EXISTING FIELD for Public Visibility
     private boolean isPublic;
+
+    // 💥 NEW FIELD for secure display of the owner's name
+    private String ownerName;
 
     public PoolModel() {
         // Required empty public constructor for Firestore
@@ -39,16 +42,18 @@ public class PoolModel {
             this.photoUrl = document.getString("photoUrl");
             this.createdAt = document.getLong("createdAt");
 
-            // ⭐ INITIALIZE NEW FIELD
-            // Use Boolean.TRUE as default if the field is null (e.g., for older documents)
+            // Initialize isPublic field
             Boolean isPublicObject = document.getBoolean("isPublic");
             this.isPublic = isPublicObject != null ? isPublicObject : false;
+
+            // 💥 INITIALIZE NEW FIELD
+            this.ownerName = document.getString("ownerName");
         }
     }
 
     // Constructor for creating a new object (Add all parameters here if used)
     public PoolModel(String poolId, String userId, String name, String type, Long waterCapacityLiters,
-                     String sanitizerType, Long filterRuntimeHours, GeoPoint location,
+                     String sanitizerType, String ownerName, Long filterRuntimeHours, GeoPoint location,
                      String locationAddress, String photoUrl, Long createdAt, boolean isPublic) {
         this.poolId = poolId;
         this.userId = userId;
@@ -56,6 +61,7 @@ public class PoolModel {
         this.type = type;
         this.waterCapacityLiters = waterCapacityLiters;
         this.sanitizerType = sanitizerType;
+        this.ownerName = ownerName; // 💥 NEW PARAMETER
         this.filterRuntimeHours = filterRuntimeHours;
         this.location = location;
         this.locationAddress = locationAddress;
@@ -113,6 +119,9 @@ public class PoolModel {
     public boolean isPublic() {
         return isPublic;
     }
+    public String getOwnerName() {
+        return ownerName;
+    }
 
 
     // --- SETTERS ---
@@ -163,5 +172,9 @@ public class PoolModel {
 
     public void setPublic(boolean isPublic) {
         this.isPublic = isPublic;
+    }
+
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
     }
 }

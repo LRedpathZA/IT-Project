@@ -1,3 +1,7 @@
+// ----------------------------------------------------------------------
+// SP_PoolDetailFragment.java (Updated for Security/Data Duplication)
+// ----------------------------------------------------------------------
+
 package com.example.splashscreen;
 
 import android.os.Bundle;
@@ -33,12 +37,15 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
     private TextView tvPoolLocation;
     private TextView tvPoolDetails;
     private TextView tvPoolCapacity;
-    private TextView tvPoolOwnerName;
+    private TextView tvPoolOwnerName; // Now populated from the PoolModel's duplicated data
     private Button btnRequestService;
     private ImageView ivPoolImage;
 
     private FirebaseFirestore db;
 
+    /**
+     * Factory method to create a new instance of this fragment.
+     */
     public static SP_PoolDetailFragment newInstance(String poolId) {
         SP_PoolDetailFragment fragment = new SP_PoolDetailFragment();
         Bundle args = new Bundle();
@@ -59,6 +66,7 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         return inflater.inflate(R.layout.sp_pooldetail, container, false);
     }
 
@@ -71,7 +79,7 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
         tvPoolLocation = view.findViewById(R.id.tv_pool_detail_location);
         tvPoolDetails = view.findViewById(R.id.tv_pool_detail_summary);
         tvPoolCapacity = view.findViewById(R.id.tv_pool_detail_capacity);
-        tvPoolOwnerName = view.findViewById(R.id.tv_pool_owner_name); // Placeholder for PO name
+        tvPoolOwnerName = view.findViewById(R.id.tv_pool_owner_name);
         btnRequestService = view.findViewById(R.id.btn_request_service);
         ivPoolImage = view.findViewById(R.id.iv_pool_detail_image);
 
@@ -80,13 +88,11 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
             fetchPoolDetails(poolId);
         } else {
             Toast.makeText(getContext(), "Pool ID is missing.", Toast.LENGTH_LONG).show();
-            // TODO: Handle back navigation if essential data is missing
         }
 
         // 3. Set action listeners
         btnRequestService.setOnClickListener(v -> handleServiceRequest());
     }
-
 
     // --- Data Fetching and Binding ---
 
@@ -97,8 +103,7 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
             if (documentSnapshot.exists()) {
                 currentPool = new PoolModel(documentSnapshot);
                 bindPoolData(currentPool);
-                // Since this is a public pool, we should also fetch the PO name/business name
-                fetchPoolOwnerDetails(currentPool.getUserId());
+
             } else {
                 Toast.makeText(getContext(), "Pool not found.", Toast.LENGTH_LONG).show();
                 Log.e("SP_PoolDetailFragment", "Pool document does not exist: " + id);
@@ -109,22 +114,7 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
         });
     }
 
-    private void fetchPoolOwnerDetails(String ownerId) {
-        // Fetch data from the 'users' collection to display the name of the pool owner
-        db.collection("users").document(ownerId).get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                String ownerName = documentSnapshot.getString("name");
-                if (ownerName == null || ownerName.isEmpty()) {
-                    ownerName = "Pool Owner";
-                }
-                tvPoolOwnerName.setText(String.format("Owner: %s", ownerName));
-            } else {
-                tvPoolOwnerName.setText("Owner details unavailable");
-            }
-        }).addOnFailureListener(e -> {
-            tvPoolOwnerName.setText("Owner details unavailable");
-        });
-    }
+
 
     private void bindPoolData(PoolModel pool) {
         tvPoolName.setText(pool.getName());
@@ -132,15 +122,14 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
         tvPoolCapacity.setText(String.format(Locale.getDefault(), "Capacity: %dL", pool.getWaterCapacityLiters()));
         tvPoolDetails.setText(String.format("Type: %s | Sanitizer: %s", pool.getType(), pool.getSanitizerType()));
 
-        // TODO: Implement image loading here (e.g., Glide/Picasso)
-        // ivPoolImage.load(pool.getPhotoUrl()).into(ivPoolImage);
-        ivPoolImage.setImageResource(R.drawable.ic_wavy_background_placeholder); // Placeholder
+        String ownerName = pool.getOwnerName() != null ? pool.getOwnerName() : "Pool Owner";
+        tvPoolOwnerName.setText(String.format("Owner: %s", ownerName));
 
+        // TODO: Implement image loading here (e.g., Glide/Picasso)
+        ivPoolImage.setImageResource(R.drawable.ic_wavy_background_placeholder);
 
         updateActivityHeader();
     }
-
-    // --- Business Logic ---
 
     private void handleServiceRequest() {
         if (currentPool == null) {
@@ -148,24 +137,16 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
             return;
         }
 
-        // TODO: Navigate to a new fragment (e.g., SP_RequestServiceFragment)
-        // to collect service type, quote, and schedule details.
+        // TODO: Navigate to SP_RequestServiceFragment.newInstance(currentPool.getPoolId())
 
         Toast.makeText(getContext(), "Navigating to Service Request for: " + currentPool.getName(), Toast.LENGTH_SHORT).show();
     }
 
-    // --- Header Management ---
     @Override
     public void updateActivityHeader() {
         if (getActivity() instanceof MainActivity) {
-            String title =  "Pool Health";
-            ((MainActivity) getActivity()).updateHeader(title, true, true);
+            String title = currentPool != null ? currentPool.getName() : "Public Pool Details";
+            ((MainActivity) getActivity()).updateHeader(title, true, false);
         }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        updateActivityHeader();
     }
 }
