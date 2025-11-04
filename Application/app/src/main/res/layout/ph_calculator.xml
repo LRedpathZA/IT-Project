@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg"
+    android:background="@drawable/pbg"
     tools:context=".pHCalculator">
 
     <androidx.cardview.widget.CardView
@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:text="Set Your Target Levels"
                 android:textColor="@color/black"
-                android:textSize="20sp"
+                android:textSize="25sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="16dp"/>
 
@@ -220,7 +220,7 @@
                         android:layout_height="wrap_content"
                         android:text="Note: High or low Total Alkalinity can influence pH stability."
                         android:textColor="@color/PrimaryColour"
-                        android:textSize="12sp"
+                        android:textSize="16sp"
                         android:layout_marginTop="12dp"/>
 
                 </LinearLayout>
@@ -257,7 +257,7 @@
                         android:layout_height="wrap_content"
                         android:text="Select a chemical above to see safety instructions, dosage caveats, and application procedures."
                         android:textColor="@color/grey_dark"
-                        android:textSize="14sp"/>
+                        android:textSize="16sp"/>
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -277,6 +277,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="20dp"
+                    android:background="@color/PrimaryColour"
                     android:gravity="center_horizontal">
 
                     <TextView
@@ -301,10 +302,10 @@
                         style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:backgroundTint="@color/PrimaryColour_Dark"
                         android:text="Save Test Log"
                         android:textColor="@color/white"
-                        android:backgroundTint="@color/PrimaryColour"
-                        app:rippleColor="@color/white_transparent_50"/>
+                        app:rippleColor="@color/white_transparent_50" />
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -318,6 +319,7 @@
                 android:paddingVertical="12dp"
                 android:layout_marginBottom="16dp"
                 app:cornerRadius="12dp"
+                android:textSize="20dp"
                 android:backgroundTint="@color/PrimaryColour"/>
 
         </LinearLayout>
