@@ -14,6 +14,15 @@
     "node": "22"
   },
   "main": "lib/index.js",
+  "runConfigs": {
+    "generateCloudinarySignature": {
+      "environmentVariables": {
+        "CLOUDINARY_CLOUD_NAME": "dpchfgeia",
+        "CLOUDINARY_API_KEY": "378889393294393",
+        "CLOUDINARY_API_SECRET": "OEL_r1Nok--oAXdJHMnpsAjueWs"
+      }
+    }
+  },
   "dependencies": {
     "cloudinary": "^2.8.0",
     "firebase-admin": "^12.6.0",

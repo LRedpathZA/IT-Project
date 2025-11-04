@@ -2,11 +2,13 @@ package com.example.splashscreen;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -85,11 +87,33 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
     private UserViewModel userViewModel;
     private Uri selectedImageUri = null;
     private String currentPhotoUrl = null;
-    private static final int PICK_IMAGE_REQUEST = 1;
-    private String currentPoolId;
+//    private static final int PICK_IMAGE_REQUEST = 1;
+   private String currentPoolId;
+    private FirebaseFunctions mFunctions; // Firebase Functions Instance
+    private ActivityResultLauncher<Intent> imageChooserLauncher; // New launcher for gallery
 
     private Switch switchIsPublic;
+    private final ActivityResultLauncher<String[]> requestImagePermissionsLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                boolean granted = false;
+                // Check if any required permission was granted (either READ_MEDIA_IMAGES or VISUAL_USER_SELECTED)
+                for (Boolean isGranted : result.values()) {
+                    if (isGranted) {
+                        granted = true;
+                        break;
+                    }
+                }
 
+                if (granted) {
+                    // Permission granted, proceed to select image
+                    launchImageChooserIntent();
+                } else {
+                    // Permission denied
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(), "Storage permission is required to select photos.", Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -111,6 +135,8 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        mFunctions = FirebaseFunctions.getInstance();
+
         if (getArguments() != null) {
             currentPoolId = getArguments().getString(PO_HomeScreen.ARG_POOL_ID);
         } else {
@@ -120,6 +146,16 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         if (getContext() != null) {
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
         }
+
+        imageChooserLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null && result.getData().getData() != null) {
+                        selectedImageUri = result.getData().getData();
+                        // Pass the URI to the existing update method
+                        updateImageView();
+                    }
+                });
     }
 
     @Override
@@ -211,8 +247,8 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         etPoolType.setOnClickListener(v -> showPoolTypeSelectionMenu(v, etPoolType));
         etSanitizerType.setOnClickListener(v -> showSanitizerSelectionMenu(v, etSanitizerType));
 
-        llPlaceholder.setOnClickListener(v -> openImageChooser());
-        ivSelectedPhoto.setOnClickListener(v -> openImageChooser());
+        llPlaceholder.setOnClickListener(v -> checkImageStoragePermission());
+        ivSelectedPhoto.setOnClickListener(v -> checkImageStoragePermission());
         btnDeletePhoto.setOnClickListener(v -> deleteSelectedPhoto());
         btnCancel.setOnClickListener(v -> {
             if (getActivity() != null) {
@@ -220,15 +256,56 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
             }
         });
     }
+    private void checkImageStoragePermission() {
+        String[] permissionsToRequest;
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // API 34+ (Android 14)
+            permissionsToRequest = new String[]{
+                    Manifest.permission.READ_MEDIA_IMAGES,
+                    Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+            };
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // API 33 (Android 13)
+            // Request only READ_MEDIA_IMAGES
+            permissionsToRequest = new String[]{
+                    Manifest.permission.READ_MEDIA_IMAGES
+            };
+        } else { // API 32 and below (Android 12-)
+            // Use the legacy READ_EXTERNAL_STORAGE
+            permissionsToRequest = new String[]{
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+            };
+        }
+
+        if (getContext() == null) return;
+
+        // Check if permissions are already granted
+        boolean allGranted = true;
+        for (String permission : permissionsToRequest) {
+            if (ContextCompat.checkSelfPermission(requireContext(), permission) != PackageManager.PERMISSION_GRANTED) {
+                allGranted = false;
+                break;
+            }
+        }
+
+        if (!allGranted) {
+            // Request the necessary permissions at runtime using the launcher
+            requestImagePermissionsLauncher.launch(permissionsToRequest);
+        } else {
+            // Permissions already granted, launch the chooser immediately
+            launchImageChooserIntent();
+        }
+    }
     private void addPool() {
         Map<String, Object> poolData = getAndValidateInputs();
         if (poolData == null) return;
 
+        // ✅ NEW: Start the upload flow if an image is selected
         if (selectedImageUri != null) {
-            simulateImageUploadAndSavePool(poolData, null);
+            initiateSignedCloudinaryUpload(poolData, null);
         } else {
-            savePoolToFirestore(poolData, null);
+            // Use the default photo if nothing is selected
+            String defaultUrl = "android.resource://" + requireContext().getPackageName() + "/" + R.drawable.fake_pool;
+            savePoolToFirestore(poolData, null, defaultUrl);
         }
     }
 
@@ -236,12 +313,21 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         Map<String, Object> poolData = getAndValidateInputs();
         if (poolData == null) return;
 
+        // ✅ NEW: Check if there's a new image (selectedImageUri != null) OR if the old image was deleted (currentPhotoUrl == null).
         if (selectedImageUri != null) {
-            simulateImageUploadAndSavePool(poolData, poolId);
+            initiateSignedCloudinaryUpload(poolData, poolId);
         } else {
-            if (currentPhotoUrl != null && !poolData.containsKey("photoUrl")) {
-                poolData.put("photoUrl", currentPhotoUrl);
+            // Case 1: No new image, and no old image (User deleted it) -> save null
+            String finalPhotoUrl = currentPhotoUrl;
+
+            // Case 2: No new image, but old image exists -> save existing URL
+            if (finalPhotoUrl == null) {
+                // If currentPhotoUrl is null, it means user deleted the photo.
+                poolData.put("photoUrl", FieldValue.delete());
+            } else {
+                poolData.put("photoUrl", finalPhotoUrl);
             }
+
             updatePoolInFirestore(poolData, poolId);
         }
     }
@@ -445,12 +531,7 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
                         }
 
                         currentPhotoUrl = documentSnapshot.getString("photoUrl");
-                        if (currentPhotoUrl != null && !currentPhotoUrl.isEmpty()) {
-                            ivSelectedPhoto.setImageResource(R.drawable.fake_pool);
-                            ivSelectedPhoto.setVisibility(View.VISIBLE);
-                            btnDeletePhoto.setVisibility(View.VISIBLE);
-                            llPlaceholder.setVisibility(View.GONE);
-                        }
+                        updateImageView();
 
                     } else if (getContext() != null) {
                         Toast.makeText(getContext(), "Pool not found.", Toast.LENGTH_LONG).show();
@@ -569,28 +650,91 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         return poolData;
     }
 
-    private void simulateImageUploadAndSavePool(Map<String, Object> poolData, @Nullable String existingPoolId) {
-        btnAddPool.setText("Saving...");
-        btnAddPool.setEnabled(false);
+    private void initiateSignedCloudinaryUpload(Map<String, Object> poolData, @Nullable String existingPoolId) {
+        // Use FilePathUtil to convert the URI (requires the utility file)
+        String photoPath = FilePathUtil.getRealPathFromURI(getContext(), selectedImageUri);
 
-        String fakeUrl = "https://example.com/pool_images/" + UUID.randomUUID().toString() + ".jpg";
-
-        poolData.put("photoUrl", fakeUrl);
-
-        if (existingPoolId == null) {
-            savePoolToFirestore(poolData, null);
-        } else {
-            updatePoolInFirestore(poolData, existingPoolId);
+        if (photoPath == null) {
+            Toast.makeText(getContext(), "Could not resolve photo path. Saving without photo.", Toast.LENGTH_LONG).show();
+            // Fallback: Use the existing photo or null if a new one failed.
+            savePoolToFirestore(poolData, existingPoolId, currentPhotoUrl);
+            return;
         }
-    }
 
-    private void savePoolToFirestore(Map<String, Object> poolData, @Nullable String existingPoolId) {
+        // 1. Call the Firebase Function to get the secure signature
+        Map<String, Object> data = new HashMap<>();
+        data.put("folder", "pool_images");
+
+        mFunctions.getHttpsCallable("generateCloudinarySignature")
+                .call(data)
+                .addOnSuccessListener(task -> {
+                    Map<String, Object> result = (Map<String, Object>) ((HttpsCallableResult) task).getData();
+                    String signature = (String) result.get("signature");
+                    long timestamp = ((Number) result.get("timestamp")).longValue();
+                    String cloudName = (String) result.get("cloudName");
+                    String apiKey = (String) result.get("apiKey");
+
+                    // 2. Initialize Cloudinary
+                    Context context = getContext();
+                    if (context == null) return;
+                    Map config = new HashMap();
+                    config.put("cloud_name", cloudName);
+                    MediaManager.init(context, config);
+
+                    // 3. Perform the Signed Upload
+                    MediaManager.get().upload(photoPath)
+                            .option("signature", signature)
+                            .option("timestamp", timestamp)
+                            .option("api_key", apiKey)
+                            .option("folder", "pool_images")
+                            .callback(new UploadCallback() {
+                                @Override public void onStart(String requestId) {
+                                    btnAddPool.setText("Uploading Photo...");
+                                }
+                                @Override public void onProgress(String requestId, long bytes, long totalBytes) {
+                                    int percent = (int) (100 * bytes / totalBytes);
+                                    btnAddPool.setText(String.format("Uploading (%d%%)", percent));
+                                }
+
+                                @Override
+                                public void onSuccess(String requestId, Map resultData) {
+                                    String photoUrl = (String) resultData.get("secure_url");
+                                    // 4. Submission: Save pool with the secure URL
+                                    savePoolToFirestore(poolData, existingPoolId, photoUrl);
+                                }
+
+                                @Override
+                                public void onError(String requestId, ErrorInfo error) {
+                                    Log.e(TAG, "Cloudinary Upload error: " + error.getDescription());
+                                    Toast.makeText(context, "Photo Upload Failed. Saving pool with existing/default photo.", Toast.LENGTH_LONG).show();
+                                    // Fallback: Use the existing photo or null
+                                    savePoolToFirestore(poolData, existingPoolId, currentPhotoUrl);
+                                }
+
+                                @Override public void onReschedule(String requestId, ErrorInfo error) { }
+                            }).dispatch();
+
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Firebase Function call failed: " + e.getMessage());
+                    Toast.makeText(getContext(), "Secure connection failed. Saving pool with existing/default photo.", Toast.LENGTH_LONG).show();
+                    // Fallback: Use the existing photo or null
+                    savePoolToFirestore(poolData, existingPoolId, currentPhotoUrl);
+                });
+    }
+    private void savePoolToFirestore(Map<String, Object> poolData, @Nullable String existingPoolId, @Nullable String photoUrl) {
         long createdAt = System.currentTimeMillis();
         poolData.put("createdAt", createdAt);
 
         poolData.put("waterCapacityLiters", ((Integer)poolData.get("waterCapacityLiters")).longValue());
         poolData.put("filterRuntimeHours", ((Integer)poolData.get("filterRuntimeHours")).longValue());
 
+        if (photoUrl != null && !photoUrl.isEmpty() && !photoUrl.startsWith("android.resource")) {
+            // Only include the photoUrl field if it's a valid Cloudinary URL
+            poolData.put("photoUrl", photoUrl);
+        } else {
+            poolData.remove("photoUrl");
+        }
         db.collection("pools")
                 .add(poolData)
                 .addOnSuccessListener(documentReference -> {
@@ -662,43 +806,41 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
                 });
     }
 
-    private void openImageChooser() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select Pool Photo"), PICK_IMAGE_REQUEST);
+    private void launchImageChooserIntent() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        imageChooserLauncher.launch(intent);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
-            selectedImageUri = data.getData();
-            updateImageView(selectedImageUri);
+    private void updateImageView() {
+        if (selectedImageUri != null) {
+            ivSelectedPhoto.setImageURI(selectedImageUri);
+            ivSelectedPhoto.setVisibility(View.VISIBLE);
+            btnDeletePhoto.setVisibility(View.VISIBLE);
+            llPlaceholder.setVisibility(View.GONE);
+            // We set currentPhotoUrl = null here to signal a pending *new* upload
+            currentPhotoUrl = null;
+        } else if (currentPhotoUrl != null) {
+            // If there's an existing Cloudinary URL, load the default image for now
+            // (We'll use Glide/caching here later)
+            ivSelectedPhoto.setImageResource(R.drawable.fake_pool);
+            ivSelectedPhoto.setVisibility(View.VISIBLE);
+            btnDeletePhoto.setVisibility(View.VISIBLE);
+            llPlaceholder.setVisibility(View.GONE);
+        } else {
+            // No photo selected
+            ivSelectedPhoto.setImageDrawable(null);
+            ivSelectedPhoto.setVisibility(View.GONE);
+            btnDeletePhoto.setVisibility(View.GONE);
+            llPlaceholder.setVisibility(View.VISIBLE);
         }
-    }
-
-    private void updateImageView(Uri uri) {
-        ivSelectedPhoto.setImageURI(uri);
-        ivSelectedPhoto.setVisibility(View.VISIBLE);
-        btnDeletePhoto.setVisibility(View.VISIBLE);
-        llPlaceholder.setVisibility(View.GONE);
-        selectedImageUri = uri;
-        currentPhotoUrl = null;
     }
 
     private void deleteSelectedPhoto() {
         selectedImageUri = null;
         currentPhotoUrl = null;
-        ivSelectedPhoto.setImageDrawable(null);
-        ivSelectedPhoto.setVisibility(View.GONE);
-        btnDeletePhoto.setVisibility(View.GONE);
-        llPlaceholder.setVisibility(View.VISIBLE);
-
+        updateImageView();
         if (getContext() != null) {
-            Toast.makeText(getContext(), "Photo removed.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Photo removed. Will be deleted on save.", Toast.LENGTH_SHORT).show();
         }
     }
 
