@@ -222,7 +222,7 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
 
         ServiceEventAdapter adapter = new ServiceEventAdapter(events);
         rvServices.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
-        rvServices.setHasFixedSize(true);
+//        rvServices.setHasFixedSize(true);
         rvServices.setAdapter(adapter);
     }
 
