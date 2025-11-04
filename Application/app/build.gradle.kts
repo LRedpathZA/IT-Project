@@ -55,7 +55,6 @@ dependencies {
     implementation(libs.play.services.maps)
 // Use the latest stable version
     implementation(libs.play.services.location.v2101)
-// Match this version if needed
 
     //Networking
     implementation(libs.retrofit)
@@ -71,6 +70,8 @@ dependencies {
 
     // Cloudinary SDK for Android (needed for the upload step in Java)
     implementation(libs.cloudinary.android)
+
+    implementation(libs.picasso)
 
     // Firebase dependencies
     implementation (libs.firebase.functions)

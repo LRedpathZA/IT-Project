@@ -25,7 +25,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -35,6 +34,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.squareup.picasso.Picasso;
 import com.example.splashscreen.data.models.PoolModel;
 import com.example.splashscreen.data.models.PoolViewModel;
 import com.example.splashscreen.data.models.UserViewModel;
@@ -58,13 +58,20 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 
 public class PO_AddPool extends Fragment implements HeaderUpdatable {
 
     private static final String TAG = "PO_AddPool";
+    private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
 
     private EditText etPoolName, etPoolType, etWaterCapacity, etSanitizerType, etFilterRuntime;
     private MaterialButton btnAddPool, btnDeletePool, btnCancel, btnFetchLocation;
@@ -96,7 +103,6 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
     private final ActivityResultLauncher<String[]> requestImagePermissionsLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
                 boolean granted = false;
-                // Check if any required permission was granted (either READ_MEDIA_IMAGES or VISUAL_USER_SELECTED)
                 for (Boolean isGranted : result.values()) {
                     if (isGranted) {
                         granted = true;
@@ -810,30 +816,55 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         imageChooserLauncher.launch(intent);
     }
-
     private void updateImageView() {
+        if (getContext() == null) return;
+
+        Object imageSource = null;
+
         if (selectedImageUri != null) {
-            ivSelectedPhoto.setImageURI(selectedImageUri);
-            ivSelectedPhoto.setVisibility(View.VISIBLE);
-            btnDeletePhoto.setVisibility(View.VISIBLE);
-            llPlaceholder.setVisibility(View.GONE);
-            // We set currentPhotoUrl = null here to signal a pending *new* upload
+            // Case 1: New photo selected locally (URI)
+            imageSource = selectedImageUri;
             currentPhotoUrl = null;
-        } else if (currentPhotoUrl != null) {
-            // If there's an existing Cloudinary URL, load the default image for now
-            // (We'll use Glide/caching here later)
-            ivSelectedPhoto.setImageResource(R.drawable.fake_pool);
-            ivSelectedPhoto.setVisibility(View.VISIBLE);
-            btnDeletePhoto.setVisibility(View.VISIBLE);
+        } else if (currentPhotoUrl != null && !currentPhotoUrl.isEmpty()) {
+            // Case 2: Existing photo loaded from Firestore (URL)
+            imageSource = currentPhotoUrl;
+        }
+
+        if (imageSource != null) {
+            // --- IMAGE IS AVAILABLE ---
+
+            // Unify visibility settings for all controls
             llPlaceholder.setVisibility(View.GONE);
+            flImageContainer.setVisibility(View.VISIBLE);
+            btnDeletePhoto.setVisibility(View.VISIBLE);
+
+            if (imageSource instanceof String) {
+                // Existing image: Start the async network fetch
+                loadBitmapFromUrl((String) imageSource);
+
+            } else {
+                // New image (Local URI): This is synchronous, so we load immediately
+
+                // 1. Load the image
+                ivSelectedPhoto.setImageURI((Uri) imageSource);
+
+                // 2. 💥 CRITICAL FIX: Make the ImageView visible (it starts as GONE in XML)
+                ivSelectedPhoto.setVisibility(View.VISIBLE);
+            }
+
         } else {
-            // No photo selected
-            ivSelectedPhoto.setImageDrawable(null);
+            // --- NO IMAGE AVAILABLE (Placeholder state) ---
+
+            ivSelectedPhoto.setImageURI(null);
+
+            // Ensure all components are set to the placeholder state
             ivSelectedPhoto.setVisibility(View.GONE);
-            btnDeletePhoto.setVisibility(View.GONE);
+            flImageContainer.setVisibility(View.GONE);
             llPlaceholder.setVisibility(View.VISIBLE);
+            btnDeletePhoto.setVisibility(View.GONE);
         }
     }
+
 
     private void deleteSelectedPhoto() {
         selectedImageUri = null;
@@ -842,6 +873,7 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         if (getContext() != null) {
             Toast.makeText(getContext(), "Photo removed. Will be deleted on save.", Toast.LENGTH_SHORT).show();
         }
+        llPlaceholder.setVisibility(View.VISIBLE);
     }
 
     private void showPoolTypeSelectionMenu(View anchorView, final EditText targetEditText) {
@@ -869,5 +901,43 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         });
 
         popup.show();
+    }
+    private void loadBitmapFromUrl(String url) {
+        networkExecutor.execute(() -> {
+            Bitmap bitmap = null;
+            try {
+                // 1. Open a network stream to the Cloudinary URL
+                InputStream in = new URL(url).openStream();
+
+                // 2. Decode the stream into a Bitmap (memory intensive step)
+                bitmap = BitmapFactory.decodeStream(in);
+                Log.d(TAG, "Successfully decoded bitmap from URL.");
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error loading bitmap from URL: " + e.getMessage());
+            }
+
+            Bitmap finalBitmap = bitmap;
+            // 3. Update the UI on the main thread
+            requireActivity().runOnUiThread(() -> {
+                if (finalBitmap != null) {
+                    ivSelectedPhoto.setImageBitmap(finalBitmap);
+
+                    // 💥 CRITICAL: Set the ImageView visible after successful load
+                    ivSelectedPhoto.setVisibility(View.VISIBLE);
+
+                    // The container/button visibility should already be set by updateImageView(),
+                    // but we'll include it for safety
+                    flImageContainer.setVisibility(View.VISIBLE);
+                    llPlaceholder.setVisibility(View.GONE);
+                    btnDeletePhoto.setVisibility(View.VISIBLE);
+
+                } else {
+                    Toast.makeText(getContext(), "Failed to load image via custom method.", Toast.LENGTH_LONG).show();
+                    // Fallback to the placeholder view logic if the fetch failed
+                    updateImageView();
+                }
+            });
+        });
     }
 }
