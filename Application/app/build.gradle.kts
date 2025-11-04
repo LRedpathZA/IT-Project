@@ -69,7 +69,11 @@ dependencies {
 // LifecycleScope for Fragments
     implementation(libs.lifecycle.runtime.ktx)
 
+    // Cloudinary SDK for Android (needed for the upload step in Java)
+    implementation(libs.cloudinary.android)
+
     // Firebase dependencies
+    implementation (libs.firebase.functions)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)

@@ -2,6 +2,7 @@
 activityKtx = "1.11.0"
 agp = "8.12.3"
 annotation = "1.9.1"
+cloudinaryAndroid = "3.1.2"
 converterGson = "3.0.0"
 coreSplashscreen = "1.0.1"
 fragmentKtx = "1.8.9"
@@ -23,9 +24,11 @@ retrofit = "3.0.0"
 [libraries]
 activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+cloudinary-android = { module = "com.cloudinary:cloudinary-android", version.ref = "cloudinaryAndroid" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
+firebase-functions = { module = "com.google.firebase:firebase-functions" }
 fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
