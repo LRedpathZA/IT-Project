@@ -816,6 +816,7 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         imageChooserLauncher.launch(intent);
     }
+
     private void updateImageView() {
         if (getContext() == null) return;
 
@@ -833,34 +834,29 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         if (imageSource != null) {
             // --- IMAGE IS AVAILABLE ---
 
-            // Unify visibility settings for all controls
+            // Display Image State
             llPlaceholder.setVisibility(View.GONE);
-            flImageContainer.setVisibility(View.VISIBLE);
+            flImageContainer.setVisibility(View.VISIBLE); // KEEP VISIBLE
             btnDeletePhoto.setVisibility(View.VISIBLE);
+            ivSelectedPhoto.setVisibility(View.VISIBLE);
 
             if (imageSource instanceof String) {
                 // Existing image: Start the async network fetch
                 loadBitmapFromUrl((String) imageSource);
 
             } else {
-                // New image (Local URI): This is synchronous, so we load immediately
-
-                // 1. Load the image
+                // New image (Local URI)
                 ivSelectedPhoto.setImageURI((Uri) imageSource);
-
-                // 2. 💥 CRITICAL FIX: Make the ImageView visible (it starts as GONE in XML)
-                ivSelectedPhoto.setVisibility(View.VISIBLE);
             }
 
         } else {
             // --- NO IMAGE AVAILABLE (Placeholder state) ---
 
-            ivSelectedPhoto.setImageURI(null);
-
-            // Ensure all components are set to the placeholder state
+            // Display Placeholder State
+            ivSelectedPhoto.setImageDrawable(null);
             ivSelectedPhoto.setVisibility(View.GONE);
-            flImageContainer.setVisibility(View.GONE);
-            llPlaceholder.setVisibility(View.VISIBLE);
+            flImageContainer.setVisibility(View.VISIBLE); // CRITICAL: Must be VISIBLE to show placeholder
+            llPlaceholder.setVisibility(View.VISIBLE);  // Show the placeholder content
             btnDeletePhoto.setVisibility(View.GONE);
         }
     }
@@ -873,7 +869,6 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         if (getContext() != null) {
             Toast.makeText(getContext(), "Photo removed. Will be deleted on save.", Toast.LENGTH_SHORT).show();
         }
-        llPlaceholder.setVisibility(View.VISIBLE);
     }
 
     private void showPoolTypeSelectionMenu(View anchorView, final EditText targetEditText) {
@@ -902,42 +897,79 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
 
         popup.show();
     }
-    private void loadBitmapFromUrl(String url) {
-        networkExecutor.execute(() -> {
-            Bitmap bitmap = null;
-            try {
-                // 1. Open a network stream to the Cloudinary URL
-                InputStream in = new URL(url).openStream();
+//    private void loadBitmapFromUrl(String url) {
+//        networkExecutor.execute(() -> {
+//            Bitmap bitmap = null;
+//            try {
+//                // 1. Open a network stream to the Cloudinary URL
+//                InputStream in = new URL(url).openStream();
+//
+//                // 2. Decode the stream into a Bitmap (memory intensive step)
+//                bitmap = BitmapFactory.decodeStream(in);
+//                Log.d(TAG, "Successfully decoded bitmap from URL.");
+//
+//            } catch (Exception e) {
+//                Log.e(TAG, "Error loading bitmap from URL: " + e.getMessage());
+//            }
+//
+//            Bitmap finalBitmap = bitmap;
+//            // 3. Update the UI on the main thread
+//            requireActivity().runOnUiThread(() -> {
+//                if (finalBitmap != null) {
+//                    ivSelectedPhoto.setImageBitmap(finalBitmap);
+//
+//                    // 💥 CRITICAL: Set the ImageView visible after successful load
+//                    ivSelectedPhoto.setVisibility(View.VISIBLE);
+//
+//                    // The container/button visibility should already be set by updateImageView(),
+//                    // but we'll include it for safety
+//                    flImageContainer.setVisibility(View.VISIBLE);
+//                    llPlaceholder.setVisibility(View.GONE);
+//                    btnDeletePhoto.setVisibility(View.VISIBLE);
+//
+//                } else {
+//                    Toast.makeText(getContext(), "Failed to load image via custom method.", Toast.LENGTH_LONG).show();
+//                    // Fallback to the placeholder view logic if the fetch failed
+//                    updateImageView();
+//                }
+//            });
+//        });
+//    }
+private void loadBitmapFromUrl(String url) {
+    geocodeExecutor.execute(() -> {
+        Bitmap bitmap = null;
+        try {
+            // 1. Open a network stream to the Cloudinary URL
+            InputStream in = new URL(url).openStream();
 
-                // 2. Decode the stream into a Bitmap (memory intensive step)
-                bitmap = BitmapFactory.decodeStream(in);
-                Log.d(TAG, "Successfully decoded bitmap from URL.");
+            // 2. Decode the stream into a Bitmap (memory intensive step)
+            bitmap = BitmapFactory.decodeStream(in);
+            Log.d(TAG, "Successfully decoded bitmap from URL.");
 
-            } catch (Exception e) {
-                Log.e(TAG, "Error loading bitmap from URL: " + e.getMessage());
+        } catch (Exception e) {
+            Log.e(TAG, "Error loading bitmap from URL: " + e.getMessage());
+        }
+
+        Bitmap finalBitmap = bitmap;
+        // 3. Update the UI on the main thread
+        requireActivity().runOnUiThread(() -> {
+            if (finalBitmap != null) {
+                ivSelectedPhoto.setImageBitmap(finalBitmap);
+
+               // Set the ImageView visible after successful load
+                ivSelectedPhoto.setVisibility(View.VISIBLE);
+
+                // Ensure parent container/button visibility is correct
+                flImageContainer.setVisibility(View.VISIBLE);
+                llPlaceholder.setVisibility(View.GONE);
+                btnDeletePhoto.setVisibility(View.VISIBLE);
+
+            } else {
+                Toast.makeText(getContext(), "Failed to load image.", Toast.LENGTH_LONG).show();
+                // Fallback to the placeholder view logic if the fetch failed
+                updateImageView();
             }
-
-            Bitmap finalBitmap = bitmap;
-            // 3. Update the UI on the main thread
-            requireActivity().runOnUiThread(() -> {
-                if (finalBitmap != null) {
-                    ivSelectedPhoto.setImageBitmap(finalBitmap);
-
-                    // 💥 CRITICAL: Set the ImageView visible after successful load
-                    ivSelectedPhoto.setVisibility(View.VISIBLE);
-
-                    // The container/button visibility should already be set by updateImageView(),
-                    // but we'll include it for safety
-                    flImageContainer.setVisibility(View.VISIBLE);
-                    llPlaceholder.setVisibility(View.GONE);
-                    btnDeletePhoto.setVisibility(View.VISIBLE);
-
-                } else {
-                    Toast.makeText(getContext(), "Failed to load image via custom method.", Toast.LENGTH_LONG).show();
-                    // Fallback to the placeholder view logic if the fetch failed
-                    updateImageView();
-                }
-            });
         });
-    }
+    });
+}
 }

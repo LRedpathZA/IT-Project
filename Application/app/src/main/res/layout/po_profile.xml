@@ -100,25 +100,42 @@
                         android:paddingTop="16dp"
                         android:paddingBottom="16dp">
 
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="60dp"
-                            android:layout_height="60dp"
+                        <FrameLayout
+                            android:id="@+id/fl_profile_photo_container"
+                            android:layout_width="80dp"  android:layout_height="80dp"
                             android:layout_gravity="center_horizontal"
-                            android:layout_marginBottom="12dp"
-                            app:cardCornerRadius="30dp"
-                            app:cardElevation="0dp"
-                            app:strokeColor="@color/grey_light"
-                            app:strokeWidth="2dp">
+                            android:layout_marginBottom="12dp">
 
-                            <ImageView
+                            <com.google.android.material.card.MaterialCardView
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:background="@color/white"
-                                android:contentDescription="User Profile Picture"
-                                android:padding="8dp"
+                                app:cardCornerRadius="40dp" app:cardElevation="0dp"
+                                app:strokeColor="@color/grey_light"
+                                app:strokeWidth="2dp">
+
+                                <ImageView
+                                    android:id="@+id/iv_profile_picture"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:background="@color/white"
+                                    android:contentDescription="User Profile Picture"
+                                    android:scaleType="centerCrop"  android:src="@drawable/ic_profile_placeholder" />
+
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <ImageButton
+                                android:id="@+id/btn_edit_profile_photo"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:layout_gravity="bottom|end"
+                                android:background="@null" android:elevation="4dp"
+                                android:src="@drawable/edit"
+                                android:contentDescription="Edit Profile Photo"
                                 android:scaleType="centerInside"
-                                android:src="@drawable/ic_profile_placeholder" />
-                        </com.google.android.material.card.MaterialCardView>
+                                android:padding="4dp"
+                       />
+
+                        </FrameLayout>
 
                         <TextView
                             android:id="@+id/tv_user_name"
