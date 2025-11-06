@@ -118,7 +118,7 @@ public class SP_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
 
         String userId = getCurrentUserId();
         if (userId != null) {
-            userViewModel.fetchUserData(userId); // Fetching business/SP data linked to the user
+            userViewModel.fetchUserData(userId);
         }
     }
 
