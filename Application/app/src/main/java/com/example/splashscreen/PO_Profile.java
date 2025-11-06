@@ -50,7 +50,7 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
     // Profile Picture UI elements
     private FrameLayout flProfilePhotoContainer;
     private ImageView ivProfilePicture;
-    private ImageButton btnEditProfilePhoto;
+    private ImageButton btnEditProfilePhoto, btnBack;
 
     // Launcher for custom photo selection
     private ActivityResultLauncher<Intent> imageChooserLauncher;
@@ -109,6 +109,7 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
 
 
+
         MaterialButton btnLogout = view.findViewById(R.id.btn_logout);
         tvUserName = view.findViewById(R.id.tv_user_name);
         tvDetailEmail = view.findViewById(R.id.tv_detail_email);
@@ -145,10 +146,24 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         observeUserData();
         observePoolData();
 
-        // 💥 FIX 2: Moved fetchUserData here to start the real-time listener once
+
         String userId = getCurrentUserId();
         if (userId != null) {
             userViewModel.fetchUserData(userId);
+        }
+        btnBack = view.findViewById(R.id.btn_back);
+
+        // 2. Set the click listener
+        btnBack.setOnClickListener(v -> {
+            handleBackNavigation();
+        });
+    }
+    private void handleBackNavigation() {
+        if (getActivity() != null) {
+            // This tells the FragmentManager to go back to the previous fragment.
+            // This correctly handles the navigation when PO_Profile was launched
+            // with replaceFragment(..., true).
+            getActivity().getSupportFragmentManager().popBackStack();
         }
     }
 

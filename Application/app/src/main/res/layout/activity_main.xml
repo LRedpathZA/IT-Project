@@ -11,7 +11,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        app:cardBackgroundColor="@color/white_transparent_50">
 
         <androidx.cardview.widget.CardView
             android:id="@+id/card_top_bar"
@@ -20,7 +21,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:cardElevation="4dp"
             app:cardCornerRadius="0dp"
-            app:cardBackgroundColor="@android:color/white">
+           >
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/cl_top_bar"
                 android:layout_width="match_parent"

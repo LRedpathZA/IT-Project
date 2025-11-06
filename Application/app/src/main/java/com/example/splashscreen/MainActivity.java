@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,9 +22,11 @@ import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.splashscreen.data.models.UserViewModel;
+import com.example.splashscreen.utils.ProfilePictureManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
 
 public class MainActivity extends AppCompatActivity {
     private UserViewModel userViewModel;
@@ -39,13 +42,14 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvTitle;
     private ImageButton btnBack;
     private ImageButton btnProfile;
+    private ImageView navDrawerProfileImage; // Reference for the Drawer Image
     // -------------------------
 
     private static final int ROLE_POOL_OWNER = 1;
     private static final int ROLE_SERVICE_PROVIDER = 2;
     public static String homePoolId;
 
-    // 💥 NEW: Flag to track if the initial fragment has been set
+    // 💥 Flag to track if the initial fragment has been set
     private boolean isInitialFragmentSet = false;
 
     @Override
@@ -68,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         btnProfile = findViewById(R.id.btn_profile);
         // ------------------------------------
 
-        setupHeaderListeners(); // Set up global header listeners
+        setupHeaderListeners();
 
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser != null) {
@@ -80,72 +84,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // -------------------------------------------------------------------------
-    // HEADER MANAGEMENT (NEW)
-    // -------------------------------------------------------------------------
-
-    private void setupHeaderListeners() {
-        btnBack.setOnClickListener(v -> {
-            // Handle back navigation using the FragmentManager back stack
-            if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-                getSupportFragmentManager().popBackStack();
-            } else {
-                // If on a root fragment, call the system back press
-                onBackPressed();
-            }
-        });
-
-        btnProfile.setOnClickListener(v -> {
-            if(userViewModel.isPoolOwner())
-            {
-                Fragment profileFragment = new PO_Profile();
-                replaceFragment(profileFragment, true);
-            }
-            else
-            {
-                Fragment profileFragment = new SP_Profile();
-                replaceFragment(profileFragment, true);
-            }
-        });
-
-
-        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
-
-            boolean isRoot = getSupportFragmentManager().getBackStackEntryCount() == 0;
-            btnBack.setVisibility(isRoot ? View.GONE : View.VISIBLE);
-
-            // Re-call fragment's onResume to ensure header settings are applied
-            // This is a common pattern to ensure the header is updated after a back operation.
-            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-            if (currentFragment != null) {
-                if (currentFragment instanceof HeaderUpdatable) {
-                    ((HeaderUpdatable) currentFragment).updateActivityHeader();
-                } else {
-                    // Default header for any fragment that doesn't implement the interface
-                    updateHeader("Detail Screen", true, !isRoot);
-                }
-            }
-        });
-
-        // Hide back button on initial load
-        btnBack.setVisibility(View.GONE);
-    }
-
-    /**
-     * Public method for fragments to call to update the header title and visibility.
-     * This is the core method for the new centralized header system.
-     */
-    public void updateHeader(String title, boolean showHeader, boolean showBackButton) {
-        cardTopBar.setVisibility(showHeader ? View.VISIBLE : View.GONE);
-        tvTitle.setText(title);
-        btnProfile.setVisibility(showHeader ? View.VISIBLE : View.GONE); // Generally hide profile if header is hidden
-        btnBack.setVisibility(showBackButton ? View.VISIBLE : View.GONE);
-    }
-
-    // -------------------------------------------------------------------------
     // CORE LOGIC
     // -------------------------------------------------------------------------
 
     private void observeUserData() {
+        // 💥 FIX 1: Observe userData to update both the header button and the drawer image
+        // on every data change (real-time updates).
+        userViewModel.userData.observe(this, document -> {
+            // Update the Header Profile Button (btn_profile)
+            if (btnProfile != null) {
+                ProfilePictureManager.loadPicture(this, document, btnProfile);
+            }
+
+            // Update the Drawer Profile Image (if the view has been inflated)
+            if (navDrawerProfileImage != null) {
+                ProfilePictureManager.loadPicture(this, document, navDrawerProfileImage);
+            }
+        });
+
         userViewModel.userRole.observe(this, userRole -> {
             if (userRole != null) {
                 // 1. Setup UI (always run on role update, as this is necessary for the drawer)
@@ -155,8 +111,6 @@ public class MainActivity extends AppCompatActivity {
 
                 // 💥 2. FIX: Only set the initial fragment ONCE.
                 if (isInitialFragmentSet) {
-                    // If the initial fragment is already set, we stop here.
-                    // Any update (like a profile pic change) will only affect the drawer name/image.
                     return;
                 }
 
@@ -170,7 +124,6 @@ public class MainActivity extends AppCompatActivity {
                     bottomNavigationView.setSelectedItemId(R.id.nav_home_sp);
                 }
 
-                // Use the custom fragment replacement for the initial load
                 if (initialFragment != null) {
                     replaceFragment(initialFragment, false);
                     isInitialFragmentSet = true; // Set the flag to true after the first load
@@ -183,6 +136,35 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+
+    private void setupDrawer(int drawerLayoutResId) {
+        drawerContainer.removeAllViews();
+        getLayoutInflater().inflate(drawerLayoutResId, drawerContainer, true);
+        MenuItem menuButton = bottomNavigationView.getMenu().findItem(R.id.nav_menu);
+
+        // 💥 FIX 2: Set the reference immediately after inflation
+        navDrawerProfileImage = drawerContainer.findViewById(R.id.nav_profile_image);
+
+        // 💥 FIX 3: Manually trigger the drawer image update immediately after inflation
+        // using the data already available in the LiveData. This handles the initial sync.
+        if (navDrawerProfileImage != null && userViewModel.userData.getValue() != null) {
+            ProfilePictureManager.loadPicture(this, userViewModel.userData.getValue(), navDrawerProfileImage);
+        }
+
+        if (menuButton != null) {
+            menuButton.setOnMenuItemClickListener(item -> {
+                drawerLayout.openDrawer(GravityCompat.START);
+                return true;
+            });
+        } else {
+            Log.e("MainActivity", "Failed to find Menu button (R.id.nav_menu) in Bottom Navigation.");
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // (Other methods are not modified unless needed for the fixes above)
+    // -------------------------------------------------------------------------
 
     public void logoutUser() {
         auth.signOut();
@@ -209,21 +191,54 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void setupDrawer(int drawerLayoutResId) {
-        drawerContainer.removeAllViews();
-        getLayoutInflater().inflate(drawerLayoutResId, drawerContainer, true);
-        MenuItem menuButton = bottomNavigationView.getMenu().findItem(R.id.nav_menu);
+    // ... (rest of the methods: setupHeaderListeners, updateHeader, onNavigationItemSelected, etc.)
+    private void setupHeaderListeners() {
+        btnBack.setOnClickListener(v -> {
+            if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                getSupportFragmentManager().popBackStack();
+            } else {
+                onBackPressed();
+            }
+        });
 
-        if (menuButton != null) {
-            menuButton.setOnMenuItemClickListener(item -> {
-                drawerLayout.openDrawer(GravityCompat.START);
-                return true;
-            });
-        } else {
-            Log.e("MainActivity", "Failed to find Menu button (R.id.nav_menu) in Bottom Navigation.");
-        }
+        btnProfile.setOnClickListener(v -> {
+            if(userViewModel.isPoolOwner())
+            {
+                Fragment profileFragment = new PO_Profile();
+                replaceFragment(profileFragment, true);
+            }
+            else
+            {
+                Fragment profileFragment = new SP_Profile();
+                replaceFragment(profileFragment, true);
+            }
+        });
+
+
+        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
+
+            boolean isRoot = getSupportFragmentManager().getBackStackEntryCount() == 0;
+            btnBack.setVisibility(isRoot ? View.GONE : View.VISIBLE);
+
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+            if (currentFragment != null) {
+                if (currentFragment instanceof HeaderUpdatable) {
+                    ((HeaderUpdatable) currentFragment).updateActivityHeader();
+                } else {
+                    updateHeader("Detail Screen", true, !isRoot);
+                }
+            }
+        });
+
+        btnBack.setVisibility(View.GONE);
     }
 
+    public void updateHeader(String title, boolean showHeader, boolean showBackButton) {
+        cardTopBar.setVisibility(showHeader ? View.VISIBLE : View.GONE);
+        tvTitle.setText(title);
+        btnProfile.setVisibility(showHeader ? View.VISIBLE : View.GONE);
+        btnBack.setVisibility(showBackButton ? View.VISIBLE : View.GONE);
+    }
 
     private boolean onNavigationItemSelected(@NonNull MenuItem item) {
         Fragment selectedFragment = null;
@@ -232,7 +247,6 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
 
-        // --- Pool Owner Navigation Mapping ---
         if (userViewModel.isPoolOwner()) {
             if (itemId == R.id.nav_home_po) {
                 selectedFragment = new PO_HomeScreen();
@@ -244,7 +258,6 @@ public class MainActivity extends AppCompatActivity {
             }else if (itemId == R.id.nav_marketplace_po) {
                 selectedFragment = new PO_Marketplace();
             }
-            // --- Service Provider Navigation Mapping ---
         } else if (userViewModel.isServiceProvider()) {
             if (itemId == R.id.nav_home_sp) {
                 selectedFragment = new SP_HomeScreen();
@@ -258,13 +271,9 @@ public class MainActivity extends AppCompatActivity {
             else if (itemId == R.id.nav_inventory) {
                 selectedFragment = new SP_HomeScreen();
             }
-
-
         }
 
-
         if (selectedFragment != null) {
-            // Do not add bottom nav fragments to the back stack
             replaceFragment(selectedFragment, false);
             return true;
         }
@@ -289,7 +298,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void populatePoMenu(FrameLayout drawerContainer) {
-        // ... (Drawer population code remains the same)
         setMenuItemLabel(drawerContainer, R.id.btnMessages, "Messages");
         setMenuItemLabel(drawerContainer, R.id.btnSummary, "My Pool Health");
         setMenuItemLabel(drawerContainer, R.id.btnTips, "Pool Tips & Articles");
@@ -299,12 +307,6 @@ public class MainActivity extends AppCompatActivity {
         setMenuItemLabel(drawerContainer, R.id.btnSettings, "Settings");
         setMenuItemLabel(drawerContainer, R.id.btnTutorial, "Tutorial Videos");
         setMenuItemLabel(drawerContainer, R.id.btnRegisterBusiness, "Register as Business");
-
-
-    }
-
-    private void navTest() {
-        replaceFragment(new PO_AddPool(), true);
     }
 
     private void populateSpMenu(FrameLayout drawerContainer) {
@@ -337,7 +339,6 @@ public class MainActivity extends AppCompatActivity {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-
             getSupportFragmentManager().popBackStack();
         } else {
             super.onBackPressed();

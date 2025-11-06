@@ -1,4 +1,4 @@
-package com.example.splashscreen.utils; // Use your desired package name
+package com.example.splashscreen.utils;
 
 public interface UploadListener {
     void onStart();

@@ -70,7 +70,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
             android:paddingBottom="80dp">
@@ -86,7 +86,7 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="575dp"
+                    android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:paddingBottom="16dp">
 
@@ -109,17 +109,19 @@
                             <com.google.android.material.card.MaterialCardView
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                app:cardCornerRadius="40dp" app:cardElevation="0dp"
-                                app:strokeColor="@color/grey_light"
-                                app:strokeWidth="2dp">
+                                app:cardCornerRadius="40dp"
+                                app:cardElevation="0dp"
+                                app:cardBackgroundColor="@android:color/transparent"
+                                >
 
                                 <ImageView
                                     android:id="@+id/iv_profile_picture"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
-                                    android:background="@color/white"
+                                    android:background="@android:color/transparent"
                                     android:contentDescription="User Profile Picture"
-                                    android:scaleType="centerCrop"  android:src="@drawable/ic_profile_placeholder" />
+                                    android:scaleType="centerCrop"
+                                    android:src="@drawable/ic_profile_placeholder" />
 
                             </com.google.android.material.card.MaterialCardView>
 
@@ -133,7 +135,7 @@
                                 android:contentDescription="Edit Profile Photo"
                                 android:scaleType="centerInside"
                                 android:padding="4dp"
-                       />
+                                />
 
                         </FrameLayout>
 
@@ -327,17 +329,27 @@
 
                     </LinearLayout>
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_logout"
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="60dp"
-                        android:layout_marginHorizontal="16dp"
-                        android:layout_marginTop="32dp"
-                        android:text="Log out"
-                        android:textAllCaps="false"
-                        android:textSize="18sp"
-                        android:background="@color/PrimaryColour"
-                        app:cornerRadius="8dp" />
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingBottom="16dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_logout"
+                            android:layout_width="match_parent"
+                            android:layout_height="60dp"
+                            android:layout_marginHorizontal="16dp"
+                            android:layout_marginTop="32dp"
+                            android:text="Log out"
+                            android:textAllCaps="false"
+                            android:textSize="18sp"
+                            android:background="@color/PrimaryColour"
+                            app:cornerRadius="8dp"
+
+                            />
+
+                    </LinearLayout>
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>

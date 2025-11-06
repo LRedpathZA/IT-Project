@@ -23,6 +23,7 @@ import com.example.splashscreen.data.models.PoolModel;
 import com.example.splashscreen.data.models.PoolViewModel;
 import com.example.splashscreen.data.models.UserViewModel;
 import com.example.splashscreen.ui.weather.WeatherContainerFragment;
+import com.example.splashscreen.utils.ProfilePictureManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -101,6 +102,12 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
         if (calendarCardContainer != null) {
             calendarCardContainer.setOnClickListener(v -> navigateToPO_Calendar());
         }
+        userViewModel.userData.observe(getViewLifecycleOwner(), document -> {
+            // This runs instantly whenever the data changes anywhere in the app
+            if (getContext() != null) {
+                ProfilePictureManager.loadPicture(getContext(), document, ivProfileIcon);
+            }
+        });
 
         setupPoolResultListener();
         setupProductRecyclerView();
