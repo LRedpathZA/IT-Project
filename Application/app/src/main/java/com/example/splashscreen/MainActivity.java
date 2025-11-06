@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,26 +31,24 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
     private UserViewModel userViewModel;
-
     private FirebaseAuth auth;
 
     private DrawerLayout drawerLayout;
     public BottomNavigationView bottomNavigationView;
     private FrameLayout drawerContainer;
 
-    // --- Header Views (NEW) ---
+    // Header Views
     private CardView cardTopBar;
     private TextView tvTitle;
     private ImageButton btnBack;
     private ImageButton btnProfile;
     private ImageView navDrawerProfileImage; // Reference for the Drawer Image
-    // -------------------------
 
     private static final int ROLE_POOL_OWNER = 1;
     private static final int ROLE_SERVICE_PROVIDER = 2;
     public static String homePoolId;
 
-    // 💥 Flag to track if the initial fragment has been set
+    // Flag to track if the initial fragment has been set
     private boolean isInitialFragmentSet = false;
 
     @Override
@@ -65,12 +64,11 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.bottom_navigation_view);
         drawerContainer = findViewById(R.id.drawer_container);
 
-        // --- Initialize Header Views (NEW) ---
+        // Initialize Header Views
         cardTopBar = findViewById(R.id.card_top_bar);
         tvTitle = findViewById(R.id.tv_title);
         btnBack = findViewById(R.id.btn_back);
         btnProfile = findViewById(R.id.btn_profile);
-        // ------------------------------------
 
         setupHeaderListeners();
 
@@ -84,14 +82,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // -------------------------------------------------------------------------
-    // CORE LOGIC
+    // CORE LOGIC & DATA OBSERVATION
     // -------------------------------------------------------------------------
 
     private void observeUserData() {
-        // 💥 FIX 1: Observe userData to update both the header button and the drawer image
-        // on every data change (real-time updates).
         userViewModel.userData.observe(this, document -> {
-            // Update the Header Profile Button (btn_profile)
+            // Update the Header Profile Button
             if (btnProfile != null) {
                 ProfilePictureManager.loadPicture(this, document, btnProfile);
             }
@@ -104,17 +100,14 @@ public class MainActivity extends AppCompatActivity {
 
         userViewModel.userRole.observe(this, userRole -> {
             if (userRole != null) {
-                // 1. Setup UI (always run on role update, as this is necessary for the drawer)
                 setupRoleBasedUI(userRole);
                 userViewModel.username.observe(this, this::populateDrawerUsername);
 
-
-                // 💥 2. FIX: Only set the initial fragment ONCE.
+                // Only set the initial fragment ONCE.
                 if (isInitialFragmentSet) {
                     return;
                 }
 
-                // --- Initial Fragment Logic (Runs only once) ---
                 Fragment initialFragment = null;
                 if (ROLE_POOL_OWNER == userRole) {
                     initialFragment = new PO_HomeScreen();
@@ -126,10 +119,8 @@ public class MainActivity extends AppCompatActivity {
 
                 if (initialFragment != null) {
                     replaceFragment(initialFragment, false);
-                    isInitialFragmentSet = true; // Set the flag to true after the first load
+                    isInitialFragmentSet = true;
                 }
-                // ----------------------------------------------
-
             } else {
                 Log.w("MainActivity", "User role is null after fetch. Logging out.");
                 logoutUser();
@@ -137,17 +128,15 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
     private void setupDrawer(int drawerLayoutResId) {
         drawerContainer.removeAllViews();
         getLayoutInflater().inflate(drawerLayoutResId, drawerContainer, true);
         MenuItem menuButton = bottomNavigationView.getMenu().findItem(R.id.nav_menu);
 
-        // 💥 FIX 2: Set the reference immediately after inflation
+        // Set the reference immediately after inflation
         navDrawerProfileImage = drawerContainer.findViewById(R.id.nav_profile_image);
 
-        // 💥 FIX 3: Manually trigger the drawer image update immediately after inflation
-        // using the data already available in the LiveData. This handles the initial sync.
+        // Manually trigger the drawer image update immediately after inflation
         if (navDrawerProfileImage != null && userViewModel.userData.getValue() != null) {
             ProfilePictureManager.loadPicture(this, userViewModel.userData.getValue(), navDrawerProfileImage);
         }
@@ -162,8 +151,93 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void setupRoleBasedUI(int role_id) {
+        bottomNavigationView.getMenu().clear();
+
+        if (ROLE_POOL_OWNER == role_id) {
+            bottomNavigationView.inflateMenu(R.menu.menu_po_bottom_nav);
+            setupDrawer(R.layout.po_navigation_drawer);
+            setupPoDrawerListeners(drawerContainer); // Set up PO drawer navigation
+        } else if (ROLE_SERVICE_PROVIDER == role_id) {
+            bottomNavigationView.inflateMenu(R.menu.menu_sp_bottom_nav);
+            setupDrawer(R.layout.sp_navigation_drawer);
+            setupSpDrawerListeners(drawerContainer); // Set up SP drawer navigation
+        }
+        bottomNavigationView.setOnItemSelectedListener(this::onNavigationItemSelected);
+    }
+
     // -------------------------------------------------------------------------
-    // (Other methods are not modified unless needed for the fixes above)
+    // DRAWER LISTENERS (NEW)
+    // -------------------------------------------------------------------------
+
+    private void setupPoDrawerListeners(FrameLayout drawerContainer) {
+        // --- Helper for simplified Toast/Navigation ---
+        View.OnClickListener clickListener = v -> {
+            drawerLayout.closeDrawer(GravityCompat.START);
+            String title = ((TextView) ((LinearLayout) v).getChildAt(1)).getText().toString();
+
+            // Temporary Toast functionality
+            Toast.makeText(this, "Navigating to: " + title, Toast.LENGTH_SHORT).show();
+
+            // Placeholder logic for actual navigation
+            if (v.getId() == R.id.btnMessages) {
+                // navigateToFragment(new PO_MessagesFragment()); // Example
+            } else if (v.getId() == R.id.btnSummary) {
+                 navigateToFragment(new PoolHealth(), true);
+            } else if (v.getId() == R.id.btnTips) {
+                // navigateToFragment(new PO_TipsFragment());
+            } else if (v.getId() == R.id.btnLoadshedding) {
+                // navigateToFragment(new LoadsheddingFragment());
+            } else if (v.getId() == R.id.btnRestrictions) {
+                // navigateToFragment(new WaterRestrictionsFragment());
+            } else if (v.getId() == R.id.btnServiceRequest) {
+                 navigateToFragment(new PO_ServiceRequestList(),true  );
+            } else if (v.getId() == R.id.btnHelp) {
+                // navigateToFragment(new HelpSupportFragment());
+            } else if (v.getId() == R.id.btnSettings) {
+                 navigateToFragment(new PO_Profile(), true);
+            } else if (v.getId() == R.id.btnRegisterBusiness) {
+                registerAsBusiness();
+            }
+        };
+
+        // Attach listeners to all PO drawer buttons
+        drawerContainer.findViewById(R.id.btnMessages).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnSummary).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnTips).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnLoadshedding).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnRestrictions).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnServiceRequest).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnHelp).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnSettings).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnRegisterBusiness).setOnClickListener(clickListener);
+    }
+    private void registerAsBusiness()
+    {
+        logoutUser();
+         navigateToFragment(new SP_SignUp(), false);
+    }
+
+    private void setupSpDrawerListeners(FrameLayout drawerContainer) {
+        // Implementation for Service Provider drawer listeners goes here
+        View.OnClickListener clickListener = v -> {
+            drawerLayout.closeDrawer(GravityCompat.START);
+            String title = "SP Navigation Item"; // Placeholder title for SP
+            if (v instanceof LinearLayout && ((LinearLayout) v).getChildCount() > 1 && ((LinearLayout) v).getChildAt(1) instanceof TextView) {
+                title = ((TextView) ((LinearLayout) v).getChildAt(1)).getText().toString();
+            }
+
+            Toast.makeText(this, "SP Navigating to: " + title, Toast.LENGTH_SHORT).show();
+            // Add SP-specific navigation logic here later
+        };
+
+        // Example: You would map SP-specific IDs here
+        // drawerContainer.findViewById(R.id.btnSpMessages).setOnClickListener(clickListener);
+        // drawerContainer.findViewById(R.id.btnSpSummary).setOnClickListener(clickListener);
+    }
+
+    // -------------------------------------------------------------------------
+    // UTILITIES
     // -------------------------------------------------------------------------
 
     public void logoutUser() {
@@ -175,23 +249,6 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
-    private void setupRoleBasedUI(int role_id) {
-        bottomNavigationView.getMenu().clear();
-
-        if (ROLE_POOL_OWNER == role_id) {
-            bottomNavigationView.inflateMenu(R.menu.menu_po_bottom_nav);
-            setupDrawer(R.layout.po_navigation_drawer);
-            populatePoMenu(drawerContainer);
-        } else if (ROLE_SERVICE_PROVIDER == role_id) {
-            bottomNavigationView.inflateMenu(R.menu.menu_sp_bottom_nav);
-            setupDrawer(R.layout.sp_navigation_drawer);
-            populateSpMenu(drawerContainer);
-        }
-        bottomNavigationView.setOnItemSelectedListener(this::onNavigationItemSelected);
-    }
-
-
-    // ... (rest of the methods: setupHeaderListeners, updateHeader, onNavigationItemSelected, etc.)
     private void setupHeaderListeners() {
         btnBack.setOnClickListener(v -> {
             if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
@@ -202,21 +259,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnProfile.setOnClickListener(v -> {
-            if(userViewModel.isPoolOwner())
-            {
-                Fragment profileFragment = new PO_Profile();
-                replaceFragment(profileFragment, true);
-            }
-            else
-            {
-                Fragment profileFragment = new SP_Profile();
-                replaceFragment(profileFragment, true);
+            if(userViewModel.isPoolOwner()) {
+                navigateToFragment(new PO_Profile(), true);
+            } else {
+                navigateToFragment(new SP_Profile(), true);
             }
         });
 
-
         getSupportFragmentManager().addOnBackStackChangedListener(() -> {
-
             boolean isRoot = getSupportFragmentManager().getBackStackEntryCount() == 0;
             btnBack.setVisibility(isRoot ? View.GONE : View.VISIBLE);
 
@@ -243,6 +293,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean onNavigationItemSelected(@NonNull MenuItem item) {
         Fragment selectedFragment = null;
         int itemId = item.getItemId();
+
         if (itemId == R.id.nav_menu) {
             return false;
         }
@@ -255,22 +306,16 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_calendar) {
                 navigateToPO_Calendar();
                 return true;
-            }else if (itemId == R.id.nav_marketplace_po) {
+            } else if (itemId == R.id.nav_marketplace_po) {
                 selectedFragment = new PO_Marketplace();
             }
         } else if (userViewModel.isServiceProvider()) {
             if (itemId == R.id.nav_home_sp) {
                 selectedFragment = new SP_HomeScreen();
-            }
-            else if (itemId == R.id.nav_clients) {
+            } else if (itemId == R.id.nav_clients) {
                 selectedFragment = new ClientListFragment();
             }
-            else if (itemId == R.id.nav_schedule_sp) {
-                selectedFragment = new SP_HomeScreen();
-            }
-            else if (itemId == R.id.nav_inventory) {
-                selectedFragment = new SP_HomeScreen();
-            }
+            // Add other SP bottom nav logic here...
         }
 
         if (selectedFragment != null) {
@@ -280,16 +325,6 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    private void setMenuItemLabel(View parentView, int rootIncludeId, String labelText) {
-        View rootMenuButton = parentView.findViewById(rootIncludeId);
-        if (rootMenuButton != null) {
-            TextView label = rootMenuButton.findViewById(R.id.tvMenuItemText);
-            if (label != null) {
-                label.setText(labelText);
-            }
-        }
-    }
-
     private void populateDrawerUsername(String username) {
         TextView tvDrawerUsername = drawerContainer.findViewById(R.id.nav_username);
         if (tvDrawerUsername != null) {
@@ -297,26 +332,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void populatePoMenu(FrameLayout drawerContainer) {
-        setMenuItemLabel(drawerContainer, R.id.btnMessages, "Messages");
-        setMenuItemLabel(drawerContainer, R.id.btnSummary, "My Pool Health");
-        setMenuItemLabel(drawerContainer, R.id.btnTips, "Pool Tips & Articles");
-        setMenuItemLabel(drawerContainer, R.id.btnLoadshedding, "Load Shedding Alerts");
-        setMenuItemLabel(drawerContainer, R.id.btnRestrictions, "Water Restrictions");
-        setMenuItemLabel(drawerContainer, R.id.btnHelp, "Help & Support");
-        setMenuItemLabel(drawerContainer, R.id.btnSettings, "Settings");
-        setMenuItemLabel(drawerContainer, R.id.btnTutorial, "Tutorial Videos");
-        setMenuItemLabel(drawerContainer, R.id.btnRegisterBusiness, "Register as Business");
-    }
-
-    private void populateSpMenu(FrameLayout drawerContainer) {
-        setMenuItemLabel(drawerContainer, R.id.btnMessages, "Message & Notifications");
-        setMenuItemLabel(drawerContainer, R.id.btnSummary, "Summary");
-        setMenuItemLabel(drawerContainer, R.id.btnLoadshedding, "Loadshedding");
-        setMenuItemLabel(drawerContainer, R.id.btnRestrictions, "Water Restrictions");
-        setMenuItemLabel(drawerContainer, R.id.btnHelp, "Help & Support");
-        setMenuItemLabel(drawerContainer, R.id.btnSettings, "Settings");
-        setMenuItemLabel(drawerContainer, R.id.btnTutorial, "Tutorial");
+    /**
+     * Replaces the current fragment with a new one.
+     * @param fragment The new fragment to display.
+     * @param addToBackStack True to add the transaction to the back stack (for history), false for main navigation.
+     */
+    public void navigateToFragment(Fragment fragment, boolean addToBackStack) {
+        replaceFragment(fragment, addToBackStack);
     }
 
     private void replaceFragment(Fragment fragment, boolean addToBackStack) {
@@ -356,7 +378,6 @@ public class MainActivity extends AppCompatActivity {
         args.putString("POOL_ID", homePoolId);
         calendarFragment.setArguments(args);
 
-
-        replaceFragment(calendarFragment, true);
+        navigateToFragment(calendarFragment, true);
     }
 }

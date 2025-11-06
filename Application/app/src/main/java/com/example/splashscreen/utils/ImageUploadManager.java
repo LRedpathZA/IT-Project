@@ -13,11 +13,16 @@ import java.util.Map;
 
 public class ImageUploadManager {
     private static final String TAG = "ImageUploadManager";
-
-    // 💡 NEW: Static flag to track initialization status
     private static boolean isCloudinaryInitialized = false;
 
-    public static void uploadProfileImage(Context context, Uri imageUri, UploadListener listener) {
+    /**
+     * Uploads an image to Cloudinary using a secure signed request from Firebase Functions.
+     * @param context Application context.
+     * @param imageUri Local URI of the image file.
+     * @param folder The Cloudinary folder name (e.g., "profile_pictures", "service_requests").
+     * @param listener Callback for upload events.
+     */
+    public static void uploadImage(Context context, Uri imageUri, String folder, UploadListener listener) {
         String photoPath = FilePathUtil.getRealPathFromURI(context, imageUri);
 
         if (photoPath == null) {
@@ -27,7 +32,7 @@ public class ImageUploadManager {
 
         // 1. Call the Firebase Function to get the secure signature
         Map<String, Object> data = new HashMap<>();
-        data.put("folder", "profile_pictures");
+        data.put("folder", folder); // Use the provided folder name
 
         FirebaseFunctions.getInstance()
                 .getHttpsCallable("generateCloudinarySignature")
@@ -44,6 +49,8 @@ public class ImageUploadManager {
                         listener.onFailure("Application context unavailable.");
                         return;
                     }
+
+                    // 2. Initialize Cloudinary if not already done
                     if (!isCloudinaryInitialized) {
                         try {
                             Map config = new HashMap();
@@ -52,8 +59,6 @@ public class ImageUploadManager {
                             isCloudinaryInitialized = true;
                             Log.d(TAG, "Cloudinary initialized dynamically.");
                         } catch (IllegalStateException e) {
-                            // This catches the case where another thread might have initialized it
-                            // just before this check. We can safely ignore the exception here.
                             isCloudinaryInitialized = true;
                             Log.w(TAG, "Cloudinary was already initialized by another call.");
                         } catch (Exception e) {
@@ -67,9 +72,8 @@ public class ImageUploadManager {
                             .option("signature", signature)
                             .option("timestamp", timestamp)
                             .option("api_key", apiKey)
-                            .option("folder", "profile_pictures")
+                            .option("folder", folder) // Set the folder
                             .callback(new UploadCallback() {
-                                // ... rest of the callback logic (unchanged) ...
                                 @Override public void onStart(String requestId) {
                                     listener.onStart();
                                 }
@@ -98,5 +102,10 @@ public class ImageUploadManager {
                     Log.e(TAG, "Firebase Function call failed: " + e.getMessage());
                     listener.onFailure("Secure connection failed: " + e.getMessage());
                 });
+    }
+
+    // You can keep the old method for backwards compatibility, but it should call the new one
+    public static void uploadProfileImage(Context context, Uri imageUri, UploadListener listener) {
+        uploadImage(context, imageUri, "profile_pictures", listener);
     }
 }

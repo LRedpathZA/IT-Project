@@ -5,12 +5,19 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+
+import com.example.splashscreen.data.models.UserViewModel;
+import com.example.splashscreen.utils.ProfilePictureManager;
 
 public class PO_Marketplace extends Fragment implements HeaderUpdatable {
+    private UserViewModel userViewModel;
+    private ImageButton btnProfilePic;
 
     public PO_Marketplace() {
         // Required empty public constructor
@@ -44,7 +51,14 @@ public class PO_Marketplace extends Fragment implements HeaderUpdatable {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // Custom header elements and marketplace content initialization would go here.
-        // For now, we only handle the main activity header visibility.
+        userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
+        btnProfilePic = view.findViewById(R.id.btn_profile);
+        userViewModel.userData.observe(getViewLifecycleOwner(), document -> {
+            // This runs instantly whenever the data changes anywhere in the app
+            if (getContext() != null) {
+                // 4. Use the reusable Manager to load the latest picture
+                ProfilePictureManager.loadPicture(getContext(), document, btnProfilePic);
+            }
+        });
     }
 }

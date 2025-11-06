@@ -86,7 +86,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="72dp"
-        android:src="@drawable/ic_add_white_24dp"
+        android:src="@drawable/plus"
         app:tint="@color/white"
         app:backgroundTint="@color/PrimaryColour"
         app:layout_constraintBottom_toBottomOf="parent"

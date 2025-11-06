@@ -6,12 +6,14 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.text.InputType; // REQUIRED for password toggle
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView; // REQUIRED for password toggle icon
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -44,18 +46,24 @@ public class SP_SignUp extends Fragment {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private UserViewModel userViewModel; // 💥 NEW
+    private UserViewModel userViewModel;
 
     // UI Elements
-    private EditText businessNameEditText, emailEditText, phoneEditText, passwordEditText1, passwordEditText2; // 💥 UPDATED/ADDED
-    private Button signupButton, btnFetchLocation; // 💥 ADDED
-    private TextView tvLocationStatus, tvLocationAddress, tvCoordinates; // 💥 ADDED Location Status UI
+    private EditText businessNameEditText, emailEditText, phoneEditText, passwordEditText1, confirmPasswordEditText;
+    private ImageView passwordToggleIcon1, passwordToggleIcon2; // <<< NEW: TWO ICONS
+
+    private Button signupButton, btnFetchLocation;
+    private TextView tvLocationStatus, tvLocationAddress, tvCoordinates;
 
     // Location & Data
-    private FusedLocationProviderClient fusedLocationClient; // 💥 NEW
-    private final ExecutorService geocodeExecutor = Executors.newSingleThreadExecutor(); // 💥 NEW
-    private GeoPoint currentGeoPoint = null; // 💥 NEW: Holds the GeoPoint to be saved
-    private String currentLocationAddress = null; // 💥 NEW: Holds the human-readable address string
+    private FusedLocationProviderClient fusedLocationClient;
+    private final ExecutorService geocodeExecutor = Executors.newSingleThreadExecutor();
+    private GeoPoint currentGeoPoint = null;
+    private String currentLocationAddress = null;
+
+    // State variables for password visibility
+    private boolean isPassword1Visible = false; // <<< NEW STATE 1
+    private boolean isPassword2Visible = false; // <<< NEW STATE 2
 
     // Location Permission Launcher
     private final ActivityResultLauncher<String> requestPermissionLauncher =
@@ -96,20 +104,23 @@ public class SP_SignUp extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.sp_signup, container, false);
 
-        userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class); // 💥 NEW
+        userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
 
-        // Input Fields (Note: Mapped to new XML structure including phone/passwords)
+        // Input Fields Initialization
         businessNameEditText = view.findViewById(R.id.businessNameEditText);
         emailEditText = view.findViewById(R.id.emailEditText);
-        phoneEditText = view.findViewById(R.id.phoneEditText); // 💥 ADDED
-        passwordEditText1 = view.findViewById(R.id.passwordEditText1); // 💥 ADDED
-        passwordEditText2 = view.findViewById(R.id.passwordEditText); // 💥 Confirm Password
+        phoneEditText = view.findViewById(R.id.phoneEditText);
+        passwordEditText1 = view.findViewById(R.id.passwordEditText1);
+        confirmPasswordEditText = view.findViewById(R.id.confirmPasswordEditText); // Corrected to match XML ID
+
+        passwordToggleIcon1 = view.findViewById(R.id.passwordToggleIcon1); // <<< Find Icon 1
+        passwordToggleIcon2 = view.findViewById(R.id.passwordToggleIcon2); // <<< Find Icon 2
 
         // Location UI
-        btnFetchLocation = view.findViewById(R.id.btn_fetch_location); // 💥 ADDED
-        tvLocationStatus = view.findViewById(R.id.tv_location_status); // 💥 ADDED
-        tvLocationAddress = view.findViewById(R.id.tv_location_address); // 💥 ADDED
-        tvCoordinates = view.findViewById(R.id.tv_coordinates); // 💥 ADDED
+        btnFetchLocation = view.findViewById(R.id.btn_fetch_location);
+        tvLocationStatus = view.findViewById(R.id.tv_location_status);
+        tvLocationAddress = view.findViewById(R.id.tv_location_address);
+        tvCoordinates = view.findViewById(R.id.tv_coordinates);
 
         signupButton = view.findViewById(R.id.signupButton);
 
@@ -124,11 +135,52 @@ public class SP_SignUp extends Fragment {
         // Sign Up Button Listener
         signupButton.setOnClickListener(v -> handleSignUp());
 
+        // ----------------------------------------------------
+        // START: Password Toggle Implementation
+        // ----------------------------------------------------
+
+        // Initial setup for both fields (hidden)
+        passwordEditText1.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        confirmPasswordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+
+        // Listener for the first password field
+        passwordToggleIcon1.setOnClickListener(v -> {
+            togglePasswordVisibility(passwordEditText1, passwordToggleIcon1, isPassword1Visible);
+            isPassword1Visible = !isPassword1Visible; // Update the state
+        });
+
+        // Listener for the confirm password field
+        passwordToggleIcon2.setOnClickListener(v -> {
+            togglePasswordVisibility(confirmPasswordEditText, passwordToggleIcon2, isPassword2Visible);
+            isPassword2Visible = !isPassword2Visible; // Update the state
+        });
+
+        // ----------------------------------------------------
+        // END: Password Toggle Implementation
+        // ----------------------------------------------------
+
         return view;
     }
 
+    /**
+     * Reusable method to handle the logic for toggling password visibility.
+     */
+    private void togglePasswordVisibility(EditText editText, ImageView toggleIcon, boolean isCurrentlyVisible) {
+        if (isCurrentlyVisible) {
+            editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            toggleIcon.setImageResource(R.drawable.hide);
+        } else {
+
+            editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+            toggleIcon.setImageResource(R.drawable.eye);
+        }
+
+
+        editText.setSelection(editText.getText().length());
+    }
+
     // =========================================================================================
-    //                                LOCATION LOGIC
+    //                                LOCATION LOGIC (UNCHANGED)
     // =========================================================================================
 
     private void checkLocationPermission() {
@@ -198,12 +250,11 @@ public class SP_SignUp extends Fragment {
                     if (addresses != null && !addresses.isEmpty()) {
                         Address address = addresses.get(0);
 
-                        // Use full address line as primary address string
                         String finalDisplayAddress = (address.getAddressLine(0) != null) ?
                                 address.getAddressLine(0) :
                                 (address.getLocality() != null ? address.getLocality() : "Unknown Area.");
 
-                        currentLocationAddress = finalDisplayAddress; // 💥 Store the generated address
+                        currentLocationAddress = finalDisplayAddress;
                         tvLocationAddress.setText("Address: " + finalDisplayAddress);
                     } else {
                         tvLocationAddress.setText("Address: Address not found.");
@@ -227,15 +278,15 @@ public class SP_SignUp extends Fragment {
 
 
     // =========================================================================================
-    //                                SIGN UP LOGIC
+    //                                SIGN UP LOGIC (UNCHANGED)
     // =========================================================================================
 
     private void handleSignUp() {
         String businessName = businessNameEditText.getText().toString().trim();
         String email = emailEditText.getText().toString().trim();
-        String phone = phoneEditText.getText().toString().trim(); // 💥 ADDED
-        String password = passwordEditText1.getText().toString(); // Not trimmed
-        String confirmPassword = passwordEditText2.getText().toString(); // Not trimmed
+        String phone = phoneEditText.getText().toString().trim();
+        String password = passwordEditText1.getText().toString();
+        String confirmPassword = confirmPasswordEditText.getText().toString();
 
         if (businessName.isEmpty() || email.isEmpty() || phone.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             NotificationHelper.showNotification(getView(), "Missing information", "Please fill in all the fields.", NotificationHelper.NotificationType.ERROR);
@@ -282,7 +333,6 @@ public class SP_SignUp extends Fragment {
     }
 
     private void saveBusinessDataToFirestore(FirebaseUser firebaseUser, String businessName, String email, String phone) {
-        // Use the ViewModel's helper function to create the location map
         Map<String, Object> locationFields = userViewModel.updateLocationFields(
                 currentGeoPoint.getLatitude(),
                 currentGeoPoint.getLongitude(),
@@ -306,7 +356,6 @@ public class SP_SignUp extends Fragment {
                             NotificationHelper.NotificationType.SUCCESS
                     );
 
-                    // Force UserViewModel to refresh data for the new user
                     userViewModel.fetchUserData(firebaseUser.getUid());
 
                     Intent intent = new Intent(getContext(), MainActivity.class);

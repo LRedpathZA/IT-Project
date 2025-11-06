@@ -2,11 +2,13 @@ package com.example.splashscreen;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType; // <-- Import this
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView; // <-- Import this
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,14 +20,16 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class LoginFragment extends Fragment {
 
-
     private FirebaseAuth auth;
 
-
     private EditText emailEditText, passwordEditText;
+    private ImageView passwordToggleIcon; // <-- 1. Add ImageView variable
 
     private Button loginButton;
     private TextView switchToSignup;
+
+    // State variable to track password visibility
+    private boolean isPasswordVisible = false;
 
     // Required empty public constructor -- As always
     public LoginFragment() {
@@ -42,13 +46,35 @@ public class LoginFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.login, container, false);
 
-        // Find views by their ID from the XML layout
+
         emailEditText = view.findViewById(R.id.emailEditText);
         passwordEditText = view.findViewById(R.id.passwordEditText);
+        passwordToggleIcon = view.findViewById(R.id.passwordIcon);
         loginButton = view.findViewById(R.id.loginButton);
         switchToSignup = view.findViewById(R.id.signupLink);
 
-        // Set up the OnClickListener for the "Sign Up" link
+
+        passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        passwordToggleIcon.setImageResource(R.drawable.hide);
+        passwordToggleIcon.setOnClickListener(v -> {
+            if (isPasswordVisible) {
+                // Currently visible -> Change to hidden
+                passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                passwordToggleIcon.setImageResource(R.drawable.hide); // Eye with a slash
+            } else {
+                // Currently hidden -> Change to visible
+                passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                passwordToggleIcon.setImageResource(R.drawable.
+                        eye);
+            }
+            passwordEditText.setSelection(passwordEditText.getText().length());
+
+
+            isPasswordVisible = !isPasswordVisible;
+        });
+        // --------------------------------------------------
+
+
         switchToSignup.setOnClickListener(v -> {
             ((AuthenticationActivity) requireActivity()).showSignupFragment();
         });

@@ -34,8 +34,6 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.squareup.picasso.Picasso;
-import com.example.splashscreen.data.models.PoolModel;
 import com.example.splashscreen.data.models.PoolViewModel;
 import com.example.splashscreen.data.models.UserViewModel;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -45,12 +43,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.functions.FirebaseFunctions;
-import com.google.firebase.functions.HttpsCallableResult;
-import com.cloudinary.android.MediaManager;
-import com.cloudinary.android.callback.ErrorInfo;
-import com.cloudinary.android.callback.UploadCallback;
-import com.example.splashscreen.utils.FilePathUtil;
+import com.example.splashscreen.utils.ImageUploadManager; // NEW IMPORT
+import com.example.splashscreen.utils.UploadListener; // NEW IMPORT
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -62,11 +56,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
 
 public class PO_AddPool extends Fragment implements HeaderUpdatable {
 
@@ -94,9 +85,9 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
     private UserViewModel userViewModel;
     private Uri selectedImageUri = null;
     private String currentPhotoUrl = null;
-//    private static final int PICK_IMAGE_REQUEST = 1;
-   private String currentPoolId;
-    private FirebaseFunctions mFunctions; // Firebase Functions Instance
+    private String currentPoolId;
+    // private FirebaseFunctions mFunctions; // REMOVED: No longer needed
+
     private ActivityResultLauncher<Intent> imageChooserLauncher; // New launcher for gallery
 
     private Switch switchIsPublic;
@@ -141,7 +132,7 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        mFunctions = FirebaseFunctions.getInstance();
+        // REMOVED: mFunctions = FirebaseFunctions.getInstance();
 
         if (getArguments() != null) {
             currentPoolId = getArguments().getString(PO_HomeScreen.ARG_POOL_ID);
@@ -305,13 +296,13 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         Map<String, Object> poolData = getAndValidateInputs();
         if (poolData == null) return;
 
-        // ✅ NEW: Start the upload flow if an image is selected
+        // Use the ImageUploadManager if an image is selected
         if (selectedImageUri != null) {
-            initiateSignedCloudinaryUpload(poolData, null);
+            startPoolImageUpload(poolData, null);
         } else {
-            // Use the default photo if nothing is selected
+            // Use the default photo URL if nothing is selected
             String defaultUrl = "android.resource://" + requireContext().getPackageName() + "/" + R.drawable.fake_pool;
-            savePoolToFirestore(poolData, null, defaultUrl);
+            savePoolToFirestore(poolData, defaultUrl);
         }
     }
 
@@ -319,23 +310,55 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         Map<String, Object> poolData = getAndValidateInputs();
         if (poolData == null) return;
 
-        // ✅ NEW: Check if there's a new image (selectedImageUri != null) OR if the old image was deleted (currentPhotoUrl == null).
+        // Check if there's a new image (selectedImageUri != null)
         if (selectedImageUri != null) {
-            initiateSignedCloudinaryUpload(poolData, poolId);
+            startPoolImageUpload(poolData, poolId);
         } else {
-            // Case 1: No new image, and no old image (User deleted it) -> save null
-            String finalPhotoUrl = currentPhotoUrl;
+            // Case: No new image. Pass currentPhotoUrl (null if deleted, or existing URL).
+            updatePoolInFirestore(poolData, poolId, currentPhotoUrl);
+        }
+    }
+    private void startPoolImageUpload(Map<String, Object> poolData, @Nullable String existingPoolId) {
+        Context context = requireContext();
 
-            // Case 2: No new image, but old image exists -> save existing URL
-            if (finalPhotoUrl == null) {
-                // If currentPhotoUrl is null, it means user deleted the photo.
-                poolData.put("photoUrl", FieldValue.delete());
-            } else {
-                poolData.put("photoUrl", finalPhotoUrl);
+        ImageUploadManager.uploadImage(context, selectedImageUri, "pool_images", new UploadListener() {
+            @Override
+            public void onStart() {
+                updateUI(() -> btnAddPool.setText("Uploading Photo..."));
+                updateUI(() -> btnAddPool.setEnabled(false));
             }
 
-            updatePoolInFirestore(poolData, poolId);
-        }
+            @Override
+            public void onProgress(int percent) {
+                updateUI(() -> btnAddPool.setText(String.format("Uploading (%d%%)", percent)));
+            }
+
+            @Override
+            public void onSuccess(String photoUrl) {
+                // Photo uploaded successfully, proceed to save/update to Firestore
+                if (existingPoolId == null) {
+                    savePoolToFirestore(poolData, photoUrl);
+                } else {
+                    updatePoolInFirestore(poolData, existingPoolId, photoUrl);
+                }
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                Log.e(TAG, "Image Upload Failed: " + errorMessage);
+                Toast.makeText(context, "Photo Upload Failed. Saving pool with existing/default photo.", Toast.LENGTH_LONG).show();
+
+                // Fallback: Use the existing photo URL (currentPhotoUrl) if it's an edit, otherwise null
+                String fallbackUrl = existingPoolId != null ? currentPhotoUrl : null;
+                if (existingPoolId == null) {
+                    // For Add Pool, fallbackUrl is null or the default resource URL, which is handled inside savePoolToFirestore
+                    savePoolToFirestore(poolData, fallbackUrl);
+                } else {
+                    // For Edit Pool, currentPhotoUrl is used (null if deleted, existing URL otherwise)
+                    updatePoolInFirestore(poolData, existingPoolId, fallbackUrl);
+                }
+            }
+        });
     }
 
     private void deletePool(String poolId) {
@@ -550,29 +573,7 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
                 });
     }
 
-    private PoolModel createPoolModelFromMap(Map<String, Object> poolData, String poolId) {
-        PoolModel pool = new PoolModel();
-
-        Long capacityLong = (Long) poolData.get("waterCapacityLiters");
-        Long runtimeLong = (Long) poolData.get("filterRuntimeHours");
-
-        pool.setPoolId(poolId);
-        pool.setUserId((String) poolData.get("userId"));
-        pool.setName((String) poolData.get("name"));
-        pool.setType((String) poolData.get("type"));
-        pool.setWaterCapacityLiters(capacityLong);
-        pool.setSanitizerType((String) poolData.get("sanitizerType"));
-        pool.setFilterRuntimeHours(runtimeLong);
-        pool.setLocation((GeoPoint) poolData.get("location"));
-        pool.setLocationAddress((String) poolData.get("locationAddress"));
-        Boolean isPublicObj = (Boolean) poolData.get("isPublic");
-        pool.setPublic(isPublicObj != null ? isPublicObj : false);
-        pool.setPhotoUrl((String) poolData.get("photoUrl"));
-        if (poolData.containsKey("createdAt")) {
-            pool.setCreatedAt((Long) poolData.get("createdAt"));
-        }
-        return pool;
-    }
+    // REMOVED: createPoolModelFromMap as it is not used in the save/update logic and is only a helper/utility for data conversion.
 
     @Nullable
     private Map<String, Object> getAndValidateInputs() {
@@ -656,91 +657,28 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
         return poolData;
     }
 
-    private void initiateSignedCloudinaryUpload(Map<String, Object> poolData, @Nullable String existingPoolId) {
-        // Use FilePathUtil to convert the URI (requires the utility file)
-        String photoPath = FilePathUtil.getRealPathFromURI(getContext(), selectedImageUri);
+    // REMOVED: initiateSignedCloudinaryUpload method. Replaced by startPoolImageUpload.
 
-        if (photoPath == null) {
-            Toast.makeText(getContext(), "Could not resolve photo path. Saving without photo.", Toast.LENGTH_LONG).show();
-            // Fallback: Use the existing photo or null if a new one failed.
-            savePoolToFirestore(poolData, existingPoolId, currentPhotoUrl);
-            return;
-        }
-
-        // 1. Call the Firebase Function to get the secure signature
-        Map<String, Object> data = new HashMap<>();
-        data.put("folder", "pool_images");
-
-        mFunctions.getHttpsCallable("generateCloudinarySignature")
-                .call(data)
-                .addOnSuccessListener(task -> {
-                    Map<String, Object> result = (Map<String, Object>) ((HttpsCallableResult) task).getData();
-                    String signature = (String) result.get("signature");
-                    long timestamp = ((Number) result.get("timestamp")).longValue();
-                    String cloudName = (String) result.get("cloudName");
-                    String apiKey = (String) result.get("apiKey");
-
-                    // 2. Initialize Cloudinary
-                    Context context = getContext();
-                    if (context == null) return;
-                    Map config = new HashMap();
-                    config.put("cloud_name", cloudName);
-                    MediaManager.init(context, config);
-
-                    // 3. Perform the Signed Upload
-                    MediaManager.get().upload(photoPath)
-                            .option("signature", signature)
-                            .option("timestamp", timestamp)
-                            .option("api_key", apiKey)
-                            .option("folder", "pool_images")
-                            .callback(new UploadCallback() {
-                                @Override public void onStart(String requestId) {
-                                    btnAddPool.setText("Uploading Photo...");
-                                }
-                                @Override public void onProgress(String requestId, long bytes, long totalBytes) {
-                                    int percent = (int) (100 * bytes / totalBytes);
-                                    btnAddPool.setText(String.format("Uploading (%d%%)", percent));
-                                }
-
-                                @Override
-                                public void onSuccess(String requestId, Map resultData) {
-                                    String photoUrl = (String) resultData.get("secure_url");
-                                    // 4. Submission: Save pool with the secure URL
-                                    savePoolToFirestore(poolData, existingPoolId, photoUrl);
-                                }
-
-                                @Override
-                                public void onError(String requestId, ErrorInfo error) {
-                                    Log.e(TAG, "Cloudinary Upload error: " + error.getDescription());
-                                    Toast.makeText(context, "Photo Upload Failed. Saving pool with existing/default photo.", Toast.LENGTH_LONG).show();
-                                    // Fallback: Use the existing photo or null
-                                    savePoolToFirestore(poolData, existingPoolId, currentPhotoUrl);
-                                }
-
-                                @Override public void onReschedule(String requestId, ErrorInfo error) { }
-                            }).dispatch();
-
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Firebase Function call failed: " + e.getMessage());
-                    Toast.makeText(getContext(), "Secure connection failed. Saving pool with existing/default photo.", Toast.LENGTH_LONG).show();
-                    // Fallback: Use the existing photo or null
-                    savePoolToFirestore(poolData, existingPoolId, currentPhotoUrl);
-                });
-    }
-    private void savePoolToFirestore(Map<String, Object> poolData, @Nullable String existingPoolId, @Nullable String photoUrl) {
+    /**
+     * Handles Firestore submission for a NEW pool.
+     */
+    private void savePoolToFirestore(Map<String, Object> poolData, @Nullable String photoUrl) {
         long createdAt = System.currentTimeMillis();
         poolData.put("createdAt", createdAt);
 
+        // Ensure numbers are stored as Long
         poolData.put("waterCapacityLiters", ((Integer)poolData.get("waterCapacityLiters")).longValue());
         poolData.put("filterRuntimeHours", ((Integer)poolData.get("filterRuntimeHours")).longValue());
 
+        // Handle photoUrl for new pool
         if (photoUrl != null && !photoUrl.isEmpty() && !photoUrl.startsWith("android.resource")) {
             // Only include the photoUrl field if it's a valid Cloudinary URL
             poolData.put("photoUrl", photoUrl);
         } else {
+            // If it's the default photo or null, don't save a photoUrl field.
             poolData.remove("photoUrl");
         }
+
         db.collection("pools")
                 .add(poolData)
                 .addOnSuccessListener(documentReference -> {
@@ -781,10 +719,22 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
                 });
     }
 
-    private void updatePoolInFirestore(Map<String, Object> poolData, @NonNull String poolId) {
+    /**
+     * Handles Firestore submission for an EXISTING pool.
+     */
+    private void updatePoolInFirestore(Map<String, Object> poolData, @NonNull String poolId, @Nullable String photoUrl) {
+        // Ensure numbers are stored as Long
         poolData.put("waterCapacityLiters", ((Integer)poolData.get("waterCapacityLiters")).longValue());
         poolData.put("filterRuntimeHours", ((Integer)poolData.get("filterRuntimeHours")).longValue());
 
+        // Handle photoUrl for existing pool
+        if (photoUrl != null && !photoUrl.isEmpty()) {
+            // Keep the existing or use the new Cloudinary URL
+            poolData.put("photoUrl", photoUrl);
+        } else {
+            // Photo explicitly removed (photoUrl is null from deleteSelectedPhoto)
+            poolData.put("photoUrl", FieldValue.delete());
+        }
 
         db.collection("pools").document(poolId)
                 .update(poolData)
@@ -897,41 +847,39 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
 
         popup.show();
     }
-private void loadBitmapFromUrl(String url) {
-    geocodeExecutor.execute(() -> {
-        Bitmap bitmap = null;
-        try {
-            // 1. Open a network stream to the Cloudinary URL
-            InputStream in = new URL(url).openStream();
+    private void loadBitmapFromUrl(String url) {
+        geocodeExecutor.execute(() -> {
+            Bitmap bitmap = null;
+            try {
 
-            // 2. Decode the stream into a Bitmap (memory intensive step)
-            bitmap = BitmapFactory.decodeStream(in);
-            Log.d(TAG, "Successfully decoded bitmap from URL.");
+                InputStream in = new URL(url).openStream();
+                bitmap = BitmapFactory.decodeStream(in);
+                Log.d(TAG, "Successfully decoded bitmap from URL.");
 
-        } catch (Exception e) {
-            Log.e(TAG, "Error loading bitmap from URL: " + e.getMessage());
-        }
-
-        Bitmap finalBitmap = bitmap;
-        // 3. Update the UI on the main thread
-        requireActivity().runOnUiThread(() -> {
-            if (finalBitmap != null) {
-                ivSelectedPhoto.setImageBitmap(finalBitmap);
-
-               // Set the ImageView visible after successful load
-                ivSelectedPhoto.setVisibility(View.VISIBLE);
-
-                // Ensure parent container/button visibility is correct
-                flImageContainer.setVisibility(View.VISIBLE);
-                llPlaceholder.setVisibility(View.GONE);
-                btnDeletePhoto.setVisibility(View.VISIBLE);
-
-            } else {
-                Toast.makeText(getContext(), "Failed to load image.", Toast.LENGTH_LONG).show();
-                // Fallback to the placeholder view logic if the fetch failed
-                updateImageView();
+            } catch (Exception e) {
+                Log.e(TAG, "Error loading bitmap from URL: " + e.getMessage());
             }
+
+            Bitmap finalBitmap = bitmap;
+            // 3. Update the UI on the main thread
+            requireActivity().runOnUiThread(() -> {
+                if (finalBitmap != null) {
+                    ivSelectedPhoto.setImageBitmap(finalBitmap);
+
+                    // Set the ImageView visible after successful load
+                    ivSelectedPhoto.setVisibility(View.VISIBLE);
+
+                    // Ensure parent container/button visibility is correct
+                    flImageContainer.setVisibility(View.VISIBLE);
+                    llPlaceholder.setVisibility(View.GONE);
+                    btnDeletePhoto.setVisibility(View.VISIBLE);
+
+                } else {
+                    Toast.makeText(getContext(), "Failed to load image.", Toast.LENGTH_LONG).show();
+                    // Fallback to the placeholder view logic if the fetch failed
+                    updateImageView();
+                }
+            });
         });
-    });
-}
+    }
 }

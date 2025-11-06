@@ -1,0 +1,49 @@
+The current priority should be to complete the action flow for the quotes, as this is the core decision-making point for the Pool Owner.
+
+1. Implement Quote Action Screen/Dialog (Critical)
+Currently, clicking a quote card shows a placeholder toast message. This step involves creating the UI where the Pool Owner (PO) decides to accept or reject a quote.
+
+Action: Create a QuoteActionDialogFragment (a modal dialog or a full fragment) that is launched when the user clicks an item in the recycler_quotes list.
+
+Contents: This screen must display the full quote details (including the detailed description) and two clear action buttons:
+
+Accept Quote: Changes the quote status to "Accepted" and, critically, changes the parent Service Request status to "Booked." This usually invalidates all other active quotes.
+
+Reject Quote: Changes the quote status to "Rejected."
+
+2. Implement Quote Sorting and Filtering Logic (Enhancement)
+The ViewModel and Adapter are set up, but the buttons are not functional.
+
+Sorting: Implement the logic behind the Sort Button to re-order the quoteList based on Price (Low to High / High to Low) and possibly Date (Newest).
+
+Filtering: Implement the logic behind the Filter Button to show only quotes of a specific status (e.g., "New," "Accepted").
+
+3. Implement Request Management Menu (Completion)
+Complete the functionality for the main list screen's options menu.
+
+Action: Implement the onMenuClick method in PO_ServiceRequestList to display a PopupMenu anchored to the three-dot button.
+
+Options: The menu should include "Delete Request" and potentially "Edit Request."
+
+Flow Diagram
+This diagram highlights the main piece of functionality needed next (the Quote Action Dialog).
+
+Comprehensive Prompt for Resuming Work Tomorrow
+Use the following prompt to pick up right where we left off, focusing on the critical Quote Action Dialog and its logic:
+
+Plaintext
+
+We have completed the list screen (Screen 1) and the detail screen (Screen 3) layouts and data fetching. The next critical step is creating the interactive dialog for the Pool Owner to take action on a submitted quote.
+
+Please implement a new Android Fragment called **QuoteActionDialogFragment**. This dialog should be launched when a user clicks a quote card in the PO_ServiceRequestDetails fragment.
+
+The implementation must include:
+1.  **XML Layout (fragment_quote_action_dialog.xml):** A clean layout to display all fields from the `QuoteModel` (Business Name, Price, Detailed Description, Date). It must contain two clear action buttons: **btn_accept_quote** and **btn_reject_quote**.
+2.  **Java Fragment (QuoteActionDialogFragment.java):**
+    * It must receive the selected `QuoteModel` data via arguments (or a similar method).
+    * It must have a click listener for the **Accept** button. This listener should perform the following critical database updates:
+        * Update the specific Quote document status to **"Accepted."**
+        * Update the parent **Service Request document status to "Booked"** (or "Pending Service").
+    * It must have a click listener for the **Reject** button, which updates the Quote document status to **"Rejected."**
+
+Do not worry about the sorting and filtering logic yet; focus solely on the dialog UI and the **Accept/Reject Firestore update logic** first.

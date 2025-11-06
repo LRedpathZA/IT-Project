@@ -83,7 +83,7 @@
                 app:endIconTint="@color/black">
 
                 <AutoCompleteTextView
-                    android:id="@+id/actv_service_type"
+                    android:id="@+id/et_service_type"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:inputType="none"
@@ -134,8 +134,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@drawable/dashed_border_area"
-                    android:clickable="true"
-                    android:focusable="true"
+
                     android:gravity="center"
                     android:orientation="vertical">
 
@@ -145,7 +144,7 @@
                         android:layout_marginBottom="4dp"
                         android:contentDescription="Upload Icon"
                         android:src="@drawable/camera"
-                      />
+                        />
 
                     <TextView
                         android:layout_width="wrap_content"

@@ -1,9 +1,11 @@
 package com.example.splashscreen;
 
+import android.Manifest; // ADDED
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager; // ADDED
 import android.net.Uri;
+import android.os.Build; // ADDED
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -23,6 +25,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat; // ADDED
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -31,16 +34,11 @@ import com.example.splashscreen.data.models.PoolViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-// New Firebase Functions Imports
 import com.google.firebase.functions.FirebaseFunctions;
-import com.google.firebase.functions.HttpsCallableResult;
 
-// New Cloudinary Imports
-import com.cloudinary.android.MediaManager;
-import com.cloudinary.android.callback.ErrorInfo;
-import com.cloudinary.android.callback.UploadCallback;
-// Utility for converting local file URI to a real file path (needed for Cloudinary upload)
-import com.example.splashscreen.utils.FilePathUtil;
+// ⭐ IMPORTS FOR UTILITY CLASS
+import com.example.splashscreen.utils.ImageUploadManager;
+import com.example.splashscreen.utils.UploadListener;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,12 +47,14 @@ import java.util.Objects;
 public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
 
     private static final String TAG = "PO_ServiceRequest";
+    private static final String DEFAULT_POST_TEXT = "Post Service Request";
+    private static final String SERVICE_REQUEST_FOLDER = "service_requests"; // Folder for uploads
 
     // UI Components
     private TextView tvRequestPoolName, tvRequestPoolLocation;
     private EditText etServiceType, etRequestDescription;
 
-    // ✅ RE-ADDED: Photo upload UI components
+    // Photo upload UI components
     private FrameLayout flImageContainer;
     private ImageView ivSelectedRequestPhoto;
     private ImageButton btnDeleteRequestPhoto;
@@ -67,15 +67,18 @@ public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
     private FirebaseFirestore db;
     private PoolViewModel poolViewModel;
 
-    // ✅ RE-ADDED: Photo URI member
+    // Photo URI member
     private Uri selectedImageUri = null;
     private PoolModel currentPool = null;
 
-    // New: Firebase Functions Instance
+    // Firebase Functions Instance (still used for potential other calls)
     private FirebaseFunctions mFunctions;
 
-    // ✅ RE-ADDED: ActivityResultLauncher for image chooser
+    // ActivityResultLauncher for image chooser
     private ActivityResultLauncher<Intent> imageChooserLauncher;
+
+    // ⭐ NEW: ActivityResultLauncher for handling image permission requests
+    private ActivityResultLauncher<String[]> requestImagePermissionsLauncher;
 
     public PO_ServiceRequest() {
         // Required empty public constructor
@@ -86,17 +89,37 @@ public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
         super.onCreate(savedInstanceState);
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        mFunctions = FirebaseFunctions.getInstance(); // Keep init for consistency
 
-        // Initialize Firebase Functions instance
-        mFunctions = FirebaseFunctions.getInstance();
-
-        // Initialize the ActivityResultLauncher
+        // Initialize the ActivityResultLauncher for image selection
         imageChooserLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                         selectedImageUri = result.getData().getData();
                         updateImageView();
+                    }
+                });
+
+        // ⭐ NEW: Initialize the ActivityResultLauncher for permission requests
+        requestImagePermissionsLauncher =
+                registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                    boolean granted = false;
+                    for (Boolean isGranted : result.values()) {
+                        if (isGranted) {
+                            granted = true;
+                            break;
+                        }
+                    }
+
+                    if (granted) {
+                        // Permission granted, proceed to select image
+                        launchImageChooserIntent();
+                    } else {
+                        // Permission denied
+                        if (getContext() != null) {
+                            Toast.makeText(getContext(), "Storage permission is required to select photos.", Toast.LENGTH_LONG).show();
+                        }
                     }
                 });
     }
@@ -109,8 +132,8 @@ public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
 
     @Override
     public void updateActivityHeader() {
-        if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).updateHeader("Create Service Request", true, true);
+        if (requireActivity() instanceof MainActivity) {
+            ((MainActivity) requireActivity()).updateHeader("Create Service Request", true, true);
         }
     }
 
@@ -132,7 +155,6 @@ public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
         etServiceType = view.findViewById(R.id.et_service_type);
         etRequestDescription = view.findViewById(R.id.et_request_description);
 
-        // ✅ RE-ADDED: Initializing photo upload UI components
         flImageContainer = view.findViewById(R.id.fl_image_container_request);
         ivSelectedRequestPhoto = view.findViewById(R.id.iv_selected_request_photo);
         btnDeleteRequestPhoto = view.findViewById(R.id.btn_delete_request_photo);
@@ -142,46 +164,93 @@ public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
         btnCancelRequest = view.findViewById(R.id.btn_cancel_request);
 
         // 2. Observe Pool Data and Pre-fill
-        // ... (Pool data observation logic remains the same)
-        poolViewModel.currentPoolModel.observe(getViewLifecycleOwner(), pool -> {
-            if (pool != null && Objects.requireNonNullElse(pool.isPublic(), false) && pool.getLocation() != null) {
-                currentPool = pool;
-                tvRequestPoolName.setText(pool.getName());
-
-                String locationText = pool.getLocationAddress() != null ?
-                        "Location: " + pool.getLocationAddress() :
-                        String.format("Coordinates: Lat %.4f, Lng %.4f",
-                                pool.getLocation().getLatitude(), pool.getLocation().getLongitude());
-                tvRequestPoolLocation.setText(locationText);
-                btnPostRequest.setEnabled(true);
-            } else {
-                currentPool = null;
-                tvRequestPoolName.setText("No Public Pool Available");
-                tvRequestPoolLocation.setText("Please make your pool public and ensure its location is saved to request services.");
-                btnPostRequest.setEnabled(false);
-                Toast.makeText(getContext(), "You need a public pool with a location to post a request.", Toast.LENGTH_LONG).show();
-            }
-        });
-
+        poolViewModel.currentPoolModel.observe(getViewLifecycleOwner(), this::updatePoolDataUI);
 
         // 3. Set Listeners
         etServiceType.setOnClickListener(this::showServiceTypeSelectionMenu);
 
-        // ✅ RE-ADDED: Photo upload listeners
-        flImageContainer.setOnClickListener(v -> openImageChooser());
+        // ⭐ UPDATED: Call permission check instead of direct chooser
+        flImageContainer.setOnClickListener(v -> checkImageStoragePermission());
+        ivSelectedRequestPhoto.setOnClickListener(v -> checkImageStoragePermission()); // Optional: Add click on image itself
+
         btnDeleteRequestPhoto.setOnClickListener(v -> deleteSelectedPhoto());
 
         // Updated button listener to call the secure upload logic
         btnPostRequest.setOnClickListener(v -> uploadPhotoAndPostRequest());
 
-        btnCancelRequest.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                getParentFragmentManager().popBackStack();
-            }
-        });
+        btnCancelRequest.setOnClickListener(v -> getParentFragmentManager().popBackStack());
     }
 
-    private void openImageChooser() {
+    private void updatePoolDataUI(PoolModel pool) {
+        boolean isValidPool = pool != null && Objects.requireNonNullElse(pool.isPublic(), false) && pool.getLocation() != null;
+
+        if (isValidPool) {
+            currentPool = pool;
+            tvRequestPoolName.setText(pool.getName());
+
+            String locationText = pool.getLocationAddress() != null ?
+                    "Location: " + pool.getLocationAddress() :
+                    String.format("Coordinates: Lat %.4f, Lng %.4f",
+                            pool.getLocation().getLatitude(), pool.getLocation().getLongitude());
+            tvRequestPoolLocation.setText(locationText);
+            btnPostRequest.setEnabled(true);
+        } else {
+            currentPool = null;
+            tvRequestPoolName.setText("No Public Pool Available");
+            tvRequestPoolLocation.setText("Please make your pool public and ensure its location is saved to request services.");
+            btnPostRequest.setEnabled(false);
+            Toast.makeText(requireContext(), "You need a public pool with a location to post a request.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * ⭐ NEW: Handles the logic for checking and requesting necessary storage permissions.
+     */
+    private void checkImageStoragePermission() {
+        String[] permissionsToRequest;
+        Toast.makeText(getContext(),"Hello World",Toast.LENGTH_SHORT);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // API 34+ (Android 14)
+            permissionsToRequest = new String[]{
+                    Manifest.permission.READ_MEDIA_IMAGES,
+                    Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+            };
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // API 33 (Android 13)
+            // Request only READ_MEDIA_IMAGES
+            permissionsToRequest = new String[]{
+                    Manifest.permission.READ_MEDIA_IMAGES
+            };
+        } else { // API 32 and below (Android 12-)
+            // Use the legacy READ_EXTERNAL_STORAGE
+            permissionsToRequest = new String[]{
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+            };
+        }
+
+        if (getContext() == null) return;
+
+        // Check if permissions are already granted
+        boolean allGranted = true;
+        for (String permission : permissionsToRequest) {
+            if (ContextCompat.checkSelfPermission(requireContext(), permission) != PackageManager.PERMISSION_GRANTED) {
+                allGranted = false;
+                break;
+            }
+        }
+
+        if (!allGranted) {
+            // Request the necessary permissions at runtime using the launcher
+            requestImagePermissionsLauncher.launch(permissionsToRequest);
+        } else {
+            // Permissions already granted, launch the chooser immediately
+            launchImageChooserIntent();
+        }
+    }
+
+    /**
+     * ⭐ RENAMED/MODIFIED: Starts the Intent to choose an image from the gallery.
+     */
+    private void launchImageChooserIntent() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         imageChooserLauncher.launch(intent);
     }
@@ -205,8 +274,7 @@ public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
     }
 
     private void showServiceTypeSelectionMenu(View anchorView) {
-        if (getContext() == null) return;
-        PopupMenu popup = new PopupMenu(getContext(), anchorView);
+        PopupMenu popup = new PopupMenu(requireContext(), anchorView);
         popup.getMenu().add("Routine Cleaning & Chemical Balance");
         popup.getMenu().add("Filter/Pump Equipment Repair");
         popup.getMenu().add("Leak Detection and Repair");
@@ -221,13 +289,18 @@ public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
     }
 
     // =========================================================================
-    // =========== NEW SECURE UPLOAD & SUBMISSION LOGIC ========================
+    // =========== CLEANER SUBMISSION LOGIC USING UTILITY CLASS ================
     // =========================================================================
+
+    private void resetPostButton(String message) {
+        btnPostRequest.setEnabled(true);
+        btnPostRequest.setText(message);
+    }
 
     private void uploadPhotoAndPostRequest() {
         // 1. Validation and Pre-checks
         if (currentPool == null || mAuth.getCurrentUser() == null) {
-            Toast.makeText(getContext(), "Error: Pool data or user not available.", Toast.LENGTH_LONG).show();
+            Toast.makeText(requireContext(), "Error: Pool data or user not available.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -235,7 +308,7 @@ public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
         String description = etRequestDescription.getText().toString().trim();
 
         if (serviceType.isEmpty() || description.isEmpty()) {
-            Toast.makeText(getContext(), "Please select a service type and provide a description.", Toast.LENGTH_LONG).show();
+            Toast.makeText(requireContext(), "Please select a service type and provide a description.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -244,97 +317,46 @@ public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
         btnPostRequest.setText(selectedImageUri != null ? "Uploading Photo..." : "Posting Request...");
 
         if (selectedImageUri != null) {
-            // Initiate the secure upload process
-            initiateSignedCloudinaryUpload(serviceType, description);
+            // Initiate the secure upload process using the manager
+            ImageUploadManager.uploadImage(requireContext(), selectedImageUri, SERVICE_REQUEST_FOLDER, new UploadListener() {
+                @Override
+                public void onStart() {
+                    btnPostRequest.setText("Uploading... (0%)");
+                }
+
+                @Override
+                public void onProgress(int percent) {
+                    btnPostRequest.setText("Uploading... (" + percent + "%)");
+                }
+
+                @Override
+                public void onSuccess(String url) {
+                    // Photo uploaded successfully, proceed to save the request
+                    saveRequestToFirestore(serviceType, description, url);
+                }
+
+                @Override
+                public void onFailure(String error) {
+                    Log.e(TAG, "Upload Failed: " + error);
+                    Toast.makeText(requireContext(), "Photo Upload Failed. Posting request without photo.", Toast.LENGTH_LONG).show();
+                    // Proceed to save the request without the photo URL
+                    saveRequestToFirestore(serviceType, description, null);
+                }
+            });
         } else {
             // No photo selected, proceed directly to save
             saveRequestToFirestore(serviceType, description, null);
         }
     }
 
-    private void initiateSignedCloudinaryUpload(String serviceType, String description) {
-        // Convert URI to actual file path, needed for Cloudinary's upload dispatcher
-        String photoPath = FilePathUtil.getRealPathFromURI(getContext(), selectedImageUri);
 
-        if (photoPath == null) {
-            Toast.makeText(getContext(), "Could not resolve photo path.", Toast.LENGTH_LONG).show();
-            saveRequestToFirestore(serviceType, description, null); // Proceed without photo
+    private void saveRequestToFirestore(String serviceType, String description, @Nullable String photoUrl) {
+        if (mAuth.getCurrentUser() == null || currentPool == null) {
+            Toast.makeText(requireContext(), "Internal Error: User or Pool not available for saving.", Toast.LENGTH_LONG).show();
+            resetPostButton(DEFAULT_POST_TEXT);
             return;
         }
 
-        // 1. Call the Firebase Function to get the secure signature
-        Map<String, Object> data = new HashMap<>();
-        data.put("folder", "service_requests"); // The folder name for Cloudinary
-
-        mFunctions.getHttpsCallable("generateCloudinarySignature")
-                .call(data)
-                .addOnSuccessListener(task -> {
-                    // Task successful: got the signature data from the backend
-                    Map<String, Object> result = (Map<String, Object>) ((HttpsCallableResult) task).getData();
-                    String signature = (String) result.get("signature");
-                    long timestamp = ((Number) result.get("timestamp")).longValue();
-                    String cloudName = (String) result.get("cloudName");
-                    String apiKey = (String) result.get("apiKey");
-
-                    // 2. Initialize Cloudinary with the retrieved secure parameters
-                    Context context = getContext();
-                    if (context == null) return;
-
-                    // NOTE: Initialization is done here for a signed upload scope.
-                    Map config = new HashMap();
-                    config.put("cloud_name", cloudName);
-                    // We use the api_key for the upload call, but the api_secret remains on the server
-                    MediaManager.init(context, config);
-
-                    // 3. Perform the Signed Upload
-                    MediaManager.get().upload(photoPath)
-                            .option("signature", signature)       // Signed Upload parameter
-                            .option("timestamp", timestamp)       // Signed Upload parameter
-                            .option("api_key", apiKey)            // API Key for identification
-                            .option("folder", "service_requests") // Redundant but good to ensure
-                            .callback(new UploadCallback() {
-                                @Override
-                                public void onStart(String requestId) {
-                                    btnPostRequest.setText("Uploading... (0%)");
-                                }
-
-                                @Override
-                                public void onProgress(String requestId, long bytes, long totalBytes) {
-                                    int percent = (int) (100 * bytes / totalBytes);
-                                    btnPostRequest.setText("Uploading... (" + percent + "%)");
-                                }
-
-                                @Override
-                                public void onSuccess(String requestId, Map resultData) {
-                                    String photoUrl = (String) resultData.get("secure_url");
-                                    // 4. Submission: Continue with the request submission
-                                    saveRequestToFirestore(serviceType, description, photoUrl);
-                                }
-
-                                @Override
-                                public void onError(String requestId, ErrorInfo error) {
-                                    Log.e(TAG, "Cloudinary Upload error: " + error.getDescription());
-                                    Toast.makeText(context, "Photo Upload Failed. Posting request without photo.", Toast.LENGTH_LONG).show();
-                                    saveRequestToFirestore(serviceType, description, null); // Submit without photo
-                                }
-
-                                @Override
-                                public void onReschedule(String requestId, ErrorInfo error) {
-                                    // Can add logic to handle background re-upload attempts
-                                }
-                            }).dispatch();
-
-                })
-                .addOnFailureListener(e -> {
-                    // Function call failed (network error, auth error, etc.)
-                    Log.e(TAG, "Firebase Function call failed: " + e.getMessage());
-                    Toast.makeText(getContext(), "Secure connection failed. Posting without photo.", Toast.LENGTH_LONG).show();
-                    saveRequestToFirestore(serviceType, description, null); // Submit without photo
-                });
-    }
-
-
-    private void saveRequestToFirestore(String serviceType, String description, @Nullable String photoUrl) {
         String ownerId = mAuth.getCurrentUser().getUid();
 
         // Prepare data map for the service_requests collection
@@ -342,7 +364,6 @@ public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
         requestData.put("ownerId", ownerId);
         requestData.put("poolId", currentPool.getPoolId());
 
-        // Duplicated pool details for security/proximity search
         requestData.put("poolName", currentPool.getName());
         requestData.put("poolLocation", currentPool.getLocation()); // GeoPoint
         requestData.put("poolLocationAddress", currentPool.getLocationAddress());
@@ -351,33 +372,28 @@ public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
         requestData.put("description", description);
         requestData.put("status", "Open"); // Initial status
         requestData.put("createdAt", System.currentTimeMillis());
-        // Simple expiry: 7 days from now
-        requestData.put("expiryDate", System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L));
+        requestData.put("expiryDate", System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)); // 7 days expiry
 
-        // ✅ RE-ADDED: photoUrl field logic
+        // photoUrl field logic
         if (photoUrl != null) {
             requestData.put("photoUrl", photoUrl);
         }
+
+        // Update button text while saving
+        btnPostRequest.setText("Saving Request...");
 
         // Save to Firestore
         db.collection("service_requests")
                 .add(requestData)
                 .addOnSuccessListener(documentReference -> {
-                    if (getContext() != null) {
-                        Toast.makeText(getContext(), "Service Request Posted Successfully!", Toast.LENGTH_LONG).show();
-                    }
+                    Toast.makeText(requireContext(), "Service Request Posted Successfully!", Toast.LENGTH_LONG).show();
                     // Navigate back after success
-                    if (getActivity() != null) {
-                        getParentFragmentManager().popBackStack();
-                    }
+                    getParentFragmentManager().popBackStack();
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error saving service request", e);
-                    if (getContext() != null) {
-                        Toast.makeText(getContext(), "Failed to post request: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                    btnPostRequest.setEnabled(true);
-                    btnPostRequest.setText("Post Service Request");
+                    Toast.makeText(requireContext(), "Failed to post request: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    resetPostButton(DEFAULT_POST_TEXT); // Re-enable on failure
                 });
     }
 }

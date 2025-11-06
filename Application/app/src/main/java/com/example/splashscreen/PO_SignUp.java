@@ -2,6 +2,7 @@ package com.example.splashscreen;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType; // REQUIRED: For managing password visibility
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView; // REQUIRED: For the visibility icon
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -29,22 +31,23 @@ public class PO_SignUp extends Fragment {
     private FirebaseFirestore db;
 
     // View components
-    private EditText usernameEditText,passwordEditText,emailEditText;
+    private EditText usernameEditText, passwordEditText, emailEditText;
+    private ImageView passwordToggleIcon; // Declare the ImageView
 
     private Button signupButton;
     private CheckBox termsCheckbox;
+    private TextView loginLink, businessLink;
 
-    private TextView loginLink,businessLink;
-
+    // State variable to track password visibility
+    private boolean isPasswordVisible = false;
 
     public PO_SignUp() {
-        // Required empty public constructor -- Standards?
+        // Required empty public constructor
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Initialize Firebase Auth and Firestore
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
     }
@@ -52,24 +55,44 @@ public class PO_SignUp extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.po_signup, container, false);
-
-        // Find the views
         usernameEditText = view.findViewById(R.id.usernameEditText);
         emailEditText = view.findViewById(R.id.emailEditText);
         passwordEditText = view.findViewById(R.id.passwordEditText);
+        passwordToggleIcon = view.findViewById(R.id.passwordIcon); // Find the ImageView by its ID
         signupButton = view.findViewById(R.id.signupButton);
         termsCheckbox = view.findViewById(R.id.termsCheckbox);
         loginLink = view.findViewById(R.id.loginLink);
         businessLink = view.findViewById(R.id.businessLink);
+
+        passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+
+        passwordToggleIcon.setImageResource(R.drawable.hide);
+
+        // 2. Set the click listener on the icon
+        passwordToggleIcon.setOnClickListener(v -> {
+            if (isPasswordVisible) {
+                // Currently visible -> Change to hidden
+                passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                passwordToggleIcon.setImageResource(R.drawable.hide);
+            } else {
+                // Currently hidden -> Change to visible
+                passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                passwordToggleIcon.setImageResource(R.drawable.eye); // Ensure you have an 'ic_visibility' drawable
+            }
+
+
+            passwordEditText.setSelection(passwordEditText.getText().length());
+
+
+            isPasswordVisible = !isPasswordVisible;
+        });
 
         // Set up the OnClickListener for the Sign Up button
         signupButton.setOnClickListener(v -> {
             String name = usernameEditText.getText().toString().trim();
             String email = emailEditText.getText().toString().trim();
             String password = passwordEditText.getText().toString().trim();
-
 
             if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 NotificationHelper.showNotification(
@@ -79,8 +102,7 @@ public class PO_SignUp extends Fragment {
                         NotificationHelper.NotificationType.ERROR
                 );
             }
-            else if(!termsCheckbox.isChecked())
-            {
+            else if(!termsCheckbox.isChecked()) {
                 NotificationHelper.showNotification(
                         getView(),
                         "Missing Agreement",
@@ -94,14 +116,15 @@ public class PO_SignUp extends Fragment {
         });
 
         loginLink.setOnClickListener(v -> {
+            // Your navigation code for switching to LoginFragment
             getActivity().getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new LoginFragment())
                     .addToBackStack(null)
                     .commit();
-
         });
 
         businessLink.setOnClickListener(v -> {
+            // Your navigation code for switching to SP_SignUp fragment
             getActivity().getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new SP_SignUp())
                     .addToBackStack(null)
@@ -115,13 +138,11 @@ public class PO_SignUp extends Fragment {
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // User created successfully, now we can save their details to Firestore :D
                         FirebaseUser user = auth.getCurrentUser();
                         if (user != null) {
                             saveUserToFirestore(user, name, email);
                         }
                     } else {
-                        // Handle authentication failure :(
                         Log.e("PO_SignUp", "Authentication failed: " + task.getException().getMessage());
                         NotificationHelper.showNotification(
                                 getView(),
@@ -134,13 +155,11 @@ public class PO_SignUp extends Fragment {
     }
 
     private void saveUserToFirestore(FirebaseUser firebaseUser, String name, String email) {
-        // Create a new map with user details
         Map<String, Object> user = new HashMap<>();
         user.put("name", name);
         user.put("email", email);
-        user.put("role_id", 1); // Default to 'Normal User' role_id
+        user.put("role_id", 1);
 
-        // Add a new document with the user's ID
         db.collection("users").document(firebaseUser.getUid())
                 .set(user)
                 .addOnSuccessListener(aVoid -> {
@@ -150,7 +169,6 @@ public class PO_SignUp extends Fragment {
                             "The account under " + name + " was successfully created.",
                             NotificationHelper.NotificationType.ERROR
                     );
-                    // Navigate to the next activity (e.g., MainActivity)
                     Intent intent = new Intent(getContext(), MainActivity.class);
                     startActivity(intent);
                     if (getActivity() != null) {
@@ -171,6 +189,5 @@ public class PO_SignUp extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // You'll need to nullify the views to prevent memory leaks if you use View Binding
     }
 }

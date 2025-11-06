@@ -105,6 +105,7 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
         userViewModel.userData.observe(getViewLifecycleOwner(), document -> {
             // This runs instantly whenever the data changes anywhere in the app
             if (getContext() != null) {
+                // 4. Use the reusable Manager to load the latest picture
                 ProfilePictureManager.loadPicture(getContext(), document, ivProfileIcon);
             }
         });
