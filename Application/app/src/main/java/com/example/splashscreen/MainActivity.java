@@ -45,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int ROLE_SERVICE_PROVIDER = 2;
     public static String homePoolId;
 
+    // 💥 NEW: Flag to track if the initial fragment has been set
+    private boolean isInitialFragmentSet = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -145,8 +148,19 @@ public class MainActivity extends AppCompatActivity {
     private void observeUserData() {
         userViewModel.userRole.observe(this, userRole -> {
             if (userRole != null) {
+                // 1. Setup UI (always run on role update, as this is necessary for the drawer)
                 setupRoleBasedUI(userRole);
+                userViewModel.username.observe(this, this::populateDrawerUsername);
 
+
+                // 💥 2. FIX: Only set the initial fragment ONCE.
+                if (isInitialFragmentSet) {
+                    // If the initial fragment is already set, we stop here.
+                    // Any update (like a profile pic change) will only affect the drawer name/image.
+                    return;
+                }
+
+                // --- Initial Fragment Logic (Runs only once) ---
                 Fragment initialFragment = null;
                 if (ROLE_POOL_OWNER == userRole) {
                     initialFragment = new PO_HomeScreen();
@@ -159,9 +173,10 @@ public class MainActivity extends AppCompatActivity {
                 // Use the custom fragment replacement for the initial load
                 if (initialFragment != null) {
                     replaceFragment(initialFragment, false);
+                    isInitialFragmentSet = true; // Set the flag to true after the first load
                 }
+                // ----------------------------------------------
 
-                userViewModel.username.observe(this, this::populateDrawerUsername);
             } else {
                 Log.w("MainActivity", "User role is null after fetch. Logging out.");
                 logoutUser();
@@ -289,12 +304,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void navTest() {
-        // Example of a fragment navigation that should show the back button
         replaceFragment(new PO_AddPool(), true);
     }
 
     private void populateSpMenu(FrameLayout drawerContainer) {
-        // ... (Drawer population code remains the same)
         setMenuItemLabel(drawerContainer, R.id.btnMessages, "Message & Notifications");
         setMenuItemLabel(drawerContainer, R.id.btnSummary, "Summary");
         setMenuItemLabel(drawerContainer, R.id.btnLoadshedding, "Loadshedding");
@@ -305,12 +318,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void replaceFragment(Fragment fragment, boolean addToBackStack) {
-        // Clear back stack when navigating to a root/main screen (like Home or Calculator Selector)
         if (!addToBackStack) {
             getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
         }
-
-        // Begin the transaction
         androidx.fragment.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, fragment);
 
@@ -327,10 +337,9 @@ public class MainActivity extends AppCompatActivity {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            // If the back stack is managed, pop it
+
             getSupportFragmentManager().popBackStack();
         } else {
-            // Default behavior if on the root fragment
             super.onBackPressed();
         }
     }

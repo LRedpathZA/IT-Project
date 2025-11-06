@@ -26,20 +26,16 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.splashscreen.data.models.PoolViewModel;
 import com.example.splashscreen.data.models.UserViewModel;
 import com.example.splashscreen.utils.ImageUploadManager;
-import com.example.splashscreen.utils.ProfilePictureManager; // 💥 NEW
+import com.example.splashscreen.utils.ProfilePictureManager;
 import com.example.splashscreen.utils.UploadListener;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 
-// 💥 REMOVED: java.io.InputStream, java.net.URL, java.util.concurrent.ExecutorService, etc.
-
 public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelectionListener {
 
     private UserViewModel userViewModel;
     private PoolViewModel poolViewModel;
-
-    // 💥 REMOVED: networkExecutor and mainHandler (moved to ProfilePictureManager)
 
     // Profile UI elements
     private TextView tvUserName;
@@ -101,10 +97,9 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
     public void onResume() {
         super.onResume();
         updateActivityHeader();
-        String userId = getCurrentUserId();
-        if (userId != null) {
-            userViewModel.fetchUserData(userId);
-        }
+
+        // 💥 FIX 1: Removed redundant fetchUserData call from onResume.
+        // The real-time listener is already running from onViewCreated.
     }
 
     @Override
@@ -149,6 +144,12 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
 
         observeUserData();
         observePoolData();
+
+        // 💥 FIX 2: Moved fetchUserData here to start the real-time listener once
+        String userId = getCurrentUserId();
+        if (userId != null) {
+            userViewModel.fetchUserData(userId);
+        }
     }
 
     // --------------------------------------------------------
@@ -187,11 +188,11 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
 
         Toast.makeText(getContext(), "Built-in Avatar selected. Saving...", Toast.LENGTH_SHORT).show();
 
-        // Immediate UI update
+
         ivProfilePicture.setImageResource(resId);
         ivProfilePicture.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-        // Call ViewModel to persist the Resource ID (will trigger LiveData refresh)
+
         userViewModel.updateProfilePictureData(userId, null, resId);
     }
 
@@ -199,7 +200,7 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         String userId = getCurrentUserId();
         if (getContext() == null || userId == null) return;
 
-        // Immediate UI update
+        // Keep the immediate UI update for best UX while the file is uploading (network).
         ivProfilePicture.setImageURI(uri);
         ivProfilePicture.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
@@ -207,7 +208,6 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         ImageUploadManager.uploadProfileImage(getContext(), uri, new UploadListener() {
             @Override
             public void onStart() {
-                // Not using mainHandler here since we are already on the main thread (from Fragment)
                 Toast.makeText(getContext(), "Uploading photo...", Toast.LENGTH_SHORT).show();
             }
 
@@ -236,11 +236,9 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
 
         Toast.makeText(getContext(), "Upload success. Saving URL...", Toast.LENGTH_SHORT).show();
 
+        // This update triggers the real-time listener to update the LiveData cache
         userViewModel.updateProfilePictureData(userId, url, 0);
     }
-
-    // 💥 REMOVED: loadBitmapFromUrl (moved to ProfilePictureManager)
-    // 💥 REMOVED: loadProfilePicture (moved to ProfilePictureManager and called below)
 
     // --------------------------------------------------------
     //                  EXISTING LOGIC
@@ -250,11 +248,9 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         userViewModel.userData.observe(getViewLifecycleOwner(), document -> {
             updateUIWithUserData(document);
 
-            // 💥 FIX: Use the reusable ProfilePictureManager 💥
+            // This runs whenever the data changes (either from initial load or real-time update)
             if (getContext() != null) {
                 ProfilePictureManager.loadPicture(getContext(), document, ivProfilePicture);
-                // Note: Other fragments (like PO_HomeScreen) should also observe userData
-                // and call ProfilePictureManager.loadPicture on their respective ImageViews.
             }
         });
         userViewModel.isLoading.observe(getViewLifecycleOwner(), isLoading -> {

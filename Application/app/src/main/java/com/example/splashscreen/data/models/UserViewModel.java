@@ -1,8 +1,7 @@
 package com.example.splashscreen.data.models;
 
-import android.support.annotation.Nullable;
-
 import androidx.annotation.DrawableRes;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -12,6 +11,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.ListenerRegistration; // 💥 NEW IMPORT
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,11 +38,16 @@ public class UserViewModel extends ViewModel {
     private final MutableLiveData<Boolean> _isLoading = new MutableLiveData<>(false);
     public LiveData<Boolean> isLoading = _isLoading;
 
+    private ListenerRegistration userListenerRegistration;
+
     public GeoPoint getSpLocationGeoPoint() {
         return _spLocationGeoPoint.getValue();
     }
+
+    // 💥 MODIFIED: Use a real-time listener instead of a one-time get() 💥
     public void fetchUserData(String userId) {
-        if (_userData.getValue() != null) {
+        // Only start the listener if it's not already running
+        if (userListenerRegistration != null) {
             return;
         }
 
@@ -50,31 +55,39 @@ public class UserViewModel extends ViewModel {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference docRef = db.collection("users").document(userId);
 
-        docRef.get().addOnCompleteListener(task -> {
+        userListenerRegistration = docRef.addSnapshotListener((document, e) -> {
             _isLoading.setValue(false);
-            if (task.isSuccessful()) {
-                DocumentSnapshot document = task.getResult();
-                if (document != null && document.exists()) {
-                    _userData.setValue(document);
-                    _username.setValue(document.getString("name"));
-                    Long roleLong = document.getLong("role_id");
+            if (e != null) {
+                // Handle error
+                return;
+            }
 
-                    if (roleLong != null) {
-                        int role = roleLong.intValue();
-                        _userRole.setValue(role);
+            if (document != null && document.exists()) {
+                // This block runs immediately and every time data changes in Firestore
+                _userData.setValue(document);
+                _username.setValue(document.getString("name"));
+                Long roleLong = document.getLong("role_id");
 
-                        if (role == ROLE_SERVICE_PROVIDER) {
-                            _spLocationGeoPoint.setValue(document.getGeoPoint("location"));
-                            _spLocationAddress.setValue(document.getString("locationAddress"));
-                        }
+                if (roleLong != null) {
+                    int role = roleLong.intValue();
+                    _userRole.setValue(role);
+
+                    if (role == ROLE_SERVICE_PROVIDER) {
+                        _spLocationGeoPoint.setValue(document.getGeoPoint("location"));
+                        _spLocationAddress.setValue(document.getString("locationAddress"));
                     }
-                } else {
-                    //((MainActivity) getActivity()).logoutUser();
                 }
             } else {
-                // Handle error
+                // Document not found
             }
         });
+    }
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        if (userListenerRegistration != null) {
+            userListenerRegistration.remove();
+        }
     }
 
 
@@ -94,9 +107,9 @@ public class UserViewModel extends ViewModel {
         locationData.put("locationAddress", address);
         return locationData;
     }
+
     public void updateProfilePictureData(String userId, @Nullable String profilePictureUrl, @DrawableRes int avatarResId) {
         if (userId == null || userId.isEmpty()) {
-            // In a real app, you might log this error or notify the user
             return;
         }
 
@@ -107,30 +120,25 @@ public class UserViewModel extends ViewModel {
         Map<String, Object> updates = new HashMap<>();
 
         if (profilePictureUrl != null && !profilePictureUrl.isEmpty()) {
-            // Case 1: Custom photo was uploaded
             updates.put("profilePictureUrl", profilePictureUrl);
-            // Remove the built-in ID field
-            updates.put("profileAvatarResId", com.google.firebase.firestore.FieldValue.delete());
+            updates.put("profileAvatarResId", FieldValue.delete());
         } else if (avatarResId > 0) {
-            // Case 2: Built-in avatar was selected
-            updates.put("profileAvatarResId", avatarResId);
-            // Remove the custom URL field
-            updates.put("profilePictureUrl", com.google.firebase.firestore.FieldValue.delete());
+            updates.put("profileAvatarResId", (long) avatarResId);
+            updates.put("profilePictureUrl", FieldValue.delete());
         } else {
-            // Case 3: Both fields should be cleared (e.g., if a remove option was added)
-            updates.put("profilePictureUrl", com.google.firebase.firestore.FieldValue.delete());
-            updates.put("profileAvatarResId", com.google.firebase.firestore.FieldValue.delete());
+            updates.put("profilePictureUrl", FieldValue.delete());
+            updates.put("profileAvatarResId", FieldValue.delete());
         }
 
         userRef.update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    // Success: Force a refresh to update all observers (like the Main Header)
-                    fetchUserData(userId);
-                    // fetchUserData will set _isLoading to false
+                    // Success! The real-time listener will automatically pick up this change
+                    // from Firestore and update the LiveData (_userData).
+                    _isLoading.setValue(false);
                 })
                 .addOnFailureListener(e -> {
                     _isLoading.setValue(false);
-                    // TODO: Handle Firestore error (e.g., log error, show Toast to user)
+                    // Handle failure
                 });
     }
 }
