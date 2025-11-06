@@ -897,44 +897,6 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
 
         popup.show();
     }
-//    private void loadBitmapFromUrl(String url) {
-//        networkExecutor.execute(() -> {
-//            Bitmap bitmap = null;
-//            try {
-//                // 1. Open a network stream to the Cloudinary URL
-//                InputStream in = new URL(url).openStream();
-//
-//                // 2. Decode the stream into a Bitmap (memory intensive step)
-//                bitmap = BitmapFactory.decodeStream(in);
-//                Log.d(TAG, "Successfully decoded bitmap from URL.");
-//
-//            } catch (Exception e) {
-//                Log.e(TAG, "Error loading bitmap from URL: " + e.getMessage());
-//            }
-//
-//            Bitmap finalBitmap = bitmap;
-//            // 3. Update the UI on the main thread
-//            requireActivity().runOnUiThread(() -> {
-//                if (finalBitmap != null) {
-//                    ivSelectedPhoto.setImageBitmap(finalBitmap);
-//
-//                    // 💥 CRITICAL: Set the ImageView visible after successful load
-//                    ivSelectedPhoto.setVisibility(View.VISIBLE);
-//
-//                    // The container/button visibility should already be set by updateImageView(),
-//                    // but we'll include it for safety
-//                    flImageContainer.setVisibility(View.VISIBLE);
-//                    llPlaceholder.setVisibility(View.GONE);
-//                    btnDeletePhoto.setVisibility(View.VISIBLE);
-//
-//                } else {
-//                    Toast.makeText(getContext(), "Failed to load image via custom method.", Toast.LENGTH_LONG).show();
-//                    // Fallback to the placeholder view logic if the fetch failed
-//                    updateImageView();
-//                }
-//            });
-//        });
-//    }
 private void loadBitmapFromUrl(String url) {
     geocodeExecutor.execute(() -> {
         Bitmap bitmap = null;

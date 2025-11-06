@@ -1,5 +1,8 @@
 package com.example.splashscreen.data.models;
 
+import android.support.annotation.Nullable;
+
+import androidx.annotation.DrawableRes;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -89,5 +92,44 @@ public class UserViewModel extends ViewModel {
         locationData.put("location", new GeoPoint(lat, lon));
         locationData.put("locationAddress", address);
         return locationData;
+    }
+    public void updateProfilePictureData(String userId, @Nullable String profilePictureUrl, @DrawableRes int avatarResId) {
+        if (userId == null || userId.isEmpty()) {
+            // In a real app, you might log this error or notify the user
+            return;
+        }
+
+        _isLoading.setValue(true);
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userRef = db.collection("users").document(userId);
+
+        Map<String, Object> updates = new HashMap<>();
+
+        if (profilePictureUrl != null && !profilePictureUrl.isEmpty()) {
+            // Case 1: Custom photo was uploaded
+            updates.put("profilePictureUrl", profilePictureUrl);
+            // Remove the built-in ID field
+            updates.put("profileAvatarResId", com.google.firebase.firestore.FieldValue.delete());
+        } else if (avatarResId > 0) {
+            // Case 2: Built-in avatar was selected
+            updates.put("profileAvatarResId", avatarResId);
+            // Remove the custom URL field
+            updates.put("profilePictureUrl", com.google.firebase.firestore.FieldValue.delete());
+        } else {
+            // Case 3: Both fields should be cleared (e.g., if a remove option was added)
+            updates.put("profilePictureUrl", com.google.firebase.firestore.FieldValue.delete());
+            updates.put("profileAvatarResId", com.google.firebase.firestore.FieldValue.delete());
+        }
+
+        userRef.update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    // Success: Force a refresh to update all observers (like the Main Header)
+                    fetchUserData(userId);
+                    // fetchUserData will set _isLoading to false
+                })
+                .addOnFailureListener(e -> {
+                    _isLoading.setValue(false);
+                    // TODO: Handle Firestore error (e.g., log error, show Toast to user)
+                });
     }
 }
