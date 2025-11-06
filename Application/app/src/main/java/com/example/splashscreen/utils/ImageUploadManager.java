@@ -1,24 +1,22 @@
-package com.example.splashscreen.utils; // Use your desired package name
+package com.example.splashscreen.utils;
 
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
-import android.widget.Toast;
-
 import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
-
 import com.google.firebase.functions.FirebaseFunctions;
 import com.google.firebase.functions.HttpsCallableResult;
-
 import java.util.HashMap;
 import java.util.Map;
 
 public class ImageUploadManager {
     private static final String TAG = "ImageUploadManager";
 
-    // ... uploadProfileImage method signature ...
+    // 💡 NEW: Static flag to track initialization status
+    private static boolean isCloudinaryInitialized = false;
+
     public static void uploadProfileImage(Context context, Uri imageUri, UploadListener listener) {
         String photoPath = FilePathUtil.getRealPathFromURI(context, imageUri);
 
@@ -41,27 +39,37 @@ public class ImageUploadManager {
                     String cloudName = (String) result.get("cloudName");
                     String apiKey = (String) result.get("apiKey");
 
-                    // 💥 FIX: Initialize Cloudinary without the unsafe check 💥
                     Context appCtx = context.getApplicationContext();
                     if (appCtx == null) {
                         listener.onFailure("Application context unavailable.");
                         return;
                     }
-                    Map config = new HashMap();
-                    config.put("cloud_name", cloudName);
-
-                    // Call init() now that we have the cloudName.
-                    // This is safe to call multiple times with the same config.
-                    MediaManager.init(appCtx, config);
+                    if (!isCloudinaryInitialized) {
+                        try {
+                            Map config = new HashMap();
+                            config.put("cloud_name", cloudName);
+                            MediaManager.init(appCtx, config);
+                            isCloudinaryInitialized = true;
+                            Log.d(TAG, "Cloudinary initialized dynamically.");
+                        } catch (IllegalStateException e) {
+                            // This catches the case where another thread might have initialized it
+                            // just before this check. We can safely ignore the exception here.
+                            isCloudinaryInitialized = true;
+                            Log.w(TAG, "Cloudinary was already initialized by another call.");
+                        } catch (Exception e) {
+                            listener.onFailure("Cloudinary Initialization Failed: " + e.getMessage());
+                            return;
+                        }
+                    }
 
                     // 3. Perform the Signed Upload
-                    MediaManager.get().upload(photoPath) // <-- Now this is safe
+                    MediaManager.get().upload(photoPath)
                             .option("signature", signature)
                             .option("timestamp", timestamp)
                             .option("api_key", apiKey)
                             .option("folder", "profile_pictures")
                             .callback(new UploadCallback() {
-                                // ... rest of the callback logic ...
+                                // ... rest of the callback logic (unchanged) ...
                                 @Override public void onStart(String requestId) {
                                     listener.onStart();
                                 }

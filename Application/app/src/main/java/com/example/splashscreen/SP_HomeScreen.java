@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.splashscreen.data.models.PoolModel;
 import com.example.splashscreen.data.models.UserViewModel;
 import com.example.splashscreen.ui.weather.WeatherContainerFragment;
+import com.example.splashscreen.utils.ProfilePictureManager;
 import com.google.firebase.auth.FirebaseAuth;
 
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -74,7 +75,11 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
         View weatherBanner = view.findViewById(R.id.weatherCard);
         weatherBanner.setOnClickListener(v -> navigateToWeatherScreen());
-
+        userViewModel.userData.observe(getViewLifecycleOwner(), document -> {
+            if (getContext() != null) {
+                ProfilePictureManager.loadPicture(getContext(), document,  ivSPProfileIcon);
+            }
+        });
 
         // 3. Load Data
         loadClientData();
