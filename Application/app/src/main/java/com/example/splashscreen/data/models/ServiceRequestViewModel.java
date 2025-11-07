@@ -3,7 +3,7 @@ package com.example.splashscreen.data.models;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.splashscreen.data.repositories.ServiceRequestRepository;
+import com.example.splashscreen.repositories.ServiceRequestRepository;
 
 import java.util.List;
 

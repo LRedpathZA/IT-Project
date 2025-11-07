@@ -18,7 +18,6 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
 
-import java.io.Serializable;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -42,12 +41,13 @@ public class QuoteActionDialogFragment extends DialogFragment {
 
     /**
      * Factory method to create a new instance and pass the QuoteModel data.
-     * Note: QuoteModel must implement Serializable or Parcelable. We assume Serializable for this example.
+     * Note: QuoteModel MUST implement Parcelable for this to work.
      */
     public static QuoteActionDialogFragment newInstance(QuoteModel quote) {
         QuoteActionDialogFragment fragment = new QuoteActionDialogFragment();
         Bundle args = new Bundle();
-        args.putSerializable(ARG_QUOTE, (Serializable) quote);
+        // FIX: Use putParcelable() instead of putSerializable()
+        args.putParcelable(ARG_QUOTE, quote);
         fragment.setArguments(args);
         return fragment;
     }
@@ -59,7 +59,8 @@ public class QuoteActionDialogFragment extends DialogFragment {
         setStyle(DialogFragment.STYLE_NORMAL, R.style.CustomDialogTheme);
 
         if (getArguments() != null) {
-            quote = (QuoteModel) getArguments().getSerializable(ARG_QUOTE);
+            // FIX: Use getParcelable() instead of getSerializable()
+            quote = getArguments().getParcelable(ARG_QUOTE);
         }
     }
 
@@ -146,10 +147,6 @@ public class QuoteActionDialogFragment extends DialogFragment {
         batch.update(serviceRequestRef, "status", "Booked");
         // Optionally, set the accepted quote ID on the request for quick reference
         batch.update(serviceRequestRef, "acceptedQuoteId", quoteId);
-
-        // C. (Optional but recommended): Update all *other* quotes for this request to "Invalidated" or "Expired"
-        // This requires an initial query outside the batch, so we skip it for simplicity here,
-        // relying on the Service Provider's side to honor the "Booked" status on the main request.
 
         // 3. Commit the batch
         batch.commit()

@@ -6,14 +6,14 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
-import android.text.InputType; // REQUIRED for password toggle
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView; // REQUIRED for password toggle icon
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -49,8 +49,9 @@ public class SP_SignUp extends Fragment {
     private UserViewModel userViewModel;
 
     // UI Elements
+    private EditText ownerNameEditText; // ADDED
     private EditText businessNameEditText, emailEditText, phoneEditText, passwordEditText1, confirmPasswordEditText;
-    private ImageView passwordToggleIcon1, passwordToggleIcon2; // <<< NEW: TWO ICONS
+    private ImageView passwordToggleIcon1, passwordToggleIcon2;
 
     private Button signupButton, btnFetchLocation;
     private TextView tvLocationStatus, tvLocationAddress, tvCoordinates;
@@ -62,8 +63,8 @@ public class SP_SignUp extends Fragment {
     private String currentLocationAddress = null;
 
     // State variables for password visibility
-    private boolean isPassword1Visible = false; // <<< NEW STATE 1
-    private boolean isPassword2Visible = false; // <<< NEW STATE 2
+    private boolean isPassword1Visible = false;
+    private boolean isPassword2Visible = false;
 
     // Location Permission Launcher
     private final ActivityResultLauncher<String> requestPermissionLauncher =
@@ -107,14 +108,15 @@ public class SP_SignUp extends Fragment {
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
 
         // Input Fields Initialization
+        ownerNameEditText = view.findViewById(R.id.ownerNameEditText); // ADDED INITIALIZATION
         businessNameEditText = view.findViewById(R.id.businessNameEditText);
         emailEditText = view.findViewById(R.id.emailEditText);
         phoneEditText = view.findViewById(R.id.phoneEditText);
         passwordEditText1 = view.findViewById(R.id.passwordEditText1);
-        confirmPasswordEditText = view.findViewById(R.id.confirmPasswordEditText); // Corrected to match XML ID
+        confirmPasswordEditText = view.findViewById(R.id.confirmPasswordEditText);
 
-        passwordToggleIcon1 = view.findViewById(R.id.passwordToggleIcon1); // <<< Find Icon 1
-        passwordToggleIcon2 = view.findViewById(R.id.passwordToggleIcon2); // <<< Find Icon 2
+        passwordToggleIcon1 = view.findViewById(R.id.passwordToggleIcon1);
+        passwordToggleIcon2 = view.findViewById(R.id.passwordToggleIcon2);
 
         // Location UI
         btnFetchLocation = view.findViewById(R.id.btn_fetch_location);
@@ -135,29 +137,19 @@ public class SP_SignUp extends Fragment {
         // Sign Up Button Listener
         signupButton.setOnClickListener(v -> handleSignUp());
 
-        // ----------------------------------------------------
-        // START: Password Toggle Implementation
-        // ----------------------------------------------------
-
-        // Initial setup for both fields (hidden)
+        // Password Toggle Implementation (Remains the same)
         passwordEditText1.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         confirmPasswordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
 
-        // Listener for the first password field
         passwordToggleIcon1.setOnClickListener(v -> {
             togglePasswordVisibility(passwordEditText1, passwordToggleIcon1, isPassword1Visible);
-            isPassword1Visible = !isPassword1Visible; // Update the state
+            isPassword1Visible = !isPassword1Visible;
         });
 
-        // Listener for the confirm password field
         passwordToggleIcon2.setOnClickListener(v -> {
             togglePasswordVisibility(confirmPasswordEditText, passwordToggleIcon2, isPassword2Visible);
-            isPassword2Visible = !isPassword2Visible; // Update the state
+            isPassword2Visible = !isPassword2Visible;
         });
-
-        // ----------------------------------------------------
-        // END: Password Toggle Implementation
-        // ----------------------------------------------------
 
         return view;
     }
@@ -170,11 +162,9 @@ public class SP_SignUp extends Fragment {
             editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
             toggleIcon.setImageResource(R.drawable.hide);
         } else {
-
             editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
             toggleIcon.setImageResource(R.drawable.eye);
         }
-
 
         editText.setSelection(editText.getText().length());
     }
@@ -182,6 +172,7 @@ public class SP_SignUp extends Fragment {
     // =========================================================================================
     //                                LOCATION LOGIC (UNCHANGED)
     // =========================================================================================
+    // ... (checkLocationPermission, getLocation, startReverseGeocoding, updateUI methods are unchanged)
 
     private void checkLocationPermission() {
         if (getContext() == null) return;
@@ -278,17 +269,19 @@ public class SP_SignUp extends Fragment {
 
 
     // =========================================================================================
-    //                                SIGN UP LOGIC (UNCHANGED)
+    //                                SIGN UP LOGIC (UPDATED)
     // =========================================================================================
 
     private void handleSignUp() {
+        String ownerName = ownerNameEditText.getText().toString().trim(); // NEW
         String businessName = businessNameEditText.getText().toString().trim();
         String email = emailEditText.getText().toString().trim();
         String phone = phoneEditText.getText().toString().trim();
         String password = passwordEditText1.getText().toString();
         String confirmPassword = confirmPasswordEditText.getText().toString();
 
-        if (businessName.isEmpty() || email.isEmpty() || phone.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+        // VALIDATION CHECK NOW INCLUDES ownerName
+        if (ownerName.isEmpty() || businessName.isEmpty() || email.isEmpty() || phone.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             NotificationHelper.showNotification(getView(), "Missing information", "Please fill in all the fields.", NotificationHelper.NotificationType.ERROR);
             return;
         }
@@ -306,17 +299,19 @@ public class SP_SignUp extends Fragment {
         signupButton.setEnabled(false);
         signupButton.setText("Registering...");
 
-        createBusinessUser(businessName, email, phone, password);
+        // PASS BOTH NAMES
+        createBusinessUser(ownerName, businessName, email, phone, password);
     }
 
 
-    private void createBusinessUser(String businessName, String email, String phone, String password) {
+    private void createBusinessUser(String ownerName, String businessName, String email, String phone, String password) { // NEW SIGNATURE
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = auth.getCurrentUser();
                         if (user != null) {
-                            saveBusinessDataToFirestore(user, businessName, email, phone);
+                            // PASS BOTH NAMES
+                            saveBusinessDataToFirestore(user, ownerName, businessName, email, phone);
                         }
                     } else {
                         Log.e(TAG, "Authentication failed: " + task.getException().getMessage());
@@ -332,7 +327,7 @@ public class SP_SignUp extends Fragment {
                 });
     }
 
-    private void saveBusinessDataToFirestore(FirebaseUser firebaseUser, String businessName, String email, String phone) {
+    private void saveBusinessDataToFirestore(FirebaseUser firebaseUser, String ownerName, String businessName, String email, String phone) { // NEW SIGNATURE
         Map<String, Object> locationFields = userViewModel.updateLocationFields(
                 currentGeoPoint.getLatitude(),
                 currentGeoPoint.getLongitude(),
@@ -340,7 +335,8 @@ public class SP_SignUp extends Fragment {
         );
 
         Map<String, Object> businessData = new HashMap<>();
-        businessData.put("name", businessName);
+        businessData.put("name", ownerName); // SAVES THE OWNER'S PERSONAL NAME
+        businessData.put("businessName", businessName); // NEW: SAVES THE BUSINESS NAME
         businessData.put("email", email);
         businessData.put("phone", phone);
         businessData.put("role_id", 2);

@@ -100,7 +100,23 @@
                     android:text="Messages"
                     android:textColor="@color/white" />
             </LinearLayout>
+            <LinearLayout
+                android:id="@+id/btnServiceRequest"
+                style="@style/NavDrawerMenuItemStyle"
+                android:contentDescription="Service Requests">
+                <ImageView
+                    android:id="@+id/ivServicesIcon"
+                    style="@style/NavDrawerMenuItemIconStyle"
+                    android:src="@drawable/services"
+                    app:tint="@color/white"
+                    />
 
+                <TextView
+                    android:id="@+id/tvServiceRequestText"
+                    style="@style/NavDrawerMenuItemTextStyle"
+                    android:text="Service Request"
+                    android:textColor="@color/white" />
+            </LinearLayout>
             <LinearLayout
                 android:id="@+id/btnTips"
                 style="@style/NavDrawerMenuItemStyle"
@@ -191,23 +207,7 @@
                     android:textColor="@color/white" />
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/btnTutorial"
-                style="@style/NavDrawerMenuItemStyle"
-                android:contentDescription="Tutorial Videos">
-                <ImageView
-                    android:id="@+id/ivTutorialIcon"
-                    style="@style/NavDrawerMenuItemIconStyle"
-                    android:src="@drawable/tutorial"
-                    app:tint="@color/white"
-   />
 
-                <TextView
-                    android:id="@+id/tvTutorialText"
-                    style="@style/NavDrawerMenuItemTextStyle"
-                    android:text="Tutorial Videos"
-                    android:textColor="@color/white" />
-            </LinearLayout>
 
             <View android:layout_width="match_parent"
                 android:layout_height="1dp"

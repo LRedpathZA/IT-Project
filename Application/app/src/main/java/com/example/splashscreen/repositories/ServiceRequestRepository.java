@@ -1,4 +1,4 @@
-package com.example.splashscreen.data.repositories;
+package com.example.splashscreen.repositories;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -18,7 +18,8 @@ public class ServiceRequestRepository {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
     private ListenerRegistration requestsListener;
-    private ListenerRegistration openRequestsListener; // ADDED listener for open requests
+    private ListenerRegistration openRequestsListener;
+    private ListenerRegistration singleRequestListener;
 
     // Existing method for Pool Owners (PO)
     public LiveData<List<ServiceRequestModel>> getOwnerServiceRequests() {
@@ -97,15 +98,53 @@ public class ServiceRequestRepository {
         return liveData;
     }
 
+    public LiveData<ServiceRequestModel> getServiceRequestById(String requestId) {
+        MutableLiveData<ServiceRequestModel> liveData = new MutableLiveData<>();
+
+        if (requestId == null || requestId.isEmpty()) {
+            liveData.setValue(null);
+            return liveData;
+        }
+
+        // Remove previous single request listener if one exists
+        if (singleRequestListener != null) {
+            singleRequestListener.remove();
+        }
+
+        // Attach new listener to the specific document
+        singleRequestListener = db.collection("service_requests").document(requestId)
+                .addSnapshotListener((documentSnapshot, error) -> {
+                    if (error != null) {
+                        liveData.setValue(null);
+                        return;
+                    }
+
+                    if (documentSnapshot != null && documentSnapshot.exists()) {
+                        ServiceRequestModel request = documentSnapshot.toObject(ServiceRequestModel.class);
+                        if (request != null) {
+                            request.setRequestId(documentSnapshot.getId());
+                        }
+                        liveData.setValue(request);
+                    } else {
+                        liveData.setValue(null); // Document deleted or not found
+                    }
+                });
+
+        return liveData;
+    }
+
     /**
-     * Removes the Firestore real-time listener to prevent memory leaks.
+     * Removes all Firestore real-time listeners to prevent memory leaks.
      */
     public void removeListeners() {
         if (requestsListener != null) {
             requestsListener.remove();
         }
-        if (openRequestsListener != null) { // ADDED
+        if (openRequestsListener != null) {
             openRequestsListener.remove();
+        }
+        if (singleRequestListener != null) { // NEWLY ADDED
+            singleRequestListener.remove();
         }
     }
 }

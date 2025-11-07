@@ -11,7 +11,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.ListenerRegistration; // 💥 NEW IMPORT
+import com.google.firebase.firestore.ListenerRegistration; // NEW IMPORT
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +32,10 @@ public class UserViewModel extends ViewModel {
     private final MutableLiveData<String> _spLocationAddress = new MutableLiveData<>();
     public LiveData<String> spLocationAddress = _spLocationAddress;
 
+    // ADDED: LiveData for the Service Provider's Business Name
+    private final MutableLiveData<String> _businessName = new MutableLiveData<>();
+    public LiveData<String> businessName = _businessName;
+
     private static final int ROLE_POOL_OWNER = 1;
     private static final int ROLE_SERVICE_PROVIDER = 2;
 
@@ -44,7 +48,10 @@ public class UserViewModel extends ViewModel {
         return _spLocationGeoPoint.getValue();
     }
 
-    // 💥 MODIFIED: Use a real-time listener instead of a one-time get() 💥
+    /**
+     * Fetches the user's data in real-time and populates all associated LiveData.
+     * @param userId The ID of the authenticated user.
+     */
     public void fetchUserData(String userId) {
         // Only start the listener if it's not already running
         if (userListenerRegistration != null) {
@@ -75,6 +82,13 @@ public class UserViewModel extends ViewModel {
                     if (role == ROLE_SERVICE_PROVIDER) {
                         _spLocationGeoPoint.setValue(document.getGeoPoint("location"));
                         _spLocationAddress.setValue(document.getString("locationAddress"));
+                        // Fetch the business name
+                        _businessName.setValue(document.getString("businessName")); // ADDED LOGIC
+                    } else {
+                        // Clear SP-specific data if the role is not SP
+                        _spLocationGeoPoint.setValue(null);
+                        _spLocationAddress.setValue(null);
+                        _businessName.setValue(null);
                     }
                 }
             } else {
@@ -82,6 +96,7 @@ public class UserViewModel extends ViewModel {
             }
         });
     }
+
     @Override
     protected void onCleared() {
         super.onCleared();

@@ -20,7 +20,7 @@ import com.example.splashscreen.adapters.QuoteAdapter;
 import com.example.splashscreen.data.models.QuoteModel;
 import com.example.splashscreen.data.models.QuoteViewModel;
 import com.example.splashscreen.data.models.ServiceRequestModel;
-import com.example.splashscreen.data.repositories.ServiceRequestRepository;
+import com.example.splashscreen.repositories.ServiceRequestRepository;
 import com.google.android.material.button.MaterialButton;
 import com.squareup.picasso.Picasso;
 

@@ -217,25 +217,52 @@ public class MainActivity extends AppCompatActivity {
         logoutUser();
          navigateToFragment(new SP_SignUp(), false);
     }
-
     private void setupSpDrawerListeners(FrameLayout drawerContainer) {
-        // Implementation for Service Provider drawer listeners goes here
         View.OnClickListener clickListener = v -> {
+            // 1. Close the drawer regardless of the click target
             drawerLayout.closeDrawer(GravityCompat.START);
-            String title = "SP Navigation Item"; // Placeholder title for SP
+
+            String title = "SP Navigation Item";
+            // Safely extract the title from the TextView
             if (v instanceof LinearLayout && ((LinearLayout) v).getChildCount() > 1 && ((LinearLayout) v).getChildAt(1) instanceof TextView) {
                 title = ((TextView) ((LinearLayout) v).getChildAt(1)).getText().toString();
             }
 
+            // Temporary Toast functionality
             Toast.makeText(this, "SP Navigating to: " + title, Toast.LENGTH_SHORT).show();
-            // Add SP-specific navigation logic here later
+
+            // --- SP-Specific Navigation Logic ---
+            if (v.getId() == R.id.btnMessages) {
+                // For SP messages (e.g., from pool owners who accepted their quote)
+                // navigateToFragment(new SP_MessagesFragment());
+            } else if (v.getId() == R.id.btnServiceRequest) {
+                // CRITICAL FOR QUOTING: Navigate to the list of OPEN requests available for quotingS
+                navigateToFragment(new SP_ServiceRequestList(), true);
+            } else if (v.getId() == R.id.btnTips) {
+                // navigateToFragment(new TipsFragment()); // Assuming shared fragments
+            } else if (v.getId() == R.id.btnLoadshedding) {
+                // navigateToFragment(new LoadsheddingFragment()); // Assuming shared fragments
+            } else if (v.getId() == R.id.btnRestrictions) {
+                // navigateToFragment(new WaterRestrictionsFragment()); // Assuming shared fragments
+            } else if (v.getId() == R.id.btnHelp) {
+                // navigateToFragment(new HelpSupportFragment()); // Assuming shared fragments
+            } else if (v.getId() == R.id.btnSettings) {
+                // Navigate to the SP's profile/settings view
+                navigateToFragment(new SP_Profile(), true);
+            }
+
+            // Note: The SP drawer XML provided does not include btnSummary or btnRegisterBusiness.
         };
 
-        // Example: You would map SP-specific IDs here
-        // drawerContainer.findViewById(R.id.btnSpMessages).setOnClickListener(clickListener);
-        // drawerContainer.findViewById(R.id.btnSpSummary).setOnClickListener(clickListener);
+        // Attach listeners to all SP drawer buttons (must match the IDs in your XML)
+        drawerContainer.findViewById(R.id.btnMessages).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnServiceRequest).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnTips).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnLoadshedding).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnRestrictions).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnHelp).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnSettings).setOnClickListener(clickListener);
     }
-
     // -------------------------------------------------------------------------
     // UTILITIES
     // -------------------------------------------------------------------------
