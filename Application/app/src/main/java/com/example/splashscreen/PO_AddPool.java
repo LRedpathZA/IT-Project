@@ -2,6 +2,7 @@ package com.example.splashscreen;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -234,7 +235,7 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
             btnDeletePool.setVisibility(View.VISIBLE);
             loadPoolData(currentPoolId);
             btnAddPool.setOnClickListener(v -> handleEditPool(currentPoolId));
-            btnDeletePool.setOnClickListener(v -> deletePool(currentPoolId));
+            btnDeletePool.setOnClickListener(v -> showDeleteConfirmationDialog(currentPoolId));
         } else {
             btnAddPool.setText("Add Pool");
             btnDeletePool.setVisibility(View.GONE);
@@ -360,6 +361,16 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
             }
         });
     }
+
+    private void showDeleteConfirmationDialog(String poolId) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Delete Pool")
+                .setMessage("Are you sure you want to delete this pool? All associated logs, events, and linked service requests will be deleted as well. This cannot be undone.")
+                .setPositiveButton("Delete", (dialog, which) -> deletePool(poolId)) // Calls the actual delete method
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
 
     private void deletePool(String poolId) {
         String userId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;

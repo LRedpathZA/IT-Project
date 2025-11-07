@@ -31,7 +31,6 @@ public class QuoteAdapter extends RecyclerView.Adapter<QuoteAdapter.QuoteViewHol
     public interface OnQuoteClickListener {
         void onQuoteClick(QuoteModel quote);
     }
-
     public QuoteAdapter(Context context, List<QuoteModel> quoteList, OnQuoteClickListener clickListener) {
         this.context = context;
         this.quoteList = quoteList;

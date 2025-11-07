@@ -8,6 +8,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.Filter; // ADDED
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +18,9 @@ public class ServiceRequestRepository {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
     private ListenerRegistration requestsListener;
+    private ListenerRegistration openRequestsListener; // ADDED listener for open requests
 
-    /**
-     * Fetches all service requests owned by the current user in real-time.
-     */
+    // Existing method for Pool Owners (PO)
     public LiveData<List<ServiceRequestModel>> getOwnerServiceRequests() {
         MutableLiveData<List<ServiceRequestModel>> liveData = new MutableLiveData<>();
 
@@ -55,11 +55,57 @@ public class ServiceRequestRepository {
     }
 
     /**
+     * ADDED: Fetches all OPEN service requests that have not expired in real-time.
+     */
+    public LiveData<List<ServiceRequestModel>> getOpenServiceRequests() {
+        MutableLiveData<List<ServiceRequestModel>> liveData = new MutableLiveData<>();
+
+        // If the user is an SP, they must be authenticated, but we don't filter by their ID.
+        if (userId == null) {
+            liveData.setValue(new ArrayList<>());
+            return liveData;
+        }
+
+        long currentTime = System.currentTimeMillis();
+
+        // Query: Filter by Status == "Open" AND ExpiryDate > current time
+        // Note: Firestore recommends creating a composite index for this query.
+        openRequestsListener = db.collection("service_requests")
+                .where(Filter.and(
+                        Filter.equalTo("status", "Open"),
+                        Filter.greaterThan("expiryDate", currentTime)
+                ))
+                .orderBy("expiryDate", Query.Direction.ASCENDING) // Show expiring requests first
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        // Log the error
+                        liveData.setValue(null);
+                        return;
+                    }
+
+                    if (value != null) {
+                        List<ServiceRequestModel> requests = new ArrayList<>();
+                        for (com.google.firebase.firestore.QueryDocumentSnapshot doc : value) {
+                            ServiceRequestModel request = doc.toObject(ServiceRequestModel.class);
+                            request.setRequestId(doc.getId());
+                            requests.add(request);
+                        }
+                        liveData.setValue(requests);
+                    }
+                });
+
+        return liveData;
+    }
+
+    /**
      * Removes the Firestore real-time listener to prevent memory leaks.
      */
     public void removeListeners() {
         if (requestsListener != null) {
             requestsListener.remove();
+        }
+        if (openRequestsListener != null) { // ADDED
+            openRequestsListener.remove();
         }
     }
 }

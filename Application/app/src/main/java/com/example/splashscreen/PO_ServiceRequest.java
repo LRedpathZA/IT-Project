@@ -1,11 +1,11 @@
 package com.example.splashscreen;
 
-import android.Manifest; // ADDED
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager; // ADDED
+import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build; // ADDED
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -25,7 +25,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat; // ADDED
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -204,11 +204,12 @@ public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
     }
 
     /**
-     * ⭐ NEW: Handles the logic for checking and requesting necessary storage permissions.
+     * Handles the logic for checking and requesting necessary storage permissions.
      */
     private void checkImageStoragePermission() {
         String[] permissionsToRequest;
-        Toast.makeText(getContext(),"Hello World",Toast.LENGTH_SHORT);
+
+        // REMOVED DEBUGGING TOAST: Toast.makeText(getContext(),"Hello World",Toast.LENGTH_SHORT);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // API 34+ (Android 14)
             permissionsToRequest = new String[]{
@@ -248,7 +249,7 @@ public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
     }
 
     /**
-     * ⭐ RENAMED/MODIFIED: Starts the Intent to choose an image from the gallery.
+     * Starts the Intent to choose an image from the gallery.
      */
     private void launchImageChooserIntent() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -378,11 +379,9 @@ public class PO_ServiceRequest extends Fragment implements HeaderUpdatable {
         if (photoUrl != null) {
             requestData.put("photoUrl", photoUrl);
         }
-
         // Update button text while saving
         btnPostRequest.setText("Saving Request...");
 
-        // Save to Firestore
         db.collection("service_requests")
                 .add(requestData)
                 .addOnSuccessListener(documentReference -> {

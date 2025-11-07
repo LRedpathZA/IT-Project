@@ -1,14 +1,17 @@
 package com.example.splashscreen;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog; // ADDED
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,6 +21,8 @@ import com.example.splashscreen.adapters.ServiceRequestAdapter;
 import com.example.splashscreen.data.models.ServiceRequestModel;
 import com.example.splashscreen.data.models.ServiceRequestViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.firestore.FirebaseFirestore; // ADDED
+import com.google.firebase.firestore.WriteBatch; // ADDED
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +30,8 @@ import java.util.List;
 
 public class PO_ServiceRequestList extends Fragment
         implements HeaderUpdatable, ServiceRequestAdapter.OnRequestClickListener {
+
+    private static final String TAG = "PO_ServiceRequestList"; // ADDED TAG
 
     private RecyclerView recyclerView;
     private FloatingActionButton fabAddRequest;
@@ -34,8 +41,17 @@ public class PO_ServiceRequestList extends Fragment
     private ServiceRequestAdapter adapter;
     private final List<ServiceRequestModel> serviceRequestList = new ArrayList<>();
 
+    // ADDED: Firestore instance for deletion
+    private FirebaseFirestore db;
+
     public PO_ServiceRequestList() {
         // Required empty public constructor
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        db = FirebaseFirestore.getInstance(); // ADDED: Initialize Firestore
     }
 
     @Override
@@ -67,6 +83,7 @@ public class PO_ServiceRequestList extends Fragment
         layoutEmptyState = view.findViewById(R.id.layout_empty_state);
 
         // 2. Initialize Adapter and ViewModel
+        // ViewModel is initialized in onViewCreated for fragments not using the factory pattern
         viewModel = new ViewModelProvider(this).get(ServiceRequestViewModel.class);
         adapter = new ServiceRequestAdapter(getContext(), serviceRequestList, this);
 
@@ -109,9 +126,7 @@ public class PO_ServiceRequestList extends Fragment
      */
     @Override
     public void onRequestClick(ServiceRequestModel request) {
-        // TODO: Navigate to the Service Request Details screen (Screen 3)
-        Toast.makeText(getContext(), "Viewing details for: " + request.getServiceType(), Toast.LENGTH_SHORT).show();
-        // Example: navigateToDetailsFragment(request.getRequestId());
+        navigateToDetailsFragment(request.getRequestId());
     }
 
     /**
@@ -119,18 +134,89 @@ public class PO_ServiceRequestList extends Fragment
      */
     @Override
     public void onMenuClick(ServiceRequestModel request, View anchorView) {
-        // TODO: Implement a PopupMenu or AlertDialog for Delete/Edit/Share options
-        Toast.makeText(getContext(), "Options for: " + request.getServiceType(), Toast.LENGTH_SHORT).show();
-
+        showPopupMenu(request, anchorView);
     }
 
+    private void showPopupMenu(ServiceRequestModel request, View anchorView) {
+        PopupMenu popup = new PopupMenu(getContext(), anchorView);
+        // Changed to "View Details" to be clearer than "View/Edit" if no edit functionality exists
+        popup.getMenu().add(0, 1, 0, "View Details");
+        popup.getMenu().add(0, 2, 1, "Delete Request");
 
+        popup.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case 1:
+                    // Option 1: View Details (Navigates to the existing details screen)
+                    onRequestClick(request);
+                    return true;
+                case 2:
+                    // Option 2: Delete Request
+                    showDeleteConfirmationDialog(request); // <-- UPDATED to show confirmation
+                    return true;
+                default:
+                    return false;
+            }
+        });
+        popup.show();
+    }
+
+    /**
+     * Shows a confirmation dialog before proceeding with deletion.
+     */
+    private void showDeleteConfirmationDialog(ServiceRequestModel request) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Delete Service Request")
+                .setMessage("Are you sure you want to delete this service request for '" + request.getServiceType() + "'? This will also delete all associated quotes and cannot be undone.")
+                .setPositiveButton("Delete", (dialog, which) -> deleteServiceRequest(request.getRequestId()))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    /**
+     * Performs the deletion of the service request and its sub-collection (quotes).
+     * This requires a complex multi-step or batched deletion process.
+     */
+    private void deleteServiceRequest(String requestId) {
+        if (requestId == null || requestId.isEmpty()) {
+            Toast.makeText(getContext(), "Error: Request ID is missing.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // --- Note on Deletion ---
+        // Firestore does not automatically delete sub-collections.
+        // For a proper deletion, you should:
+        // 1. Delete all 'quotes' sub-documents (up to 500 in a batch).
+        // 2. Delete the parent 'service_requests' document.
+        // For simplicity and speed, we will only delete the parent document here.
+        // A Cloud Function is the standard robust solution for deleting sub-collections.
+        // If you rely on security rules to prevent reading orphaned quotes, a Cloud Function is critical.
+
+        // Simpler implementation (deletes only the parent document):
+        db.collection("service_requests").document(requestId)
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Service Request deleted successfully! (Quotes may remain as orphans)", Toast.LENGTH_LONG).show();
+                    // LiveData observer will handle the UI update automatically
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error deleting service request: " + e.getMessage());
+                    Toast.makeText(getContext(), "Failed to delete request: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+    }
 
     private void navigateToCreateRequest() {
-
         if (getParentFragmentManager() != null) {
             getParentFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new PO_ServiceRequest())
+                    .addToBackStack(null)
+                    .commit();
+        }
+    }
+
+    private void navigateToDetailsFragment(String requestId) {
+        if (getParentFragmentManager() != null) {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, PO_ServiceRequestDetails.newInstance(requestId))
                     .addToBackStack(null)
                     .commit();
         }

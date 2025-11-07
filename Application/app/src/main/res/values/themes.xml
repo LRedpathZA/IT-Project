@@ -1,30 +1,21 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="Theme.PoolApp" parent="Theme.Material3.DayNight.NoActionBar">
-
         <item name="colorPrimary">@color/colorPrimary</item>
-
         <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
-
         <item name="colorOnPrimary">@color/colorOnPrimary</item>
-
         <item name="colorSecondary">@color/colorSecondary</item>
-
         <item name="colorOnSecondary">@color/colorOnSecondary</item>
-
         <item name="colorSurface">@color/colorSurface</item>
-
         <item name="colorOnSurface">@color/colorOnSurface</item>
-
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
-
     </style>
 
     <style name="Theme.SplashScreen.Splash" parent="Theme.SplashScreen">
         <item name="android:windowBackground">@color/PrimaryColour</item>
-
         <item name="postSplashScreenTheme">@style/Theme.PoolApp</item>
     </style>
+
     <style name="ProfileDetailLabel">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
@@ -33,17 +24,21 @@
         <item name="android:textColor">@color/grey_dark</item>
         <item name="android:paddingVertical">4dp</item>
     </style>
+
     <style name="ProfileDetailValue" parent="ProfileDetailLabel">
         <item name="android:textColor">@color/black</item>
         <item name="android:textStyle">bold</item>
     </style>
+
     <style name="DividerLine">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">1dp</item>
         <item name="android:background">@color/grey_light</item>
     </style>
+
     <style name="PopupMenuStyle" parent="Widget.AppCompat.PopupMenu">
     </style>
+
     <style name="NavDrawerMenuItemStyle">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -56,6 +51,7 @@
         <item name="android:paddingEnd">16dp</item>
         <item name="android:paddingVertical">12dp</item>
     </style>
+
     <style name="NavDrawerMenuItemTextStyle">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
@@ -64,23 +60,42 @@
         <item name="android:textColor">@color/white</item>
         <item name="android:textSize">16sp</item>
     </style>
+
     <style name="NavDrawerMenuItemIconStyle">
         <item name="android:layout_width">24dp</item>
         <item name="android:layout_height">24dp</item>
         <item name="android:contentDescription">Menu Icon</item>
     </style>
+
     <style name="DetailRowDividerStyle">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">1dp</item>
         <item name="android:background">@color/grey</item>
         <item name="android:layout_marginStart">56dp</item>
     </style>
+
     <style name="AppTheme_Dialog" parent="Theme.Material3.Light.Dialog">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsFloating">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="colorSurface">@color/white</item>
+    </style>
+
+    <style name="CustomDialogTheme" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
+
+    <style name="CustomMaterialDialogTheme" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
     </style>
 
 </resources>

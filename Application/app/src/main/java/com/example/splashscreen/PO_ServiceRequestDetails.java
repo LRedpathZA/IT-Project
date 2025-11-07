@@ -202,8 +202,9 @@ public class PO_ServiceRequestDetails extends Fragment
 
     @Override
     public void onQuoteClick(QuoteModel quote) {
-        // TODO: Navigate to the individual Quote acceptance screen
-        Toast.makeText(getContext(), "Viewing Quote from: " + quote.getBusinessName(), Toast.LENGTH_SHORT).show();
+
+        QuoteActionDialogFragment dialog = QuoteActionDialogFragment.newInstance(quote);
+        dialog.show(getChildFragmentManager(), "QuoteActionDialog");
     }
 
     // --- Sorting and Filtering Logic ---
