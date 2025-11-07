@@ -348,8 +348,7 @@
                         android:layout_height="32dp"
                         android:layout_marginBottom="4dp"
                         android:contentDescription="Upload Icon"
-                        android:src="@drawable/camera"
-                        app:tint="@color/grey_dark" />
+                        android:src="@drawable/camera" />
 
                     <TextView
                         android:layout_width="wrap_content"
