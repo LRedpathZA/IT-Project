@@ -28,18 +28,21 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/create_product_button"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:backgroundTint="@color/white_transparent_50"
+        android:layout_width="250dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/custom_button"
+        android:paddingVertical="12dp"
         android:text="Add a Service"
-        android:textColor="@android:color/black"
-        app:cornerRadius="8dp"
+        android:textColor="@color/white"
+        android:textSize="16dp"
+        app:backgroundTint="@null"
+        app:rippleColor="@color/white_transparent_50"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/appBarLayout" />
+        app:layout_constraintTop_toBottomOf="@id/appBarLayout"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/products_recycler_view"

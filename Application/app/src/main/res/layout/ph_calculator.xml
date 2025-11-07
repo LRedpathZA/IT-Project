@@ -89,7 +89,6 @@
                             android:layout_height="24dp"
                             android:layout_gravity="center_vertical"
                             android:src="@drawable/ph"
-                            app:tint="@color/black"
                             android:contentDescription="pH Icon"/>
                     </LinearLayout>
 

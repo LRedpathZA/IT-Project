@@ -218,7 +218,7 @@
                 android:contentDescription="Selected Document"
                 android:scaleType="centerInside"
                 android:padding="8dp"
-                tools:src="@drawable/ic_document"
+                tools:src="@drawable/tools"
                 android:visibility="gone"
                 app:tint="@color/colorPrimary" />
 
