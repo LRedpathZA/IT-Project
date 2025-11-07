@@ -25,7 +25,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.splashscreen.data.models.QuoteModel;
 import com.example.splashscreen.data.models.SP_OfferQuoteViewModel;
 import com.example.splashscreen.data.models.UserViewModel;
-import com.example.splashscreen.utils.ImageUploadManager; // Ensure this import is correct
+import com.example.splashscreen.utils.ImageUploadManager;
 import com.example.splashscreen.utils.UploadListener;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -247,18 +247,18 @@ public class SP_OfferQuoteFragment extends Fragment implements HeaderUpdatable {
 
         // 4. Handle File Upload if present, otherwise proceed to save quote
         if (selectedFileUri != null) {
-            uploadFile(selectedFileUri);
+            // PASS validated, non-null data to the upload method
+            uploadFile(selectedFileUri, spId, businessName, quotedPrice, description);
         } else {
             saveQuoteDocument(spId, businessName, quotedPrice, description, null);
         }
     }
 
 
-    private void uploadFile(Uri fileUri) {
+    private void uploadFile(Uri fileUri, String spId, String businessName, double quotedPrice, String description) {
         // Cloudinary folder for quote documents
         String folder = "quote_documents";
 
-        // Use the existing ImageUploadManager, which should be capable of handling files if the MIME type is supported by Cloudinary
         ImageUploadManager.uploadImage(getContext(), fileUri, folder, new UploadListener() {
             @Override
             public void onStart() {
@@ -275,11 +275,7 @@ public class SP_OfferQuoteFragment extends Fragment implements HeaderUpdatable {
             public void onSuccess(String url) {
                 uploadedFileUrl = url;
                 // File uploaded, now save the quote document with the URL
-                String spId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                String businessName = userViewModel.businessName.getValue();
-                double quotedPrice = Double.parseDouble(etPrice.getText().toString().trim());
-                String description = etDescription.getText().toString().trim();
-
+                // USE PASSED PARAMETERS for a reliable Firestore write
                 saveQuoteDocument(spId, businessName, quotedPrice, description, uploadedFileUrl);
             }
 

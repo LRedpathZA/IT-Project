@@ -16,23 +16,23 @@ public class ImageUploadManager {
     private static boolean isCloudinaryInitialized = false;
 
     /**
-     * Uploads an image to Cloudinary using a secure signed request from Firebase Functions.
+     * Uploads an image or document to Cloudinary using a secure signed request from Firebase Functions.
+     * ACCEPTS URI DIRECTLY, which is compatible with both file paths (file://) and content URIs (content://).
      * @param context Application context.
-     * @param imageUri Local URI of the image file.
+     * @param fileUri Local URI of the file.
      * @param folder The Cloudinary folder name (e.g., "profile_pictures", "service_requests").
      * @param listener Callback for upload events.
      */
-    public static void uploadImage(Context context, Uri imageUri, String folder, UploadListener listener) {
-        String photoPath = FilePathUtil.getRealPathFromURI(context, imageUri);
+    public static void uploadImage(Context context, Uri fileUri, String folder, UploadListener listener) {
 
-        if (photoPath == null) {
-            listener.onFailure("Could not resolve photo path. Cannot upload.");
+        if (fileUri == null) {
+            listener.onFailure("File URI is null. Cannot upload.");
             return;
         }
 
         // 1. Call the Firebase Function to get the secure signature
         Map<String, Object> data = new HashMap<>();
-        data.put("folder", folder); // Use the provided folder name
+        data.put("folder", folder);
 
         FirebaseFunctions.getInstance()
                 .getHttpsCallable("generateCloudinarySignature")
@@ -68,11 +68,12 @@ public class ImageUploadManager {
                     }
 
                     // 3. Perform the Signed Upload
-                    MediaManager.get().upload(photoPath)
+                    // Using the Uri object directly here
+                    MediaManager.get().upload(fileUri)
                             .option("signature", signature)
                             .option("timestamp", timestamp)
                             .option("api_key", apiKey)
-                            .option("folder", folder) // Set the folder
+                            .option("folder", folder)
                             .callback(new UploadCallback() {
                                 @Override public void onStart(String requestId) {
                                     listener.onStart();
@@ -104,7 +105,7 @@ public class ImageUploadManager {
                 });
     }
 
-    // You can keep the old method for backwards compatibility, but it should call the new one
+
     public static void uploadProfileImage(Context context, Uri imageUri, UploadListener listener) {
         uploadImage(context, imageUri, "profile_pictures", listener);
     }
