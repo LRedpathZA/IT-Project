@@ -41,9 +41,8 @@ public class SP_ServiceRequestList extends Fragment
 
     @Override
     public void updateActivityHeader() {
-        if (getActivity() instanceof MainActivity) {
-            // Set the header for the SP experience
-            ((MainActivity) getActivity()).updateHeader("Available Service Requests", false, true);
+        if (requireActivity() instanceof MainActivity) {
+            ((MainActivity) requireActivity()).updateHeader("Current Service Requests", true, true);
         }
     }
 
@@ -80,9 +79,6 @@ public class SP_ServiceRequestList extends Fragment
         observeOpenServiceRequests();
     }
 
-    /**
-     * Subscribes to the real-time stream of *open* service requests from the ViewModel.
-     */
     private void observeOpenServiceRequests() {
         viewModel.getOpenRequests().observe(getViewLifecycleOwner(), requests -> {
             if (requests != null) {

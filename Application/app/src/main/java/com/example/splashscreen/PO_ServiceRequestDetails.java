@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,14 +19,13 @@ import com.example.splashscreen.adapters.QuoteAdapter;
 import com.example.splashscreen.data.models.QuoteModel;
 import com.example.splashscreen.data.models.QuoteViewModel;
 import com.example.splashscreen.data.models.ServiceRequestModel;
-import com.example.splashscreen.repositories.ServiceRequestRepository;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.squareup.picasso.Picasso;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class PO_ServiceRequestDetails extends Fragment
         implements HeaderUpdatable, QuoteAdapter.OnQuoteClickListener {
@@ -127,31 +125,32 @@ public class PO_ServiceRequestDetails extends Fragment
         btnSortQuotes.setOnClickListener(v -> showSortMenu());
     }
 
-    // --- Data Loading ---
+    // --- Data Loading and Binding ---
 
-    /**
-     * Placeholder method to fetch the single ServiceRequestModel details.
-     * In a real app, this would use the ServiceRequestRepository to get a specific document.
-     */
     private void loadServiceRequestDetails() {
         if (requestId == null) {
             Toast.makeText(getContext(), "Error: Request ID is missing.", Toast.LENGTH_LONG).show();
             return;
         }
 
-        // TODO: Implement actual Firestore fetch for single document here,
-        // using ServiceRequestRepository.getSingleRequest(requestId) or similar logic.
+        // FIX 1: Replace TEMPORARY dummy data with actual Firestore fetch logic structure.
+        FirebaseFirestore.getInstance().collection("service_requests").document(requestId)
+                .addSnapshotListener((snapshot, error) -> {
+                    if (error != null) {
+                        Toast.makeText(getContext(), "Error loading request: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                        return;
+                    }
 
-        // TEMPORARY: Create a dummy request model for UI testing
-        currentRequest = new ServiceRequestModel(
-                requestId, "ownerId123", "pool1", "My Backyard Oasis", null,
-                "123 Fake Street, Pretoria West", "Filter/Pump Equipment Repair",
-                "The pump has been making a loud grinding noise and water flow is very weak...",
-                "Open", System.currentTimeMillis() - (2 * 24 * 60 * 60 * 1000), // 2 days ago
-                System.currentTimeMillis() + (5 * 24 * 60 * 60 * 1000), // expires in 5 days
-                null, 3);
-
-        bindServiceRequestDetails(currentRequest);
+                    if (snapshot != null && snapshot.exists()) {
+                        currentRequest = snapshot.toObject(ServiceRequestModel.class);
+                        if (currentRequest != null) {
+                            currentRequest.setRequestId(snapshot.getId()); // Ensure ID is set
+                            bindServiceRequestDetails(currentRequest);
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Request not found.", Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     private void bindServiceRequestDetails(ServiceRequestModel request) {
@@ -160,10 +159,20 @@ public class PO_ServiceRequestDetails extends Fragment
         tvPoolLocation.setText(String.format("Pool: %s | %s", request.getPoolName(), request.getPoolLocationAddress()));
         tvDescription.setText(request.getDescription());
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
-        String postedDate = sdf.format(request.getCreatedAt());
-        String expiryDate = sdf.format(request.getExpiryDate());
-        tvDates.setText(String.format("Posted: %s | Expires: %s", postedDate, expiryDate));
+        // FIX 2: Use user-friendly time ago and expiry formatting
+        String timeAgo = getTimeAgo(request.getCreatedAt());
+        long timeRemaining = request.getExpiryDate() - System.currentTimeMillis();
+
+        String expiryText;
+        if (timeRemaining <= 0 || request.getStatus().equals("Expired")) {
+            expiryText = "EXPIRED";
+        } else if (timeRemaining < TimeUnit.DAYS.toMillis(1)) {
+            expiryText = String.format("Expires: %d hours left", TimeUnit.MILLISECONDS.toHours(timeRemaining));
+        } else {
+            expiryText = String.format("Expires in %d days", TimeUnit.MILLISECONDS.toDays(timeRemaining));
+        }
+
+        tvDates.setText(String.format("Posted: %s | %s", timeAgo, expiryText));
 
         // Load photo if available
         if (request.getPhotoUrl() != null && !request.getPhotoUrl().isEmpty()) {
@@ -175,6 +184,8 @@ public class PO_ServiceRequestDetails extends Fragment
     }
 
     private void loadQuotes() {
+        if (requestId == null) return;
+
         // Initialize ViewModel using the factory to pass the required requestId
         QuoteViewModel.QuoteViewModelFactory factory = new QuoteViewModel.QuoteViewModelFactory(requestId);
         quoteViewModel = new ViewModelProvider(this, factory).get(QuoteViewModel.class);
@@ -197,12 +208,20 @@ public class PO_ServiceRequestDetails extends Fragment
         });
     }
 
-    // --- OnQuoteClickListener Implementation ---
+    // --- Utility Method (Copied from adapter logic for self-containment) ---
 
+    public static String getTimeAgo(long time) {
+        long diff = System.currentTimeMillis() - time;
+        if (diff < TimeUnit.MINUTES.toMillis(1)) return "Just now";
+        if (diff < TimeUnit.HOURS.toMillis(1)) return TimeUnit.MILLISECONDS.toMinutes(diff) + "m ago";
+        if (diff < TimeUnit.DAYS.toMillis(1)) return TimeUnit.MILLISECONDS.toHours(diff) + "h ago";
+        return TimeUnit.MILLISECONDS.toDays(diff) + " days ago";
+    }
+
+    // --- OnQuoteClickListener Implementation ---
 
     @Override
     public void onQuoteClick(QuoteModel quote) {
-
         QuoteActionDialogFragment dialog = QuoteActionDialogFragment.newInstance(quote);
         dialog.show(getChildFragmentManager(), "QuoteActionDialog");
     }
