@@ -199,7 +199,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Upload Document (Optional)"
-                    android:textColor="@color/grey_dark"
+                    android:textColor="@color/colorSurface"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -207,7 +207,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Attach a formal quote, contract, or proposal (PDF, DOCX, etc.)"
-                    android:textColor="@color/grey_dark"
+                    android:textColor="@color/colorSurface"
                     android:textSize="12sp" />
             </LinearLayout>
 

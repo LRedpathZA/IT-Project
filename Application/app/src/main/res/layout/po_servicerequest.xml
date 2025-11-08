@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg"
+    android:background="@drawable/pbg"
     tools:context=".PO_ServiceRequest">
 
     <androidx.core.widget.NestedScrollView
@@ -151,7 +151,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Add Photo of the Problem (Optional)"
-                        android:textColor="@color/grey_dark"
+                        android:textColor="@color/colorSurface"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -159,7 +159,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Example: Photo of green water or broken equipment."
-                        android:textColor="@color/grey_dark"
+                        android:textColor="@color/colorSurface"
                         android:textSize="12sp" />
                 </LinearLayout>
 

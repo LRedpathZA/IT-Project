@@ -22,7 +22,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingVertical="8dp"
-            android:paddingHorizontal="8dp">
+            android:paddingHorizontal="8dp"
+            android:padding="20dp">
 
             <ImageButton
                 android:id="@+id/btn_back"
@@ -63,7 +64,7 @@
                     android:layout_height="wrap_content"
                     android:text="your location"
                     android:textColor="@color/colorPrimary"
-                    android:textSize="12sp"/>
+                    android:textSize="14sp"/>
             </LinearLayout>
 
             <ImageButton

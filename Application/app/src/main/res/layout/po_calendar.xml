@@ -70,11 +70,11 @@
                 android:layout_height="wrap_content"
                 android:drawableTop="@drawable/ic_calendar_white_24dp"
                 android:drawablePadding="16dp"
-                android:drawableTint="@color/grey"
+                android:drawableTint="@color/colorSurface"
                 android:gravity="center"
                 android:padding="32dp"
                 android:text="No events for the selected day.\nTap the + button to create an event."
-                android:textColor="@color/grey"
+                android:textColor="@color/colorSurface"
                 android:textSize="16sp" />
 
         </LinearLayout>
