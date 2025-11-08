@@ -1,49 +1,90 @@
-The current priority should be to complete the action flow for the quotes, as this is the core decision-making point for the Pool Owner.
+We have successfully integrated the Service Request and Quote functionality, though the security rules for these collections are currently set to allow read, write: if true; for development purposes.
 
-1. Implement Quote Action Screen/Dialog (Critical)
-Currently, clicking a quote card shows a placeholder toast message. This step involves creating the UI where the Pool Owner (PO) decides to accept or reject a quote.
+Our next critical phase is to implement the Product Inventory and E-commerce/Ordering system.
 
-Action: Create a QuoteActionDialogFragment (a modal dialog or a full fragment) that is launched when the user clicks an item in the recycler_quotes list.
+Phase 1: Service Provider (SP) Inventory Management (CRUD)
+The Service Provider needs a system to manage their products (stock).
 
-Contents: This screen must display the full quote details (including the detailed description) and two clear action buttons:
+Define the Data Model: Create a new Firestore collection called /products.
 
-Accept Quote: Changes the quote status to "Accepted" and, critically, changes the parent Service Request status to "Booked." This usually invalidates all other active quotes.
+ProductModel.java is required with the following key fields:
 
-Reject Quote: Changes the quote status to "Rejected."
+productId: String
 
-2. Implement Quote Sorting and Filtering Logic (Enhancement)
-The ViewModel and Adapter are set up, but the buttons are not functional.
+businessId: String (ID of the SP who owns the product, matching request.auth.uid for security)
 
-Sorting: Implement the logic behind the Sort Button to re-order the quoteList based on Price (Low to High / High to Low) and possibly Date (Newest).
+name: String
 
-Filtering: Implement the logic behind the Filter Button to show only quotes of a specific status (e.g., "New," "Accepted").
+description: String
 
-3. Implement Request Management Menu (Completion)
-Complete the functionality for the main list screen's options menu.
+price: double
 
-Action: Implement the onMenuClick method in PO_ServiceRequestList to display a PopupMenu anchored to the three-dot button.
+stockQuantity: int (Critical field for inventory)
 
-Options: The menu should include "Delete Request" and potentially "Edit Request."
+imageUrl: String (Uses the existing ImageUploadManager)
 
-Flow Diagram
-This diagram highlights the main piece of functionality needed next (the Quote Action Dialog).
+createdAt / updatedAt: Date (@ServerTimestamp)
 
-Comprehensive Prompt for Resuming Work Tomorrow
-Use the following prompt to pick up right where we left off, focusing on the critical Quote Action Dialog and its logic:
+SP UI/Logic: Implement the CRUD interface for the SP.
 
-Plaintext
+Create a new ProductRepository.java and ProductViewModel.java to handle Firebase Firestore interactions (fetch all products for the current SP, add, update, and delete).
 
-We have completed the list screen (Screen 1) and the detail screen (Screen 3) layouts and data fetching. The next critical step is creating the interactive dialog for the Pool Owner to take action on a submitted quote.
+Create SP_InventoryFragment for viewing/listing the current SP's products.
 
-Please implement a new Android Fragment called **QuoteActionDialogFragment**. This dialog should be launched when a user clicks a quote card in the PO_ServiceRequestDetails fragment.
+Create SP_ProductFormFragment for creating or editing a ProductModel.
 
-The implementation must include:
-1.  **XML Layout (fragment_quote_action_dialog.xml):** A clean layout to display all fields from the `QuoteModel` (Business Name, Price, Detailed Description, Date). It must contain two clear action buttons: **btn_accept_quote** and **btn_reject_quote**.
-2.  **Java Fragment (QuoteActionDialogFragment.java):**
-    * It must receive the selected `QuoteModel` data via arguments (or a similar method).
-    * It must have a click listener for the **Accept** button. This listener should perform the following critical database updates:
-        * Update the specific Quote document status to **"Accepted."**
-        * Update the parent **Service Request document status to "Booked"** (or "Pending Service").
-    * It must have a click listener for the **Reject** button, which updates the Quote document status to **"Rejected."**
+Security Rules: We must update the Firestore rules for /products.
 
-Do not worry about the sorting and filtering logic yet; focus solely on the dialog UI and the **Accept/Reject Firestore update logic** first.
+read: if true (Pool Owners need to see products for purchasing).
+
+create/write: if request.auth != null AND request.resource.data.businessId == request.auth.uid (Only the owner can manage their inventory).
+
+Phase 2: Pool Owner (PO) Ordering System
+The Pool Owner needs to be able to browse and purchase these products, leading to the creation of a new Order.
+
+Define the Order Models: Create a new top-level Firestore collection called /orders.
+
+OrderModel.java (The main transaction document) with fields:
+
+orderId: String
+
+userId: String (The PO making the purchase)
+
+businessId: String (The SP fulfilling the order)
+
+totalAmount: double
+
+status: String (e.g., "Pending", "Processing", "Shipped", "Delivered")
+
+orderDate: Date (@ServerTimestamp)
+
+OrderItemModel.java (A sub-model or nested Map/List within OrderModel) with fields:
+
+productId: String
+
+productName: String
+
+quantity: int
+
+unitPrice: double
+
+PO UI/Logic:
+
+Create PO_ProductsFragment to list all available products (read from /products).
+
+Implement the Checkout/Purchase Logic. This is the most complex step and requires a Firestore Transaction to ensure data integrity:
+
+When a PO places an order, the system must atomically:
+
+Check if the stockQuantity of the purchased item(s) is sufficient.
+
+Deduct the purchased quantity from the stockQuantity in the /products document.
+
+Create the new OrderModel document in the /orders collection.
+
+📋 CRITICAL REMINDER FOR NEXT SESSION
+Quote Rules: We need to finalize the Security Rules for /service_requests and /quotes to use the correct role-based logic (PO/SP access) after confirming the new product feature is stable.
+
+Firestore Transaction: The stock deduction logic must use a Firebase Firestore Transaction to prevent a race condition where two POs try to buy the last item simultaneously.
+
+User Roles: Logic will depend on the existing user profiles to reliably identify if the authenticated user (request.auth.uid) is acting as an SP (businessId in product CRUD) or a PO (userId in order creation).
