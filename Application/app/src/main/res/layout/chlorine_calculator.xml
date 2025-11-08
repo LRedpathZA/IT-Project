@@ -312,7 +312,7 @@
                         android:background="@drawable/custom_button"
                         android:text="Save Test Log"
                         android:textColor="@color/white"
-                        android:textSize="16dp"
+                        android:textSize="18dp"
                         app:backgroundTint="@null"
                         app:rippleColor="@color/white_transparent_50" />
 
@@ -330,7 +330,7 @@
                 android:paddingVertical="12dp"
                 android:text="Calculate Dosage"
                 android:textColor="@color/white"
-                android:textSize="16dp"
+                android:textSize="18dp"
                 app:backgroundTint="@null"
                 app:rippleColor="@color/white_transparent_50" />
 

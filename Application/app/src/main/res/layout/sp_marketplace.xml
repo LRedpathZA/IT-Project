@@ -46,10 +46,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="your location"
-            android:textColor="@color/colorPrimary"
+            android:textColor="@color/colorOnPrimary"
             android:textSize="12sp"
             app:layout_constraintStart_toStartOf="@id/tv_marketplace_title"
-            app:layout_constraintTop_toBottomOf="@id/tv_marketplace_title"/>
+            app:layout_constraintTop_toBottomOf="@id/tv_marketplace_title" />
 
         <ImageView
             android:id="@+id/iv_profile_icon"
@@ -351,8 +351,7 @@
                             android:layout_width="40dp"
                             android:layout_height="40dp"
                             android:src="@drawable/profile"
-                            android:contentDescription="Advertise Help"
-                            app:tint="@color/grey_dark" />
+                            android:contentDescription="Advertise Help" />
 
                         <TextView
                             android:layout_width="wrap_content"

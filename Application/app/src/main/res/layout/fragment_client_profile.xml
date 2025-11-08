@@ -179,71 +179,46 @@
         <LinearLayout
             android:id="@+id/bottom_action_bar_scrolling"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="88dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingTop="8dp"
-            android:paddingBottom="16dp"
-            android:gravity="center_vertical">
+            android:paddingBottom="16dp">
 
-            <LinearLayout
-                android:id="@+id/btn_call_client_container"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_call"
                 android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:background="@drawable/bg_rounded_button_grey"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:id="@+id/iv_call_icon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/call"
-                    android:contentDescription="Call Client"
-                    android:layout_marginEnd="8dp" />
-
-                <TextView
-                    android:id="@+id/tv_call_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Call"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/white" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/btn_chat_client_container"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:background="@drawable/bg_rounded_button_primary"
-                android:clickable="true"
-                android:focusable="true">
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/custom_button2"
+                android:text="Call"
+                android:textColor="@color/white"
+                android:textSize="18dp"
+                app:backgroundTint="@null"
+                app:rippleColor="@color/white_transparent_50" />
 
-                <ImageView
-                    android:id="@+id/iv_chat_icon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/chat"
-                    android:contentDescription="Chat Client"
-                    android:layout_marginEnd="8dp" />
 
-                <TextView
-                    android:id="@+id/tv_chat_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Chat"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/white" />
-            </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_chat"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/custom_button"
+                android:text="Chat"
+                android:textColor="@color/white"
+                android:textSize="18dp"
+                app:backgroundTint="@null"
+                app:rippleColor="@color/white_transparent_50" />
 
         </LinearLayout>
 

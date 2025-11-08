@@ -167,18 +167,23 @@
 
         </LinearLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_request_service"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_width="250dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/custom_button2"
+            android:paddingVertical="12dp"
             android:text="Request Service / Quote"
-            android:padding="14dp"
-            android:layout_margin="16dp"
-            android:textSize="18dp"
+            android:textColor="@color/white"
+            android:textSize="16dp"
+            app:backgroundTint="@null"
+            app:rippleColor="@color/white_transparent_50"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:elevation="4dp" />
+            app:layout_constraintEnd_toEndOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

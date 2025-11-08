@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg"
+    android:background="@drawable/pbg"
     tools:context=".SP_Profile">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -142,8 +142,7 @@
                                 android:background="@android:color/transparent"
                                 android:contentDescription="Settings"
                                 android:padding="4dp"
-                                android:src="@drawable/ic_settings_black_24dp"
-                                app:tint="@color/black" />
+                                android:src="@drawable/ic_settings_black_24dp" />
                         </LinearLayout>
 
                         <TextView
@@ -234,9 +233,8 @@
                                 android:id="@+id/icon_left_products"
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
-                                android:src="@drawable/ic_manage_products"
+                                android:src="@drawable/business"
                                 android:contentDescription="Manage Products Icon"
-                                app:tint="@color/black"
                                 android:layout_marginEnd="16dp"/>
 
                             <TextView
@@ -274,7 +272,6 @@
                                 android:layout_height="24dp"
                                 android:src="@drawable/services"
                                 android:contentDescription="Manage Services Icon"
-                                app:tint="@color/black"
                                 android:layout_marginEnd="16dp"/>
 
                             <TextView
@@ -310,9 +307,8 @@
                                 android:id="@+id/icon_left_account"
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
-                                android:src="@drawable/ic_account_settings"
+                                android:src="@drawable/profile"
                                 android:contentDescription="Account Settings Icon"
-                                app:tint="@color/black"
                                 android:layout_marginEnd="16dp"/>
 
                             <TextView
@@ -350,7 +346,6 @@
                                 android:layout_height="24dp"
                                 android:src="@drawable/password"
                                 android:contentDescription="Security and Privacy Icon"
-                                app:tint="@color/black"
                                 android:layout_marginEnd="16dp"/>
 
                             <TextView
@@ -386,9 +381,8 @@
                                 android:id="@+id/icon_left_help"
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
-                                android:src="@drawable/ic_help_center"
+                                android:src="@drawable/tips"
                                 android:contentDescription="Help Center Icon"
-                                app:tint="@color/black"
                                 android:layout_marginEnd="16dp"/>
 
                             <TextView
@@ -412,15 +406,18 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_sp_logout"
-                        android:layout_width="match_parent"
-                        android:layout_height="60dp"
-                        android:layout_marginHorizontal="16dp"
-                        android:layout_marginTop="32dp"
-                        android:text="Log out"
-                        android:textAllCaps="false"
-                        android:textSize="18sp"
-                        app:backgroundTint="@color/PrimaryColour"
-                        app:cornerRadius="8dp" />
+                        android:layout_width="308dp"
+                        android:layout_height="55dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="@drawable/custom_button2"
+                        android:paddingVertical="12dp"
+                        android:text="Log Out"
+                        android:textColor="@color/white"
+                        android:textSize="18dp"
+                        app:backgroundTint="@null"
+                        app:rippleColor="@color/white_transparent_50" />
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
