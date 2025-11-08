@@ -2,7 +2,7 @@
 
 A mobile platform designed to help residential pool owners in South Africa maintain their pools efficiently while reducing water waste, lowering costs, and connecting them with trusted local service providers.
 >[!Tip]
->Version aplha 1.1 is ready for testing. Download the apk [here](https://splashscreen-20z.pages.dev/).
+>Version alpha 1.1 is ready for testing. Download the apk [here](https://splashscreen-20z.pages.dev/).
 
 ---
 ![alt text](Images/Header.png)
