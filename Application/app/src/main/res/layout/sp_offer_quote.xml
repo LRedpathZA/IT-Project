@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg"
+    android:background="@drawable/pbg"
     tools:context=".fragments.SP_OfferQuoteFragment">
 
     <LinearLayout
@@ -82,7 +82,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Your Offer"
-            android:textSize="20sp"
+            android:textSize="25sp"
             android:textStyle="bold"
             android:textColor="@color/black"
             android:layout_marginTop="8dp"
@@ -242,22 +242,41 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_cancel_quote"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
                 android:layout_weight="1"
+                android:background="@drawable/custom_button2"
                 android:text="Cancel"
-                android:layout_marginEnd="8dp"/>
+                android:textColor="@color/white"
+                android:textSize="16dp"
+                app:backgroundTint="@null"
+                app:rippleColor="@color/white_transparent_50" />
+
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_submit_quote"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
                 android:layout_weight="1"
+                android:background="@drawable/custom_button"
                 android:text="Submit Quote"
-                android:layout_marginStart="8dp"/>
+                android:textColor="@color/white"
+                android:textSize="16dp"
+                app:backgroundTint="@null"
+                app:rippleColor="@color/white_transparent_50" />
 
         </LinearLayout>
 

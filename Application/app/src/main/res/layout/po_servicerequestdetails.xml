@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg"
+    android:background="@drawable/pbg"
     tools:context=".PO_ServiceRequestDetails">
 
     <androidx.core.widget.NestedScrollView
@@ -13,6 +13,7 @@
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:paddingBottom="16dp"
+        android:layout_marginTop="50dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -119,7 +120,7 @@
                 android:layout_height="wrap_content"
                 android:text="Quotes Received (0)"
                 android:textColor="@color/black"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp"/>
 

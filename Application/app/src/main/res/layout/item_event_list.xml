@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:text="Backwash Filter"
                 android:textColor="@color/black"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
                 android:maxLines="1"
                 android:ellipsize="end"/>
@@ -53,7 +53,7 @@
                     android:layout_height="16dp"
                     android:src="@drawable/ic_clock_white_24dp"
                     app:tint="@color/grey"
-                    android:layout_marginEnd="4dp"
+                    android:layout_marginEnd="6dp"
                     android:contentDescription="Time" />
 
                 <TextView
@@ -61,7 +61,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="10:00 AM - 11:00 AM"
-                    android:textSize="14sp"
+                    android:textSize="16sp"
                     android:textColor="@color/grey"/>
 
                 <TextView
@@ -76,7 +76,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Scheduled"
-                    android:textSize="14sp"
+                    android:textSize="16sp"
                     android:textColor="@color/PrimaryColour"
                     android:textStyle="italic"/>
             </LinearLayout>

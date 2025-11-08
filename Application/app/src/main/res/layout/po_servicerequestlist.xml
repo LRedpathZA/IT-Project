@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg"
+    android:background="@drawable/pbg"
     android:padding="16dp"
     tools:context=".PO_ServiceRequestList">
 
@@ -15,6 +15,7 @@
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:paddingBottom="8dp"
+        android:layout_marginTop="50dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

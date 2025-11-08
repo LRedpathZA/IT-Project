@@ -39,6 +39,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="48dp"
                 android:text="Create an Event"
                 android:textColor="@color/black"
                 android:textSize="25sp"
@@ -74,8 +75,7 @@
                     android:layout_height="24dp"
                     android:layout_gravity="center_vertical"
                     android:contentDescription="Title Icon"
-                    android:src="@drawable/event"
-                    app:tint="@color/black" />
+                    android:src="@drawable/event" />
             </LinearLayout>
 
             <TextView
@@ -109,8 +109,7 @@
                     android:layout_height="24dp"
                     android:layout_gravity="center_vertical"
                     android:contentDescription="Dropdown Icon"
-                    android:src="@drawable/event"
-                    app:tint="@color/black" />
+                    android:src="@drawable/event" />
             </LinearLayout>
 
             <TextView
@@ -144,8 +143,7 @@
                     android:layout_height="24dp"
                     android:layout_gravity="center_vertical"
                     android:contentDescription="Dropdown Icon"
-                    android:src="@drawable/event"
-                    app:tint="@color/black" />
+                    android:src="@drawable/event" />
             </LinearLayout>
 
             <TextView
@@ -193,8 +191,7 @@
                         android:layout_height="24dp"
                         android:layout_gravity="center_vertical"
                         android:contentDescription="Calendar Icon"
-                        android:src="@drawable/calendar"
-                        app:tint="@color/black" />
+                        android:src="@drawable/calendar"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -227,8 +224,7 @@
                         android:layout_height="24dp"
                         android:layout_gravity="center_vertical"
                         android:contentDescription="Clock Icon"
-                        android:src="@drawable/ic_clock_white_24dp"
-                        app:tint="@color/black" />
+                        android:src="@drawable/clock"/>
                 </LinearLayout>
             </LinearLayout>
 
@@ -277,8 +273,7 @@
                         android:layout_height="24dp"
                         android:layout_gravity="center_vertical"
                         android:contentDescription="Calendar Icon"
-                        android:src="@drawable/calendar"
-                        app:tint="@color/black" />
+                        android:src="@drawable/calendar" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -311,8 +306,7 @@
                         android:layout_height="24dp"
                         android:layout_gravity="center_vertical"
                         android:contentDescription="Clock Icon"
-                        android:src="@drawable/ic_clock_white_24dp"
-                        app:tint="@color/black" />
+                        android:src="@drawable/clock" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -320,7 +314,6 @@
                 android:id="@+id/descriptionLayout"
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
-                android:layout_marginBottom="32dp"
                 android:background="@drawable/rounded_input_bg"
                 android:orientation="horizontal"
                 android:paddingHorizontal="8dp"
@@ -347,8 +340,7 @@
                     android:layout_gravity="top"
                     android:layout_marginTop="8dp"
                     android:contentDescription="Description Icon"
-                    android:src="@drawable/event"
-                    app:tint="@color/black" />
+                    android:src="@drawable/event"/>
             </LinearLayout>
 
             <LinearLayout
@@ -356,29 +348,34 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingTop="8dp"
+                android:paddingTop="6dp"
                 android:paddingBottom="16dp">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_save_event"
-                    android:layout_width="match_parent"
+                    android:layout_width="250dp"
                     android:layout_height="60dp"
-                    android:layout_marginBottom="8dp"
+                    android:layout_gravity="center_horizontal"  android:layout_marginTop="32dp"
+                    android:layout_marginBottom="16dp" android:background="@drawable/custom_button"
                     android:text="Add Event"
-                    android:textAllCaps="false"
-                    android:textSize="18sp"
-                    app:cornerRadius="8dp" />
+                    android:textColor="@color/white"
+                    android:textSize="18dp"
+                    app:backgroundTint="@null"
+                    app:rippleColor="@color/white_transparent_50" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_delete_event"
-                    android:layout_width="match_parent"
+                    android:layout_width="250dp"
                     android:layout_height="60dp"
-                    android:layout_marginTop="8dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/custom_button2"
+                    android:paddingVertical="12dp"
                     android:text="Delete Event"
-                    android:textAllCaps="false"
-                    android:textSize="18sp"
-                    app:backgroundTint="@color/PrimaryColour"
-                    app:cornerRadius="8dp" />
+                    android:textColor="@color/white"
+                    android:textSize="18dp"
+                    app:backgroundTint="@null"
+                    app:rippleColor="@color/white_transparent_50" />
             </LinearLayout>
 
         </LinearLayout>
