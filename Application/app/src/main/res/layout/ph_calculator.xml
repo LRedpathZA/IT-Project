@@ -111,7 +111,6 @@
                             android:layout_height="24dp"
                             android:layout_gravity="center_vertical"
                             android:src="@drawable/water_drop"
-                            app:tint="@color/black"
                             android:contentDescription="Target Icon"/>
                     </LinearLayout>
 
@@ -162,7 +161,6 @@
                             android:layout_height="24dp"
                             android:layout_gravity="center_vertical"
                             android:src="@drawable/water_capacity"
-                            app:tint="@color/black"
                             android:contentDescription="Volume Icon"/>
                     </LinearLayout>
 
