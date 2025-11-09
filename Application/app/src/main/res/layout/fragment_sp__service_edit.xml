@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit Service Details"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"/>
+
+        <ImageView
+            android:id="@+id/image_view_service_edit"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/placeholder_service"
+            android:background="#EEEEEE"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btn_choose_service_image_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Change Service Image/Icon"
+            android:layout_marginBottom="16dp"/>
+
+        <EditText
+            android:id="@+id/et_service_name_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Service Name"
+            android:inputType="textCapWords"
+            android:layout_marginBottom="12dp"/>
+
+        <EditText
+            android:id="@+id/et_service_description_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Description"
+            android:lines="4"
+            android:gravity="top"
+            android:inputType="textMultiLine"
+            android:layout_marginBottom="12dp"/>
+
+        <EditText
+            android:id="@+id/et_service_price_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Price (e.g., 350.00)"
+            android:inputType="numberDecimal"
+            android:layout_marginBottom="12dp"/>
+
+        <EditText
+            android:id="@+id/et_service_duration_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Duration in Minutes (e.g., 60)"
+            android:inputType="number"
+            android:layout_marginBottom="24dp"/>
+
+        <ProgressBar
+            android:id="@+id/progress_bar_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btn_update_service"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Update Service"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/btn_delete_service"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Delete Service"
+            android:backgroundTint="@android:color/holo_red_dark"/>
+
+    </LinearLayout>
+</ScrollView>
