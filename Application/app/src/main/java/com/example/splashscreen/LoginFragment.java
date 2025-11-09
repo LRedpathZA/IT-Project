@@ -2,13 +2,14 @@ package com.example.splashscreen;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.InputType; // <-- Import this
+import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView; // <-- Import this
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -23,8 +24,7 @@ public class LoginFragment extends Fragment {
     private FirebaseAuth auth;
 
     private EditText emailEditText, passwordEditText;
-    private ImageView passwordToggleIcon; // <-- 1. Add ImageView variable
-
+    private ImageView passwordToggleIcon;
     private Button loginButton;
     private TextView switchToSignup;
 
@@ -64,15 +64,11 @@ public class LoginFragment extends Fragment {
             } else {
                 // Currently hidden -> Change to visible
                 passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-                passwordToggleIcon.setImageResource(R.drawable.
-                        eye);
+                passwordToggleIcon.setImageResource(R.drawable.eye);
             }
             passwordEditText.setSelection(passwordEditText.getText().length());
-
-
             isPasswordVisible = !isPasswordVisible;
         });
-        // --------------------------------------------------
 
 
         switchToSignup.setOnClickListener(v -> {
@@ -103,21 +99,22 @@ public class LoginFragment extends Fragment {
         auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // Login successful
                         FirebaseUser user = auth.getCurrentUser();
-                        NotificationHelper.showNotification(
-                                getView(),
-                                "Login successful",
-                                "Welcome back to SplashScreen.",
-                                NotificationHelper.NotificationType.ERROR
-                        );
 
-                        // Navigate to the MainActivity
-                        Intent intent = new Intent(getContext(), MainActivity.class);
-                        startActivity(intent);
-                        if (getActivity() != null) {
-                            getActivity().finish();
+                        // *** CRITICAL STEP 1: Check Email Verification Status ***
+                        if (user != null) {
+                            checkVerificationStatus(user);
+                        } else {
+                            // Should not happen if login is successful, but good for safety
+                            NotificationHelper.showNotification(
+                                    getView(),
+                                    "Error",
+                                    "User object is null after successful login.",
+                                    NotificationHelper.NotificationType.ERROR
+                            );
+                            auth.signOut(); // Sign them out
                         }
+
                     } else {
                         // Login failed, show an error message
                         NotificationHelper.showNotification(
@@ -128,5 +125,54 @@ public class LoginFragment extends Fragment {
                         );
                     }
                 });
+    }
+
+    /**
+     * Checks if the user's email is verified and navigates accordingly.
+     * @param user The currently logged-in FirebaseUser object.
+     */
+    private void checkVerificationStatus(FirebaseUser user) {
+        // user.reload() fetches the latest information from the Firebase server
+        user.reload().addOnCompleteListener(reloadTask -> {
+            if (reloadTask.isSuccessful() && user.isEmailVerified()) {
+                // Verification successful: Proceed to the main application
+                NotificationHelper.showNotification(
+                        getView(),
+                        "Login Successful",
+                        "Welcome back to SplashScreen.",
+                        NotificationHelper.NotificationType.SUCCESS
+                );
+
+                // Navigate to the MainActivity
+                Intent intent = new Intent(getContext(), MainActivity.class);
+                startActivity(intent);
+                if (getActivity() != null) {
+                    getActivity().finish();
+                }
+            } else {
+                // Verification NOT successful: Inform user and offer to resend email
+                NotificationHelper.showNotification(
+                        getView(),
+                        "Verification Required",
+                        "Please check your email and click the verification link. Click here to resend the verification email.",
+                        NotificationHelper.NotificationType.WARNING
+                );
+
+                // IMPORTANT: Sign out the user so they cannot access the app until verified
+                auth.signOut();
+
+                // OPTIONAL: Offer to resend the email directly from the notification (requires implementing custom NotificationHelper action)
+                // For simplicity here, we'll log the instruction to resend the email.
+                Log.d("LoginFragment", "User not verified. Prompt user to resend email.");
+
+                // Example of how to resend the email if a user clicked a 'Resend' button (or a button in your custom notification view)
+                // user.sendEmailVerification()
+                //     .addOnCompleteListener(resendTask -> {
+                //         if (resendTask.isSuccessful()) {
+                //             // Show success message
+                //         }
+                //     });
+            }
+        });
     }
 }

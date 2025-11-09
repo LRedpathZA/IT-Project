@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="32dp"
+    android:gravity="center_horizontal"
+    android:background="@drawable/login_background">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Verify Your Phone"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/phone_info_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Please enter the 6-digit code sent to your business phone number."
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:gravity="center"
+        android:layout_marginBottom="32dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="@drawable/rounded_input_bg"
+        android:layout_marginBottom="24dp">
+
+        <EditText
+            android:id="@+id/otp_input_field"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:inputType="number"
+            android:maxLength="6"
+            android:hint="######"
+            android:gravity="center"
+            android:background="@android:color/transparent"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:padding="8dp"/>
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/verify_otp_button"
+        android:layout_width="304dp"
+        android:layout_height="58dp"
+        android:text="Verify Code"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:background="@drawable/custom_button2"
+        app:backgroundTint="@null"
+        app:rippleColor="@color/white_transparent_50" />
+
+    <TextView
+        android:id="@+id/resend_code_link"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Resend Code"
+        android:textColor="#0A57FF"
+        android:layout_marginTop="24dp"
+        android:textSize="16dp"
+        android:clickable="true"
+        android:focusable="true"/>
+
+</LinearLayout>

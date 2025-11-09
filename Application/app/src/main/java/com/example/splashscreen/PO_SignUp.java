@@ -140,7 +140,39 @@ public class PO_SignUp extends Fragment {
                     if (task.isSuccessful()) {
                         FirebaseUser user = auth.getCurrentUser();
                         if (user != null) {
-                            saveUserToFirestore(user, name, email);
+                            // 1. Send Email Verification
+                            user.sendEmailVerification()
+                                    .addOnCompleteListener(emailTask -> {
+                                        if (emailTask.isSuccessful()) {
+                                            Log.d("PO_SignUp", "Verification email sent.");
+                                            // 2. ONLY send to Firestore AFTER successful email send (optional, but good)
+                                            //    We will still hold off on starting MainActivity until verification is done.
+                                            saveUserToFirestore(user, name, email, true); // true for pending status
+
+                                            // 3. Inform user to check email
+                                            NotificationHelper.showNotification(
+                                                    getView(),
+                                                    "Verification Required",
+                                                    "Account created! A verification email has been sent to " + email + ". Please check your inbox (and spam folder) to verify your account before logging in.",
+                                                    NotificationHelper.NotificationType.SUCCESS
+                                            );
+
+                                            // 4. Log out the user immediately so they must log in again (and be checked for verification)
+                                            auth.signOut();
+                                        } else {
+                                            Log.e("PO_SignUp", "Failed to send verification email: " + emailTask.getException().getMessage());
+                                            // Handle failure to send email (maybe delete the account or prompt retry)
+                                            // For simplicity, we just notify the user and sign out.
+                                            saveUserToFirestore(user, name, email, false); // false for error status
+                                            auth.signOut();
+                                            NotificationHelper.showNotification(
+                                                    getView(),
+                                                    "Error Sending Email",
+                                                    "Account created, but failed to send verification email. Try logging in again later.",
+                                                    NotificationHelper.NotificationType.ERROR
+                                            );
+                                        }
+                                    });
                         }
                     } else {
                         Log.e("PO_SignUp", "Authentication failed: " + task.getException().getMessage());
@@ -154,33 +186,32 @@ public class PO_SignUp extends Fragment {
                 });
     }
 
-    private void saveUserToFirestore(FirebaseUser firebaseUser, String name, String email) {
+    // Change the signature
+    private void saveUserToFirestore(FirebaseUser firebaseUser, String name, String email, boolean emailSentSuccessfully) {
         Map<String, Object> user = new HashMap<>();
         user.put("name", name);
         user.put("email", email);
         user.put("role_id", 1);
+        // Add a new field to track if the email has been verified
+        user.put("is_email_verified", firebaseUser.isEmailVerified()); // Will be false initially
 
         db.collection("users").document(firebaseUser.getUid())
                 .set(user)
                 .addOnSuccessListener(aVoid -> {
-                    NotificationHelper.showNotification(
-                            getView(),
-                            "Account creation success",
-                            "The account under " + name + " was successfully created.",
-                            NotificationHelper.NotificationType.ERROR
-                    );
-                    Intent intent = new Intent(getContext(), MainActivity.class);
-                    startActivity(intent);
-                    if (getActivity() != null) {
-                        getActivity().finish();
-                    }
+                    Log.d("PO_SignUp", "User data saved to Firestore.");
+
+                    // *DO NOT START MAIN ACTIVITY HERE*. User must verify email first.
+                    // The user is logged out in `createUser` and must log in again,
+                    // where the verification status will be checked.
                 })
                 .addOnFailureListener(e -> {
                     Log.e("PO_SignUp", "Error saving user to Firestore: " + e.getMessage());
+                    // The account is created in Firebase Auth, but Firestore write failed.
+                    // You might want to consider deleting the Firebase Auth user here to clean up.
                     NotificationHelper.showNotification(
                             getView(),
-                            "Error while saving",
-                            "Failed to save" + e.getMessage(),
+                            "Database Error",
+                            "Account created, but failed to save user details. Error: " + e.getMessage(),
                             NotificationHelper.NotificationType.ERROR
                     );
                 });
