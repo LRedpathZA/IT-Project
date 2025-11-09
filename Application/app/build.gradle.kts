@@ -79,4 +79,19 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
 
+    // Firebase Firestore and Auth
+    //implementation 'com.google.firebase:firebase-firestore'
+    //implementation 'com.google.firebase:firebase-auth'
+
+    // Firebase Storage for image uploads
+    //implementation 'com.google.firebase:firebase-storage'
+
+    // For loading images (Picasso is a good choice)
+    //implementation 'com.squareup.picasso:picasso:2.71828'
+
+    // UI Libraries
+    //implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    //implementation 'androidx.cardview:cardview:1.0.0'
+    //implementation 'com.google.android.material:material:1.11.0'
+
 }
