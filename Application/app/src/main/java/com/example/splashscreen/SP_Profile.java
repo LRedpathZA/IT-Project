@@ -95,7 +95,7 @@ public class SP_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         tvDetailLocation = view.findViewById(R.id.tv_detail_location);
         tvDetailWebsite = view.findViewById(R.id.tv_detail_website);
 
-        ivProfilePicture = view.findViewById(R.id.iv_profile_picture); // Assuming this ID is added to the ImageView inside MaterialCardView
+        ivProfilePicture = view.findViewById(R.id.iv_profile_picture);
         btnSettingsGear = view.findViewById(R.id.btn_settings_gear);
 
         optionManageProducts = view.findViewById(R.id.option_manage_products);
@@ -110,7 +110,13 @@ public class SP_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         if (ivProfilePicture != null) ivProfilePicture.setOnClickListener(avatarClickListener);
         if (btnSettingsGear != null) btnSettingsGear.setOnClickListener(avatarClickListener);
 
-        optionManageProducts.setOnClickListener(v -> Toast.makeText(getContext(), "Manage Products clicked", Toast.LENGTH_SHORT).show());
+
+        // **********************************************
+        // ******* INTEGRATION POINT FOR CRUD ***********
+        // **********************************************
+        optionManageProducts.setOnClickListener(v -> navigateToProductList());
+        // **********************************************
+
         optionManageServices.setOnClickListener(v -> Toast.makeText(getContext(), "Manage Services clicked", Toast.LENGTH_SHORT).show());
 
         // Data Management
@@ -122,9 +128,24 @@ public class SP_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         }
     }
 
+    /**
+     * Navigates to the SP_ProductListFragment to manage products (CRUD).
+     */
+    private void navigateToProductList() {
+        if (getActivity() != null) {
+            getActivity().getSupportFragmentManager().beginTransaction()
+                    // Assuming R.id.fragment_container is the ID of your main fragment container
+                    .replace(R.id.fragment_container, new SP_ProductListFragment())
+                    .addToBackStack(null)
+                    .commit();
+        }
+    }
+
+
     @Override
     public void updateActivityHeader() {
         if (getActivity() instanceof MainActivity) {
+            // Note: Update this method call based on your MainActivity's implementation
             ((MainActivity) getActivity()).updateHeader("", false, false);
         }
     }

@@ -423,6 +423,5 @@
             </androidx.cardview.widget.CardView>
 
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
-
+    </androidx.core.widget.N
 </androidx.constraintlayout.widget.ConstraintLayout>
