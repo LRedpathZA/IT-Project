@@ -2,11 +2,12 @@ package com.example.splashscreen.data.models;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 
-import java.util.Date;
+/**
+ * Model class for managing individual pool products (chemicals, equipment, accessories).
+ * Includes fields for product details, price, and description.
+ */
 public class PoolProductModel {
     private String productId;
-    private String poolId; // Foreign key linking this product to a specific PoolModel
-    private String userId; // User who owns the pool/product
     private String name;
     private String category; // e.g., "Chemical", "Filter", "Accessory"
     private String brand;
@@ -14,6 +15,8 @@ public class PoolProductModel {
     private String unit; // e.g., "kg", "liters", "tabs", "units"
     private Long lastRestockDate; // Timestamp of the last purchase/restock
     private Long expirationDate; // Optional: Expiration date for chemicals
+    private Double price; // Price of the product
+    private String description; // ⭐ NEW: Detailed description of the product
 
     public PoolProductModel() {
         // Required empty public constructor for Firestore
@@ -26,8 +29,6 @@ public class PoolProductModel {
     public PoolProductModel(DocumentSnapshot document) {
         if (document != null && document.exists()) {
             this.productId = document.getId();
-            this.poolId = document.getString("poolId");
-            this.userId = document.getString("userId");
             this.name = document.getString("name");
             this.category = document.getString("category");
             this.brand = document.getString("brand");
@@ -39,16 +40,17 @@ public class PoolProductModel {
             this.unit = document.getString("unit");
             this.lastRestockDate = document.getLong("lastRestockDate");
             this.expirationDate = document.getLong("expirationDate");
+            this.price = document.getDouble("price");
+            this.description = document.getString("description"); // ⭐ INITIALIZE NEW FIELD
         }
     }
 
     /**
      * Full parameter constructor for creating a new product object.
      */
-    public PoolProductModel(String poolId, String userId, String name, String category, String brand,
-                            Double quantity, String unit, Long lastRestockDate, Long expirationDate) {
-        this.poolId = poolId;
-        this.userId = userId;
+    public PoolProductModel(String name, String category, String brand,
+                            Double quantity, String unit, Long lastRestockDate, Long expirationDate,
+                            Double price, String description) { // ⭐ NEW PARAMETER
         this.name = name;
         this.category = category;
         this.brand = brand;
@@ -56,19 +58,13 @@ public class PoolProductModel {
         this.unit = unit;
         this.lastRestockDate = lastRestockDate;
         this.expirationDate = expirationDate;
+        this.price = price;
+        this.description = description; // Initialize new field
     }
 
     // --- GETTERS ---
     public String getProductId() {
         return productId;
-    }
-
-    public String getPoolId() {
-        return poolId;
-    }
-
-    public String getUserId() {
-        return userId;
     }
 
     public String getName() {
@@ -99,17 +95,18 @@ public class PoolProductModel {
         return expirationDate;
     }
 
+    public Double getPrice() {
+        return price;
+    }
+
+    public String getDescription() { // ⭐ NEW GETTER
+        return description;
+    }
+
+
     // --- SETTERS ---
     public void setProductId(String productId) {
         this.productId = productId;
-    }
-
-    public void setPoolId(String poolId) {
-        this.poolId = poolId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 
     public void setName(String name) {
@@ -138,5 +135,13 @@ public class PoolProductModel {
 
     public void setExpirationDate(Long expirationDate) {
         this.expirationDate = expirationDate;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+
+    public void setDescription(String description) { // ⭐ NEW SETTER
+        this.description = description;
     }
 }
