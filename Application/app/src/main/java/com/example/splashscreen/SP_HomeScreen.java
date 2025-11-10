@@ -5,7 +5,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,6 +18,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.splashscreen.data.models.ClientModel;
 import com.example.splashscreen.data.models.PoolModel;
 import com.example.splashscreen.data.models.UserViewModel;
 import com.example.splashscreen.ui.weather.WeatherContainerFragment;
@@ -30,25 +30,45 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.FieldPath; // For documentId() queries
 
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
 
+    private static final String TAG = "SP_HomeScreen";
+
+    // Views
     private RecyclerView rvClients;
     private RecyclerView rvServices;
     private RecyclerView rvPublicPools;
     private RecyclerView rvProducts;
     private TextView spGreeting;
     private ImageView ivSPProfileIcon;
+    private CardView productManagementCard;
 
+    // Firebase & Data
     private UserViewModel userViewModel;
     private FirebaseFirestore db;
-    private ListenerRegistration publicPoolsListener;
     private GeoPoint spCurrentLocation = null;
-    private CardView productManagementCard;
+    private String currentUserId = null; // Store SP's UID
+
+    // ⭐ REAL-TIME LISTENERS
+    private ListenerRegistration publicPoolsListener;
+    private ListenerRegistration clientListener;
+    private ListenerRegistration serviceListener;
+
+    // ⭐ REAL-TIME ADAPTERS
+    private ClientIconAdapter clientAdapter;
+    private ServiceEventAdapter serviceAdapter;
 
     public SP_HomeScreen() {
     }
@@ -58,8 +78,7 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Initialize Firestore here or in onCreate
-        db = FirebaseFirestore.getInstance(); // Initializing Firestore
+        db = FirebaseFirestore.getInstance();
         return inflater.inflate(R.layout.sp_home_screen, container, false);
     }
 
@@ -67,56 +86,66 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // 1. Check User ID & Initialize Views/ViewModels
+        currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+
+        if (currentUserId == null) {
+            Toast.makeText(getContext(), "User not logged in. Cannot load SP data.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         rvClients = view.findViewById(R.id.rv_my_clients);
         rvServices = view.findViewById(R.id.rv_upcoming_services);
         rvPublicPools = view.findViewById(R.id.rv_public_pools);
         rvProducts = view.findViewById(R.id.rv_products);
         spGreeting = view.findViewById(R.id.spGreeting);
         ivSPProfileIcon = view.findViewById(R.id.ivSPProfileIcon);
-        ivSPProfileIcon.setOnClickListener(v -> navigateToFragment(new SP_Profile()));
-        userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
-        View weatherBanner = view.findViewById(R.id.weatherCard);
-        weatherBanner.setOnClickListener(v -> navigateToWeatherScreen());
-        userViewModel.userData.observe(getViewLifecycleOwner(), document -> {
-            if (getContext() != null) {
-                ProfilePictureManager.loadPicture(getContext(), document,  ivSPProfileIcon);
-            }
-        });
         productManagementCard = view.findViewById(R.id.productManagementCard);
+        View weatherBanner = view.findViewById(R.id.weatherCard);
 
+        userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
+
+        // 2. Setup Adapters for Real Data
+        // CLIENTS
+        clientAdapter = new ClientIconAdapter(new ArrayList<>());
+        rvClients.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        rvClients.setAdapter(clientAdapter);
+
+        // SERVICES
+        serviceAdapter = new ServiceEventAdapter(new ArrayList<>());
+        rvServices.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+        rvServices.setAdapter(serviceAdapter);
+
+
+        // 3. Set Listeners (UI Navigation)
+        ivSPProfileIcon.setOnClickListener(v -> navigateToFragment(new SP_Profile()));
+        weatherBanner.setOnClickListener(v -> navigateToWeatherScreen());
         productManagementCard.setOnClickListener(v -> {
             if (getActivity() != null) {
-                // Navigate to the SP_ProductListFragment
-                // R.id.fragment_container must be the ID of the container (e.g., FrameLayout)
-                // in your main activity where fragments are displayed.
                 getActivity().getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, new SP_ProductList())
-                        .addToBackStack(null) // Allows the user to press back to return here
+                        .addToBackStack(null)
                         .commit();
             }
         });
 
-        // 3. Load Data
-        loadClientData();
-        loadServiceData();
-        setupPublicPoolsListener(); // Uses real-time Firestore query
-//        loadProductData();
+        // 4. Load Data using Real-Time Listeners
+        setupClientsListener(currentUserId); // ⭐ FETCHES REAL CLIENTS
+        setupServiceListener(currentUserId); // ⭐ FETCHES REAL SERVICES
+        setupPublicPoolsListener();          // ⭐ FETCHES PUBLIC POOLS
 
-        // 4. Set up Weather Card (Simulated UI Update)
-        TextView tvWeatherTemp = view.findViewById(R.id.tv_weather_temp);
-        TextView tvWeatherLocation = view.findViewById(R.id.tv_weather_location);
-        ImageView ivWeatherIcon = view.findViewById(R.id.iv_weather_icon);
-
+        // 5. Observe LiveData
         observeLocationAndUserData();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Crucial: Remove listener to prevent memory leaks
-        if (publicPoolsListener != null) {
-            publicPoolsListener.remove();
-        }
+        // Crucial: Remove all listeners to prevent memory leaks
+        if (publicPoolsListener != null) { publicPoolsListener.remove(); }
+        if (clientListener != null) { clientListener.remove(); }
+        if (serviceListener != null) { serviceListener.remove(); }
     }
 
     @Override
@@ -131,8 +160,6 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         super.onResume();
         updateActivityHeader();
     }
-
-    // --- Data Observation and Navigation ---
 
     private void observeLocationAndUserData() {
         userViewModel.spLocationGeoPoint.observe(getViewLifecycleOwner(), geoPoint -> {
@@ -151,6 +178,12 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         if (userViewModel.userData.getValue() == null && FirebaseAuth.getInstance().getCurrentUser() != null) {
             userViewModel.fetchUserData(FirebaseAuth.getInstance().getCurrentUser().getUid());
         }
+
+        userViewModel.userData.observe(getViewLifecycleOwner(), document -> {
+            if (getContext() != null) {
+                ProfilePictureManager.loadPicture(getContext(), document,  ivSPProfileIcon);
+            }
+        });
     }
 
     private void navigateToFragment(Fragment fragment) {
@@ -177,7 +210,118 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         navigateToFragment(weatherScreen);
     }
 
-    // --- Pool Data Listener (REVISED) ---
+    // --- Clients Listener (FIXED: Only shows clients with "Scheduled" bookings) ---
+
+    private void setupClientsListener(String spId) {
+        if (clientListener != null) clientListener.remove();
+
+        // Query the 'bookings' collection for documents where:
+        // 1. businessId matches the current SP's ID
+        // 2. The status is "Scheduled" (accepted quote/booking)
+        Query clientQuery = db.collection("bookings")
+                .whereEqualTo("businessId", spId)
+                .whereEqualTo("status", "Scheduled"); // <<-- FIX APPLIED HERE
+
+        clientListener = clientQuery.addSnapshotListener((snapshots, e) -> {
+            if (e != null) {
+                Log.e(TAG, "Listen failed for SP clients.", e);
+                return;
+            }
+
+            if (snapshots != null) {
+                Set<String> uniquePoIds = new HashSet<>();
+                for (QueryDocumentSnapshot doc : snapshots) {
+                    // Extract the Pool Owner's ID (the client)
+                    String poId = doc.getString("userId");
+                    if (poId != null) {
+                        uniquePoIds.add(poId);
+                    }
+                }
+
+                // Fetch the full User data for each unique PO ID
+                fetchClientDetails(new ArrayList<>(uniquePoIds));
+            }
+        });
+    }
+
+    private void fetchClientDetails(List<String> poIds) {
+        List<ClientModel> clients = new ArrayList<>();
+        if (poIds.isEmpty()) {
+            clientAdapter.updateList(clients);
+            return;
+        }
+
+        // Using whereIn is limited to 10 items in Firestore.
+        if (poIds.size() > 10) {
+            poIds = poIds.subList(0, 10);
+        }
+
+        // Ensure poIds is not empty after subList if the original list was small
+        if (poIds.isEmpty()) {
+            clientAdapter.updateList(clients);
+            return;
+        }
+
+        db.collection("users").whereIn(FieldPath.documentId(), poIds)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        // ⭐ 1. Get the Client ID from the DocumentSnapshot
+                        String clientId = doc.getId();
+
+                        String name = doc.getString("name");
+                        String photoUrl = doc.getString("profilePictureUrl");
+                        Long avatarResId = doc.getLong("profileAvatarResId");
+
+                        // Default/Placeholder values for fields not in the 'users' document
+                        String description = ""; // Set description placeholder
+                        boolean isActive = true; // Assume active based on booking query
+                        GeoPoint poolLocation = null; // Pool location is not in the user document
+
+                        clients.add(new ClientModel(
+                                clientId, // Pass the ID
+                                name != null ? name : "Client", // Pass the name
+                                description, // Pass the description placeholder
+                                photoUrl, // Pass the photo URL
+                                avatarResId, // Pass the resource ID
+                                isActive, // Pass the active status
+                                poolLocation // Pass null for pool location
+                        ));
+                    }
+                    clientAdapter.updateList(clients);
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error fetching client details: " + e.getMessage()));
+    }
+
+
+    // --- Upcoming Services Listener (Uses real data) ---
+
+    private void setupServiceListener(String spId) {
+        if (serviceListener != null) serviceListener.remove();
+
+        // Query the 'bookings' collection for services linked to the current SP, ordered by date
+        Query serviceQuery = db.collection("bookings")
+                .whereEqualTo("businessId", spId)
+                .whereEqualTo("status", "Scheduled") // Filter for upcoming services
+                .orderBy("serviceDate", Query.Direction.ASCENDING); // Sort by earliest date
+
+        serviceListener = serviceQuery.addSnapshotListener((snapshots, e) -> {
+            if (e != null) {
+                Log.e(TAG, "Listen failed for SP services.", e);
+                return;
+            }
+
+            if (snapshots != null) {
+                List<ServiceBookingModel> services = new ArrayList<>();
+                for (QueryDocumentSnapshot doc : snapshots) {
+                    services.add(new ServiceBookingModel(doc));
+                }
+                serviceAdapter.updateList(services);
+            }
+        });
+    }
+
+    // --- Public Pool Data Listener (Retained: Check DB type for fix) ---
 
     private void setupPublicPoolsListener() {
         // 1. Initialize RecyclerView and Adapter, implementing the click listener
@@ -185,7 +329,6 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         PublicPoolCardAdapter adapter = new PublicPoolCardAdapter(publicPoolsList, new PublicPoolCardAdapter.OnPoolClickListener() {
             @Override
             public void onPoolClick(PoolModel pool) {
-                // Navigate to the new detail fragment
                 navigateToFragment(SP_PoolDetailFragment.newInstance(pool.getPoolId()));
             }
         });
@@ -201,7 +344,7 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         // 3. Set up the real-time listener
         publicPoolsListener = query.addSnapshotListener((snapshots, e) -> {
             if (e != null) {
-                Log.e("SP_HomeScreen", "Listen failed for public pools: " + e.getMessage());
+                Log.e(TAG, "Listen failed for public pools: " + e.getMessage());
                 return;
             }
 
@@ -216,100 +359,44 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         });
     }
 
-    // ------------------------------------------
-    // DUMMY DATA LOADING METHODS
-    // ------------------------------------------
-
-    private void loadClientData() {
-        List<ClientItem> clients = new ArrayList<>();
-        clients.add(new ClientItem("Rozaan.", R.drawable.ic_profile_placeholder));
-        clients.add(new ClientItem("Line", R.drawable.ic_profile_placeholder));
-        clients.add(new ClientItem("Client C", R.drawable.ic_profile_placeholder));
-        clients.add(new ClientItem("Apt. Cmplx", R.drawable.ic_profile_placeholder));
-        clients.add(new ClientItem("Client E", R.drawable.ic_profile_placeholder));
-        clients.add(new ClientItem("Patrick", R.drawable.ic_profile_placeholder));
-
-        ClientIconAdapter adapter = new ClientIconAdapter(clients);
-        rvClients.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        rvClients.setAdapter(adapter);
-    }
-
-    private void loadServiceData() {
-        List<ServiceEventItem> events = new ArrayList<>();
-        events.add(new ServiceEventItem("TODAY, Jan 12", "10:00 AM", "John D.'s Pool", "Weekly Maintenance", "CONFIRMED"));
-        events.add(new ServiceEventItem("TODAY, Jan 12", "02:30 PM", "Apt. Cmplx", "Chemical Treatment", "PENDING"));
-        events.add(new ServiceEventItem("TOMORROW, Jan 13", "09:00 AM", "Pool B", "Filter Backwash", "CONFIRMED"));
-
-        ServiceEventAdapter adapter = new ServiceEventAdapter(events);
-        rvServices.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
-//        rvServices.setHasFixedSize(true);
-        rvServices.setAdapter(adapter);
-    }
-
-//    private void loadProductData() {
-//        // Since we don't have item_generic_list_card, we'll assume the ProductAdapter uses TextViews for binding.
-//        List<ProductItem> products = new ArrayList<>();
-//        products.add(new ProductItem("Chlorine Granules", "10kg bucket", "R 450.00"));
-//        products.add(new ProductItem("pH Increaser", "5L bottle", "R 120.00"));
-//        products.add(new ProductItem("Algaecide", "1L bottle", "R 90.00"));
-//
-//        ProductAdapter adapter = new ProductAdapter(products);
-//        rvProducts.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-//        rvProducts.setAdapter(adapter);
-//    }
 
 
     // ------------------------------------------
-    // DUMMY DATA MODELS (Kept for other RecyclerViews)
+    // REAL DATA MODELS
     // ------------------------------------------
 
-    private static class ClientItem {
-        final String name;
-        final int avatarResId;
-
-        public ClientItem(String name, int avatarResId) {
-            this.name = name;
-            this.avatarResId = avatarResId;
-        }
-    }
-
-    private static class ServiceEventItem {
-        final String date;
-        final String time;
-        final String clientPoolName;
-        final String serviceType;
+    private static class ServiceBookingModel {
+        final String title;
+        final Date serviceDate;
+        final double price;
         final String status;
 
-        public ServiceEventItem(String date, String time, String clientPoolName, String serviceType, String status) {
-            this.date = date;
-            this.time = time;
-            this.clientPoolName = clientPoolName;
-            this.serviceType = serviceType;
-            this.status = status;
+        public ServiceBookingModel(DocumentSnapshot doc) {
+            this.title = doc.getString("title");
+            this.serviceDate = doc.getDate("serviceDate");
+            // FIXED: Use doc.getDouble() to safely retrieve the double value.
+            Double priceDouble = doc.getDouble("price");
+            this.price = priceDouble != null ? priceDouble : 0.0;
+            this.status = doc.getString("status");
         }
     }
 
-    private static class ProductItem {
-        final String name;
-        final String description;
-        final String price;
-
-        public ProductItem(String name, String description, String price) {
-            this.name = name;
-            this.description = description;
-            this.price = price;
-        }
-    }
 
     // ------------------------------------------
-    // ADAPTER IMPLEMENTATIONS (Binding Logic Added)
+    // ADAPTER IMPLEMENTATIONS
     // ------------------------------------------
 
-    private static class ClientIconAdapter extends RecyclerView.Adapter<ClientIconAdapter.ViewHolder> {
-        private final List<ClientItem> items;
+    /** Adapter for the horizontal client icon list. */
+    private class ClientIconAdapter extends RecyclerView.Adapter<ClientIconAdapter.ViewHolder> {
+        private List<ClientModel> items;
 
-        public ClientIconAdapter(List<ClientItem> items) {
+        public ClientIconAdapter(List<ClientModel> items) {
             this.items = items;
+        }
+
+        public void updateList(List<ClientModel> newItems) {
+            this.items = newItems;
+            notifyDataSetChanged();
         }
 
         @NonNull
@@ -319,11 +406,28 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
             return new ViewHolder(view);
         }
 
-        @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            ClientItem item = items.get(position);
-            holder.name.setText(item.name);
-            holder.avatar.setImageResource(item.avatarResId);
+            ClientModel item = items.get(position);
+
+            // Use the getter method for the client's name
+            holder.name.setText(item.getName());
+
+            // ⭐ FIX: Use the correct getter method getAvatarResId()
+            Long avatarResId = item.getAvatarResId();
+            String photoUrl = item.getPhotoUrl();
+
+            if (avatarResId != null && avatarResId > 0) {
+                // Load built-in avatar using Resource ID
+                holder.avatar.setImageResource(avatarResId.intValue());
+                holder.avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            }
+            else if (photoUrl != null && !photoUrl.isEmpty()) {
+                // Use the existing ProfilePictureManager for asynchronous URL loading
+                ProfilePictureManager.loadPicture(getContext(), photoUrl, holder.avatar, R.drawable.ic_profile_placeholder);
+            }
+            else {
+                ProfilePictureManager.setPlaceholder(holder.avatar);
+            }
         }
 
         @Override
@@ -331,7 +435,7 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
             return items.size();
         }
 
-        public static class ViewHolder extends RecyclerView.ViewHolder {
+        public class ViewHolder extends RecyclerView.ViewHolder {
             ImageView avatar;
             TextView name;
 
@@ -343,11 +447,21 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         }
     }
 
+    /** Adapter for the vertical service event list. */
     private static class ServiceEventAdapter extends RecyclerView.Adapter<ServiceEventAdapter.ViewHolder> {
-        private final List<ServiceEventItem> items;
+        private List<ServiceBookingModel> items;
+        private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+        private final SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
+        private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "ZA"));
 
-        public ServiceEventAdapter(List<ServiceEventItem> items) {
+
+        public ServiceEventAdapter(List<ServiceBookingModel> items) {
             this.items = items;
+        }
+
+        public void updateList(List<ServiceBookingModel> newItems) {
+            this.items = newItems;
+            notifyDataSetChanged();
         }
 
         @NonNull
@@ -359,11 +473,20 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            ServiceEventItem item = items.get(position);
-            holder.date.setText(item.date);
-            holder.time.setText(item.time);
-            holder.poolName.setText(item.clientPoolName);
-            holder.serviceType.setText(item.serviceType);
+            ServiceBookingModel item = items.get(position);
+
+            if (item.serviceDate != null) {
+                holder.date.setText(dateFormat.format(item.serviceDate));
+                holder.time.setText(timeFormat.format(item.serviceDate));
+            } else {
+                holder.date.setText("Date TBD");
+                holder.time.setText("Time TBD");
+            }
+
+            holder.poolName.setText(item.title);
+            // This is displaying the price where the service type should be.
+            // If the title is the service type, remove this line or change the layout.
+            holder.serviceType.setText(currencyFormat.format(item.price));
             holder.status.setText(item.status);
         }
 
@@ -386,7 +509,8 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         }
     }
 
-    // 💥 UPDATED ADAPTER: Now a non-static inner class to access navigateToFragment
+    // --- Public Pool Adapter (Retained) ---
+
     public static class PublicPoolCardAdapter extends RecyclerView.Adapter<PublicPoolCardAdapter.ViewHolder> {
 
         private final List<PoolModel> items;
@@ -401,7 +525,7 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
             this.listener = listener;
         }
 
-        public PublicPoolCardAdapter(List<PoolModel> items) { // Added simpler constructor for initial setup
+        public PublicPoolCardAdapter(List<PoolModel> items) {
             this.items = items;
             this.listener = null;
         }
@@ -419,7 +543,7 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
 
             // --- Image ---
             if (item.getPhotoUrl() != null && !item.getPhotoUrl().isEmpty()) {
-                // TODO: Load image using Glide/Picasso
+                // TODO: Load image using Glide/Picasso or ProfilePictureManager if extended
                 holder.image.setImageResource(R.drawable.ic_wavy_background_placeholder);
             } else {
                 holder.image.setImageResource(R.drawable.ic_wavy_background_placeholder);
@@ -466,6 +590,18 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         }
     }
 
+    // --- Product Adapter (Retained for dummy data) ---
+    private static class ProductItem {
+        final String name;
+        final String description;
+        final String price;
+
+        public ProductItem(String name, String description, String price) {
+            this.name = name;
+            this.description = description;
+            this.price = price;
+        }
+    }
     private static class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHolder> {
         private final List<ProductItem> items;
 
@@ -476,6 +612,7 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            // Assuming R.layout.item_generic_list_card exists
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_generic_list_card, parent, false);
             return new ViewHolder(view);
         }
@@ -498,9 +635,10 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
 
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
+                // Assuming IDs are correct in item_generic_list_card
                 name = itemView.findViewById(R.id.tv_item_title);
                 description = itemView.findViewById(R.id.tv_item_subtext);
-                price = itemView.findViewById(R.id.tv_item_title);
+                price = itemView.findViewById(R.id.tv_item_title); // WARNING: This ID is used twice (name & price)
             }
         }
     }

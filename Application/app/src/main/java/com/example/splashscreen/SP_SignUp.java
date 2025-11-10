@@ -1,9 +1,7 @@
 package com.example.splashscreen;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-// ... (rest of the imports are unchanged)
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
@@ -28,15 +26,9 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.splashscreen.data.models.UserViewModel;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.firebase.FirebaseException;
-import com.google.firebase.FirebaseTooManyRequestsException;
-import com.google.firebase.auth.AuthResult; // Added for Email/Password sign up task
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.PhoneAuthCredential;
-import com.google.firebase.auth.PhoneAuthOptions;
-import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
@@ -47,9 +39,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class SP_SignUp extends Fragment {
+    // Removed: private RecyclerView recyclerView;
 
     private static final String TAG = "SP_SignUp";
 
@@ -72,7 +64,7 @@ public class SP_SignUp extends Fragment {
     private boolean isPassword1Visible = false;
     private boolean isPassword2Visible = false;
 
-    // OLD: Variable to hold the verification ID required for OTP confirmation
+    // Variable to hold the verification ID required for OTP confirmation (REMNANT - NOT USED IN EMAIL FLOW)
     private String verificationId;
 
     // Location Permission Launcher
@@ -83,7 +75,6 @@ public class SP_SignUp extends Fragment {
                     getLocation();
                 } else {
                     tvLocationStatus.setText("Status: Location permission denied. Location is required for SPs.");
-                    // ⭐ UPDATED: Clear ViewModel temp fields on denial
                     userViewModel.setTempGeoPoint(null);
                     userViewModel.setTempLocationAddress(null);
                 }
@@ -113,11 +104,17 @@ public class SP_SignUp extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.sp_signup, container, false);
+        // ⭐ RECOMMENDED: Only inflate the layout here
+        return inflater.inflate(R.layout.sp_signup, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
 
-        // ⭐ IMPORTANT: Clear previous sign-up data when fragment is created
+        // IMPORTANT: Clear previous sign-up data when fragment is created
         userViewModel.setTempGeoPoint(null);
         userViewModel.setTempLocationAddress(null);
         userViewModel.setCurrentPhone(null);
@@ -145,7 +142,9 @@ public class SP_SignUp extends Fragment {
         TextView switchToLogin = view.findViewById(R.id.loginLink);
         switchToLogin.setOnClickListener(v -> {
             // Assuming AuthenticationActivity has showLoginFragment()
-            ((AuthenticationActivity) requireActivity()).showLoginFragment();
+            if (getActivity() instanceof AuthenticationActivity) {
+                ((AuthenticationActivity) requireActivity()).showLoginFragment();
+            }
         });
 
         // Location Fetch Listener
@@ -167,11 +166,8 @@ public class SP_SignUp extends Fragment {
             togglePasswordVisibility(confirmPasswordEditText, passwordToggleIcon2, isPassword2Visible);
             isPassword2Visible = !isPassword2Visible;
         });
-
-        return view;
     }
 
-    // --- (Existing Helper Methods: togglePasswordVisibility, checkLocationPermission, getLocation, startReverseGeocoding, updateUI - UNCHANGED) ---
     private void togglePasswordVisibility(EditText editText, ImageView toggleIcon, boolean isCurrentlyVisible) {
         if (isCurrentlyVisible) {
             editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -210,7 +206,10 @@ public class SP_SignUp extends Fragment {
                     if (location != null) {
                         GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
 
-                        // ⭐ UPDATED: Store location in ViewModel's temporary field
+                        // ⭐ LOGGING: Log fetched location
+                        Log.d(TAG, "Location Fetched: Lat=" + location.getLatitude() + ", Lng=" + location.getLongitude() + ", Accuracy=" + location.getAccuracy());
+
+                        // Store location in ViewModel's temporary field
                         userViewModel.setTempGeoPoint(geoPoint);
 
                         startReverseGeocoding(geoPoint);
@@ -219,15 +218,17 @@ public class SP_SignUp extends Fragment {
                         tvLocationStatus.setText("Status: Could not get location. Try again or check settings.");
                         tvLocationAddress.setText("Address: Not available");
                         tvCoordinates.setText("Coords: Not available");
-                        // ⭐ UPDATED: Clear ViewModel's temporary fields
+                        // Clear ViewModel's temporary fields
                         userViewModel.setTempGeoPoint(null);
                         userViewModel.setTempLocationAddress(null);
+                        Log.w(TAG, "Location is null, unable to get last known location.");
                     }
                 })
                 .addOnFailureListener(e -> {
                     btnFetchLocation.setEnabled(true);
                     tvLocationStatus.setText("Status: Error getting location: " + e.getMessage());
-                    // ⭐ UPDATED: Clear ViewModel's temporary fields
+                    Log.e(TAG, "Error getting location: " + e.getMessage());
+                    // Clear ViewModel's temporary fields
                     userViewModel.setTempGeoPoint(null);
                     userViewModel.setTempLocationAddress(null);
                 });
@@ -236,11 +237,15 @@ public class SP_SignUp extends Fragment {
     private void startReverseGeocoding(GeoPoint geoPoint) {
         if (getContext() == null) return;
 
+        // ⭐ LOGGING: Log reverse geocoding request
+        Log.d(TAG, "Starting Reverse Geocoding for Lat: " + geoPoint.getLatitude() + ", Lng: " + geoPoint.getLongitude());
+
         geocodeExecutor.execute(() -> {
             try {
                 if (!Geocoder.isPresent()) {
                     updateUI(() -> tvLocationAddress.setText("Address: Geocoder not available."));
-                    userViewModel.setTempLocationAddress(null); // ⭐ UPDATED: Clear ViewModel field
+                    userViewModel.setTempLocationAddress(null);
+                    Log.e(TAG, "Geocoder is not present on this device.");
                     return;
                 }
 
@@ -260,19 +265,23 @@ public class SP_SignUp extends Fragment {
                                 address.getAddressLine(0) :
                                 (address.getLocality() != null ? address.getLocality() : "Unknown Area.");
 
-                        // ⭐ UPDATED: Store address in ViewModel's temporary field
+                        // Store address in ViewModel's temporary field
                         userViewModel.setTempLocationAddress(finalDisplayAddress);
                         tvLocationAddress.setText("Address: " + finalDisplayAddress);
+
+                        // ⭐ LOGGING: Log successful reverse geocoding result
+                        Log.d(TAG, "Reverse Geocoding Success. Address: " + finalDisplayAddress);
                     } else {
                         tvLocationAddress.setText("Address: Address not found.");
-                        userViewModel.setTempLocationAddress(null); // ⭐ UPDATED: Clear ViewModel field
+                        userViewModel.setTempLocationAddress(null);
+                        Log.w(TAG, "Reverse Geocoding found no addresses.");
                     }
                 });
 
             } catch (IOException e) {
                 Log.e(TAG, "Reverse Geocoding failed: " + e.getMessage());
                 updateUI(() -> tvLocationAddress.setText("Address: Geocoding error."));
-                userViewModel.setTempLocationAddress(null); // ⭐ UPDATED: Clear ViewModel field
+                userViewModel.setTempLocationAddress(null);
             }
         });
     }
@@ -285,7 +294,7 @@ public class SP_SignUp extends Fragment {
 
 
     // =========================================================================================
-    //                                MODIFIED SIGN-UP FLOW LOGIC
+    //                                SIGN-UP FLOW LOGIC
     // =========================================================================================
 
     private void handleSignUp() {
@@ -313,7 +322,7 @@ public class SP_SignUp extends Fragment {
             return;
         }
 
-        // Ensure the phone number is in E.164 format (though not used for verification, it's saved to Firestore)
+        // Ensure the phone number is in E.164 format
         String fullPhoneNumber = formatPhoneNumber(phone);
 
         if (fullPhoneNumber == null) {
@@ -321,13 +330,13 @@ public class SP_SignUp extends Fragment {
             return;
         }
 
-        // Store the E.164 phone number in the ViewModel (primarily for saving to Firestore later)
+        // Store the E.164 phone number in the ViewModel
         userViewModel.setCurrentPhone(fullPhoneNumber);
 
         signupButton.setEnabled(false);
-        signupButton.setText("Signing Up...");
+        signupButton.setText("Registering...");
 
-        // ⭐ 2. DIRECTLY CALL CREATE USER WITH EMAIL/PASSWORD (Skipping SMS verification)
+        // 2. CREATE USER AND INITIATE VERIFICATION
         createFirebaseUserWithEmail(ownerName, businessName, email, password, fullPhoneNumber);
     }
 
@@ -356,7 +365,8 @@ public class SP_SignUp extends Fragment {
 
 
     /**
-     * ⭐ NEW METHOD: Creates a Firebase user using Email and Password directly.
+     * Creates a Firebase user, sends a verification email, signs out the user,
+     * and navigates to the login screen.
      */
     private void createFirebaseUserWithEmail(String ownerName, String businessName, String email, String password, String phone) {
         auth.createUserWithEmailAndPassword(email, password)
@@ -364,8 +374,43 @@ public class SP_SignUp extends Fragment {
                     if (task.isSuccessful()) {
                         FirebaseUser newUser = auth.getCurrentUser();
                         if (newUser != null) {
-                            // Save user data to Firestore
-                            saveBusinessDataToFirestore(newUser, ownerName, businessName, email, phone);
+
+                            // 1. Send verification email
+                            newUser.sendEmailVerification()
+                                    .addOnCompleteListener(verificationTask -> {
+
+                                        // 2. Save user data to Firestore
+                                        saveBusinessDataToFirestore(newUser, ownerName, businessName, email, phone);
+
+                                        // 3. Inform user and navigate to login
+                                        if (getView() == null) return;
+
+                                        if (verificationTask.isSuccessful()) {
+                                            Log.d(TAG, "Verification email sent.");
+                                            NotificationHelper.showNotification(
+                                                    getView(),
+                                                    "Verification Required",
+                                                    "Account created! Please check your email to verify your address before logging in.",
+                                                    NotificationHelper.NotificationType.SUCCESS
+                                            );
+                                        } else {
+                                            Log.e(TAG, "Failed to send verification email: " + verificationTask.getException().getMessage());
+                                            NotificationHelper.showNotification(
+                                                    getView(),
+                                                    "Account Created, Verification Failed",
+                                                    "Account created, but we failed to send the verification email. Please try logging in later to resend it.",
+                                                    NotificationHelper.NotificationType.ERROR
+                                            );
+                                        }
+
+                                        // Crucial step: Sign out the new user to force them to log in later and check verification status.
+                                        auth.signOut();
+
+                                        // Navigate to the login screen
+                                        if (getActivity() instanceof AuthenticationActivity) {
+                                            ((AuthenticationActivity) getActivity()).showLoginFragment();
+                                        }
+                                    });
                         }
                     } else {
                         // Email/Password creation failed
@@ -392,32 +437,9 @@ public class SP_SignUp extends Fragment {
                 });
     }
 
-    /*
-    // ⭐ REMOVED: Since we are removing SMS verification, the startPhoneNumberVerification method
-    // and the mCallbacks (OnVerificationStateChangedCallbacks) are no longer needed.
-    // They are replaced by the direct call to createFirebaseUserWithEmail.
-
-    private void startPhoneNumberVerification(String fullPhoneNumber, String ownerName, String businessName, String email, String password) {
-        // ... (removed contents)
-    }
-
-    private final PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks =
-            new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-                // ... (removed contents)
-            };
-    */
-
-    /*
-    // ⭐ REMOVED: This method was used only after phone verification was successful to switch to Email/Password
-    // It is replaced by the simplified createFirebaseUserWithEmail
-
-    private void createFirebaseUserWithPhoneAuth(PhoneAuthCredential credential, String ownerName, String businessName, String email, String password, String phone) {
-        // ... (removed contents)
-    }
-    */
 
     private void saveBusinessDataToFirestore(FirebaseUser firebaseUser, String ownerName, String businessName, String email, String phone) {
-        // ⭐ UPDATED: Use the new temporary getters for location
+
         Map<String, Object> locationFields = userViewModel.updateLocationFields(
                 userViewModel.getTempGeoPoint().getLatitude(),
                 userViewModel.getTempGeoPoint().getLongitude(),
@@ -430,34 +452,32 @@ public class SP_SignUp extends Fragment {
         businessData.put("email", email);
         businessData.put("phone", phone);
         businessData.put("role_id", 2);
+        businessData.put("is_email_verified", false);
         businessData.putAll(locationFields);
 
         db.collection("users").document(firebaseUser.getUid())
                 .set(businessData)
                 .addOnSuccessListener(aVoid -> {
-                    if (getView() == null) return;
-                    NotificationHelper.showNotification(
-                            getView(),
-                            "Business registration request",
-                            "Successfully sent, we will be in touch shortly.",
-                            NotificationHelper.NotificationType.SUCCESS
-                    );
-
-                    userViewModel.fetchUserData(firebaseUser.getUid());
-
-                    Intent intent = new Intent(getContext(), MainActivity.class);
-                    startActivity(intent);
-                    if (getActivity() != null) {
-                        getActivity().finish();
-                    }
+                    Log.d(TAG, "Business data saved to Firestore successfully.");
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error saving business data to Firestore: " + e.getMessage());
                     if (getView() == null) return;
+
+                    // Critical clean-up: If Firestore write fails, delete the Firebase Auth user
+                    firebaseUser.delete()
+                            .addOnCompleteListener(deleteTask -> {
+                                if (deleteTask.isSuccessful()) {
+                                    Log.d(TAG, "Clean up successful: Firebase Auth user deleted.");
+                                } else {
+                                    Log.e(TAG, "Clean up failed: Could not delete Firebase Auth user.");
+                                }
+                            });
+
                     NotificationHelper.showNotification(
                             getView(),
                             "Registration failed",
-                            "Error while signing up.",
+                            "Account setup failed in database. Please try again.",
                             NotificationHelper.NotificationType.ERROR
                     );
                     signupButton.setEnabled(true);

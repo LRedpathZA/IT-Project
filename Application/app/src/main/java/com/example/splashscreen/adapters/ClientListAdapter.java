@@ -1,5 +1,6 @@
-package com.example.splashscreen.adapters; // 💥 NEW PACKAGE
+package com.example.splashscreen.adapters;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,11 +9,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.splashscreen.R;
 import com.example.splashscreen.data.models.ClientModel;
+// ⭐ REQUIRED IMPORT for ProfilePictureManager
+import com.example.splashscreen.utils.ProfilePictureManager;
 
 import java.util.List;
 
@@ -20,6 +22,7 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Cl
 
     private final List<ClientModel> clientList;
     private final OnClientClickListener listener;
+    private Context context; // ⭐ Added Context for ProfilePictureManager
 
     public interface OnClientClickListener {
         void onClientClick(ClientModel client);
@@ -33,6 +36,7 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Cl
     @NonNull
     @Override
     public ClientViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        this.context = parent.getContext();
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_client_list, parent, false);
         return new ClientViewHolder(view);
     }
@@ -40,7 +44,7 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Cl
     @Override
     public void onBindViewHolder(@NonNull ClientViewHolder holder, int position) {
         ClientModel client = clientList.get(position);
-        holder.bind(client, listener);
+        holder.bind(client, listener, context);
     }
 
     @Override
@@ -48,10 +52,10 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Cl
         return clientList.size();
     }
 
-    // Optional: Method to update data set
-    public void setClientList(List<ClientModel> newClientList) {
+    public void updateList(List<ClientModel> newClientList) {
         this.clientList.clear();
         this.clientList.addAll(newClientList);
+
         notifyDataSetChanged();
     }
 
@@ -69,25 +73,42 @@ public class ClientListAdapter extends RecyclerView.Adapter<ClientListAdapter.Cl
             status = itemView.findViewById(R.id.tv_client_status);
         }
 
-        public void bind(final ClientModel client, final OnClientClickListener listener) {
+
+        public void bind(final ClientModel client, final OnClientClickListener listener, final Context context) {
             name.setText(client.getName());
             description.setText(client.getDescription());
 
-            // ⚠️ Placeholder image for now. Later use a library like Glide/Picasso for client.getAvatarUrl()
-            avatar.setImageResource(R.drawable.ic_profile_placeholder);
 
-            // Handle Active Status Chip appearance
-            if (client.isActive()) {
-                status.setText("Active");
-                status.setVisibility(View.VISIBLE);
-                // Set green background (assuming bg_status_active.xml is green/teal)
-                status.setTextColor(Color.WHITE);
-            } else {
-                // If you want a 'New' or 'Inactive' status, you can check for that here.
-                status.setVisibility(View.GONE);
+            Long avatarResId = client.getAvatarResId();
+            String photoUrl = client.getPhotoUrl();
+
+            if (avatarResId != null && avatarResId > 0) {
+
+                avatar.setImageResource(avatarResId.intValue());
+                avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            }
+            else if (photoUrl != null && !photoUrl.isEmpty()) {
+
+                ProfilePictureManager.loadPicture(context, photoUrl, avatar, R.drawable.ic_profile_placeholder);
+            }
+            else {
+
+                ProfilePictureManager.setPlaceholder(avatar);
             }
 
-            // Handle item click to open the client profile
+
+            if (client.isActive()) {
+                status.setText("ACTIVE");
+                status.setVisibility(View.VISIBLE);
+
+                status.setBackgroundColor(Color.parseColor("#4CAF50")); // Example Green
+                status.setTextColor(Color.WHITE);
+            } else {
+                status.setVisibility(View.GONE);
+
+            }
+
+
             itemView.setOnClickListener(v -> listener.onClientClick(client));
         }
     }

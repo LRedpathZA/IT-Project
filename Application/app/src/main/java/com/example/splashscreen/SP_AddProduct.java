@@ -138,8 +138,6 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
     }
     // ⭐ CHANGED: initViews now takes the root View to find elements
     private void initViews(View view) {
-        // Toolbar setup
-        Toolbar toolbar = view.findViewById(R.id.toolbar);
         // We do not call setSupportActionBar here. Toolbar setup is in setupToolbar.
 
         etProductName = view.findViewById(R.id.et_product_name);

@@ -116,13 +116,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <CheckBox
-            android:id="@+id/rememberMe"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Remember me"
-            android:textSize="16dp"
-            android:textColorLink="#00BCD4"/>
+
 
         <TextView
             android:id="@+id/forgotPassword"

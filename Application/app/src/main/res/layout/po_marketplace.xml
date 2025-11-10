@@ -80,18 +80,20 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 android:layout_marginEnd="8dp"/>
 
-            <ImageButton
+            <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/btn_profile"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:padding="8dp"
-                android:background="@android:color/transparent"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="16dp"
                 android:src="@drawable/ic_profile_placeholder"
                 android:contentDescription="Profile"
+                android:scaleType="centerCrop"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                android:layout_marginEnd="8dp"/>
+
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
+                />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

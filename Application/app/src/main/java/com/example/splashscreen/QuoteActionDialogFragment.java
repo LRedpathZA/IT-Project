@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.splashscreen.data.models.QuoteModel;
+import com.google.firebase.auth.FirebaseAuth; // ⭐ ADDED IMPORT
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
@@ -21,7 +22,10 @@ import com.google.firebase.firestore.WriteBatch;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap; // ⭐ ADDED IMPORT
 import java.util.Locale;
+import java.util.Map; // ⭐ ADDED IMPORT
+import java.util.concurrent.TimeUnit; // ⭐ ADDED IMPORT
 
 public class QuoteActionDialogFragment extends DialogFragment {
 
@@ -41,12 +45,10 @@ public class QuoteActionDialogFragment extends DialogFragment {
 
     /**
      * Factory method to create a new instance and pass the QuoteModel data.
-     * Note: QuoteModel MUST implement Parcelable for this to work.
      */
     public static QuoteActionDialogFragment newInstance(QuoteModel quote) {
         QuoteActionDialogFragment fragment = new QuoteActionDialogFragment();
         Bundle args = new Bundle();
-        // FIX: Use putParcelable() instead of putSerializable()
         args.putParcelable(ARG_QUOTE, quote);
         fragment.setArguments(args);
         return fragment;
@@ -55,11 +57,9 @@ public class QuoteActionDialogFragment extends DialogFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Ensure the dialog style is used for a cleaner appearance
         setStyle(DialogFragment.STYLE_NORMAL, R.style.CustomDialogTheme);
 
         if (getArguments() != null) {
-            // FIX: Use getParcelable() instead of getSerializable()
             quote = getArguments().getParcelable(ARG_QUOTE);
         }
     }
@@ -74,7 +74,6 @@ public class QuoteActionDialogFragment extends DialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Ensure quote data is present before binding
         if (quote == null) {
             Toast.makeText(getContext(), "Error: Quote data is missing.", Toast.LENGTH_SHORT).show();
             dismiss();
@@ -122,20 +121,26 @@ public class QuoteActionDialogFragment extends DialogFragment {
 
     /**
      * Handles the complex database update for accepting a quote using a Firestore Batch.
-     * This ensures atomicity: both documents update or neither does.
+     * This ensures atomicity: updates the quote, request, and creates the new Booking.
      */
     private void handleQuoteAcceptance() {
         String serviceRequestId = quote.getRequestId();
         String quoteId = quote.getQuoteId();
+        String spId = quote.getBusinessId(); // The ID of the Service Provider who quoted
 
-        if (serviceRequestId == null || quoteId == null) {
-            Toast.makeText(getContext(), "Error: Request or Quote ID missing.", Toast.LENGTH_SHORT).show();
+        // The authenticated user is the Pool Owner (PO)
+        String poId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+
+        if (serviceRequestId == null || quoteId == null || poId == null || spId == null) {
+            Toast.makeText(getContext(), "Error: IDs missing or user not authenticated.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // 1. Get references to the documents to be updated
+        // 1. Get references
         DocumentReference serviceRequestRef = db.collection("service_requests").document(serviceRequestId);
         DocumentReference quoteRef = serviceRequestRef.collection("quotes").document(quoteId);
+        DocumentReference bookingRef = db.collection("bookings").document(); // New booking document with auto-ID
 
         // 2. Create a batch
         WriteBatch batch = db.batch();
@@ -143,15 +148,33 @@ public class QuoteActionDialogFragment extends DialogFragment {
         // A. Update the specific Quote status to "Accepted"
         batch.update(quoteRef, "status", "Accepted");
 
-        // B. Update the parent Service Request status to "Booked"
+        // B. Update the parent Service Request status to "Booked" and include the service provider ID
         batch.update(serviceRequestRef, "status", "Booked");
-        // Optionally, set the accepted quote ID on the request for quick reference
         batch.update(serviceRequestRef, "acceptedQuoteId", quoteId);
+        batch.update(serviceRequestRef, "businessId", spId);
+
+        // C. Create a new Booking/Event (This record confirms the PO-SP client relationship and the service)
+        Map<String, Object> bookingData = new HashMap<>();
+        bookingData.put("serviceRequestId", serviceRequestId);
+        bookingData.put("quoteId", quoteId);
+        bookingData.put("businessId", spId); // SP ID
+        bookingData.put("userId", poId); // PO ID (Matches request.auth.uid for security rule)
+        bookingData.put("title", "Service Booking: " + quote.getBusinessName());
+        bookingData.put("description", quote.getDetailedDescription());
+        bookingData.put("price", quote.getQuotedPrice());
+        bookingData.put("status", "Scheduled");
+        bookingData.put("createdAt", new Date());
+
+        // Placeholder for service date (IMPORTANT: This should be agreed upon. Here, 7 days out)
+        long sevenDaysInMs = TimeUnit.DAYS.toMillis(7);
+        bookingData.put("serviceDate", new Date(System.currentTimeMillis() + sevenDaysInMs));
+
+        batch.set(bookingRef, bookingData);
 
         // 3. Commit the batch
         batch.commit()
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "Quote Accepted! Service booked.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), "Quote Accepted! Service booked. Check your Services tab.", Toast.LENGTH_LONG).show();
                     dismiss();
                 })
                 .addOnFailureListener(e -> {

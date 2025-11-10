@@ -157,11 +157,11 @@ public class MainActivity extends AppCompatActivity {
         if (ROLE_POOL_OWNER == role_id) {
             bottomNavigationView.inflateMenu(R.menu.menu_po_bottom_nav);
             setupDrawer(R.layout.po_navigation_drawer);
-            setupPoDrawerListeners(drawerContainer); // Set up PO drawer navigation
+            setupPoDrawerListeners(drawerContainer);
         } else if (ROLE_SERVICE_PROVIDER == role_id) {
             bottomNavigationView.inflateMenu(R.menu.menu_sp_bottom_nav);
             setupDrawer(R.layout.sp_navigation_drawer);
-            setupSpDrawerListeners(drawerContainer); // Set up SP drawer navigation
+            setupSpDrawerListeners(drawerContainer);
         }
         bottomNavigationView.setOnItemSelectedListener(this::onNavigationItemSelected);
     }
@@ -171,40 +171,35 @@ public class MainActivity extends AppCompatActivity {
     // -------------------------------------------------------------------------
 
     private void setupPoDrawerListeners(FrameLayout drawerContainer) {
-        // --- Helper for simplified Toast/Navigation ---
         View.OnClickListener clickListener = v -> {
             drawerLayout.closeDrawer(GravityCompat.START);
             String title = ((TextView) ((LinearLayout) v).getChildAt(1)).getText().toString();
 
-            // Temporary Toast functionality
-            Toast.makeText(this, "Navigating to: " + title, Toast.LENGTH_SHORT).show();
-
             // Placeholder logic for actual navigation
             if (v.getId() == R.id.btnMessages) {
-                // navigateToFragment(new PO_MessagesFragment()); // Example
+                Toast.makeText(this, "Coming Soon: " + title, Toast.LENGTH_SHORT).show();
             } else if (v.getId() == R.id.btnSummary) {
                  navigateToFragment(new PoolHealth(), true);
-            } else if (v.getId() == R.id.btnTips) {
-                // navigateToFragment(new PO_TipsFragment());
+            } else if (v.getId() == R.id.btnBubbles) {
+                 navigateToFragment(new BubblesFragment(), true);
             } else if (v.getId() == R.id.btnLoadshedding) {
-                // navigateToFragment(new LoadsheddingFragment());
+                Toast.makeText(this, "Coming Soon " + title, Toast.LENGTH_SHORT).show();
             } else if (v.getId() == R.id.btnRestrictions) {
-                // navigateToFragment(new WaterRestrictionsFragment());
+                navigateToFragment(new BubblesFragment(), true);
             } else if (v.getId() == R.id.btnServiceRequest) {
                  navigateToFragment(new PO_ServiceRequestList(),true  );
             } else if (v.getId() == R.id.btnHelp) {
-                // navigateToFragment(new HelpSupportFragment());
+                navigateToFragment(new BubblesFragment(), true);
             } else if (v.getId() == R.id.btnSettings) {
                  navigateToFragment(new PO_Profile(), true);
             } else if (v.getId() == R.id.btnRegisterBusiness) {
-                registerAsBusiness();
+                logoutUser();
             }
         };
 
-        // Attach listeners to all PO drawer buttons
         drawerContainer.findViewById(R.id.btnMessages).setOnClickListener(clickListener);
         drawerContainer.findViewById(R.id.btnSummary).setOnClickListener(clickListener);
-        drawerContainer.findViewById(R.id.btnTips).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnBubbles).setOnClickListener(clickListener);
         drawerContainer.findViewById(R.id.btnLoadshedding).setOnClickListener(clickListener);
         drawerContainer.findViewById(R.id.btnRestrictions).setOnClickListener(clickListener);
         drawerContainer.findViewById(R.id.btnServiceRequest).setOnClickListener(clickListener);
@@ -223,31 +218,27 @@ public class MainActivity extends AppCompatActivity {
             drawerLayout.closeDrawer(GravityCompat.START);
 
             String title = "SP Navigation Item";
-            // Safely extract the title from the TextView
             if (v instanceof LinearLayout && ((LinearLayout) v).getChildCount() > 1 && ((LinearLayout) v).getChildAt(1) instanceof TextView) {
                 title = ((TextView) ((LinearLayout) v).getChildAt(1)).getText().toString();
             }
 
-            // Temporary Toast functionality
-            Toast.makeText(this, "SP Navigating to: " + title, Toast.LENGTH_SHORT).show();
 
-            // --- SP-Specific Navigation Logic ---
+
+
             if (v.getId() == R.id.btnMessages) {
-                // For SP messages (e.g., from pool owners who accepted their quote)
-                // navigateToFragment(new SP_MessagesFragment());
+
             } else if (v.getId() == R.id.btnServiceRequest) {
-                // CRITICAL FOR QUOTING: Navigate to the list of OPEN requests available for quotingS
+
                 navigateToFragment(new SP_ServiceRequestList(), true);
-            } else if (v.getId() == R.id.btnTips) {
-                 navigateToFragment(new SP_ProductList(), true); // Assuming shared fragments
+            } else if (v.getId() == R.id.btnBubbles) {
+                 navigateToFragment(new BubblesFragment(), true); // Assuming shared fragments
             } else if (v.getId() == R.id.btnLoadshedding) {
-                // navigateToFragment(new LoadsheddingFragment()); // Assuming shared fragments
+                 navigateToFragment(new BubblesFragment(), true);
             } else if (v.getId() == R.id.btnRestrictions) {
-                // navigateToFragment(new WaterRestrictionsFragment()); // Assuming shared fragments
+                 navigateToFragment(new BubblesFragment(), true);
             } else if (v.getId() == R.id.btnHelp) {
-                // navigateToFragment(new HelpSupportFragment()); // Assuming shared fragments
+                 navigateToFragment(new BubblesFragment(),true);
             } else if (v.getId() == R.id.btnSettings) {
-                // Navigate to the SP's profile/settings view
                 navigateToFragment(new SP_Profile(), true);
             }
 
@@ -257,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
         // Attach listeners to all SP drawer buttons (must match the IDs in your XML)
         drawerContainer.findViewById(R.id.btnMessages).setOnClickListener(clickListener);
         drawerContainer.findViewById(R.id.btnServiceRequest).setOnClickListener(clickListener);
-        drawerContainer.findViewById(R.id.btnTips).setOnClickListener(clickListener);
+        drawerContainer.findViewById(R.id.btnBubbles).setOnClickListener(clickListener);
         drawerContainer.findViewById(R.id.btnLoadshedding).setOnClickListener(clickListener);
         drawerContainer.findViewById(R.id.btnRestrictions).setOnClickListener(clickListener);
         drawerContainer.findViewById(R.id.btnHelp).setOnClickListener(clickListener);
@@ -341,6 +332,9 @@ public class MainActivity extends AppCompatActivity {
                 selectedFragment = new SP_HomeScreen();
             } else if (itemId == R.id.nav_clients) {
                 selectedFragment = new ClientListFragment();
+            }
+            else if (itemId == R.id.nav_inventory) {
+                selectedFragment = new SP_ProductList();
             }
             // Add other SP bottom nav logic here...
         }

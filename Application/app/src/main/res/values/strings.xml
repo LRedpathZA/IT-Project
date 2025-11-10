@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">SplashScreen</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="error_placeholder_bubbles">Bubbles feature failed to load</string>
+    <string name="error_loading_bubbles">Could not load Bubbles. Please check your connection and try again.</string>
+
 </resources>

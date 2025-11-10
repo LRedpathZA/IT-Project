@@ -9,7 +9,7 @@ import android.util.Log;
 import android.widget.ImageView;
 
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.example.splashscreen.R; // Ensure this is correct for your R file
+import com.example.splashscreen.R;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -26,8 +26,8 @@ public class ProfilePictureManager {
     private static final int DEFAULT_PLACEHOLDER = R.drawable.ic_profile_placeholder;
 
     /**
-     * Loads the profile picture (custom URL or built-in ID) into the target ImageView.
-     * This method handles fetching from Firestore data, network loading, and setting the placeholder.
+     * Loads the profile picture (custom URL or built-in ID) into the target ImageView
+     * using data from a DocumentSnapshot.
      * * @param context The application context.
      * @param document The DocumentSnapshot containing user data.
      * @param targetImageView The ImageView to update.
@@ -42,6 +42,7 @@ public class ProfilePictureManager {
         Long avatarResIdLong = document.getLong("profileAvatarResId");
 
         if (profileUrl != null && !profileUrl.isEmpty()) {
+            // This calls the 2-argument network loader
             loadBitmapFromUrl(profileUrl, targetImageView);
         } else if (avatarResIdLong != null && avatarResIdLong > 0) {
             // Load built-in avatar using Resource ID
@@ -53,12 +54,44 @@ public class ProfilePictureManager {
         }
     }
 
+    // ⭐ NEW OVERLOADED METHOD ADDED BELOW
     /**
-     * Sets the default placeholder.
+     * Loads the profile picture from a direct URL or sets a custom placeholder.
+     * This is typically used for loading client profile icons where the URL is already known.
+     * * @param context The application context. (Kept for consistency, though unused internally).
+     * @param profileUrl The direct URL of the profile image.
+     * @param targetImageView The ImageView to update.
+     * @param placeholderResId The resource ID of the placeholder to use if the URL is null/empty.
+     */
+    public static void loadPicture(Context context, String profileUrl, ImageView targetImageView, int placeholderResId) {
+        if (targetImageView == null) {
+            return;
+        }
+
+        if (profileUrl != null && !profileUrl.isEmpty()) {
+            // Use the existing network loader
+            loadBitmapFromUrl(profileUrl, targetImageView);
+        } else {
+            // Fallback to the provided custom placeholder
+            setPlaceholderWithResId(targetImageView, placeholderResId);
+        }
+    }
+
+    /**
+     * Sets the default placeholder (using the hardcoded DEFAULT_PLACEHOLDER).
      */
     public static void setPlaceholder(ImageView targetImageView) {
         if (targetImageView == null) return;
         targetImageView.setImageResource(DEFAULT_PLACEHOLDER);
+        targetImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+    }
+
+    /**
+     * Sets a specific placeholder resource ID.
+     */
+    private static void setPlaceholderWithResId(ImageView targetImageView, int resId) {
+        if (targetImageView == null) return;
+        targetImageView.setImageResource(resId);
         targetImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
     }
 
@@ -82,7 +115,7 @@ public class ProfilePictureManager {
                     targetImageView.setImageBitmap(finalBitmap);
                     targetImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 } else {
-                    // Fallback to placeholder on network failure
+
                     setPlaceholder(targetImageView);
                 }
             });
