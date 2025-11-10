@@ -16,8 +16,10 @@ import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.splashscreen.adapters.ItemAdapter;
 import com.example.splashscreen.data.models.ItemModel;
 import com.example.splashscreen.data.models.PoolModel;
 import com.example.splashscreen.data.models.PoolViewModel;
@@ -28,6 +30,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -111,7 +114,7 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
         });
 
         setupPoolResultListener();
-        setupProductRecyclerView();
+      fetchProductsAndSetupRecyclerView();
         initNavigation();
 
         observeUserData();
@@ -255,14 +258,46 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
         navigateToFragment(weatherScreen);
     }
 
-    private void setupProductRecyclerView() {
-        List<ItemModel> initialList = new ArrayList<>();
-        initialList.add(new ItemModel("Chlorine Tabs", "Top Seller", R.drawable.fake_chlorine));
-        initialList.add(new ItemModel("pH Up", "Essential", R.drawable.fake_chlorine));
-        initialList.add(new ItemModel("Algaecide", "Best Price", R.drawable.fake_chlorine));
+    private void fetchProductsAndSetupRecyclerView() {
+        // 1. Setup the RecyclerView initially with an empty list
+        if (productAdapter == null) {
+            productAdapter = new ItemAdapter(new ArrayList<>());
+            // Assuming rvProducts is already initialized in onViewCreated
+            rvProducts.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+            rvProducts.setAdapter(productAdapter);
+        }
 
-        productAdapter = new ItemAdapter(initialList);
-        rvProducts.setAdapter(productAdapter);
+        // 2. Fetch data from Firestore
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("products")
+                .orderBy("name", Query.Direction.ASCENDING) // Order by product name
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<ItemModel> productList = new ArrayList<>();
+                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+
+                        // ⭐ Map Firestore fields to ItemModel
+                        String title = document.getString("name");
+                        String subText = document.getString("description"); // Assuming a 'description' field exists
+                        String imageUrl = document.getString("imageUrl");   // Assuming an 'imageUrl' field exists
+
+                        if (title != null && subText != null && imageUrl != null) {
+                            // Use the new constructor with the image URL
+                            productList.add(new ItemModel(title, subText, imageUrl));
+                        }
+                    }
+
+                    // 3. Update the adapter with the real data
+                    if (productAdapter != null) {
+                        // The ItemAdapter must have an updateList method
+                        productAdapter.updateList(productList);
+                    }
+                });
+//                .addOnFailureListener(e -> {
+//                    Log.e(TAG, "Error fetching products: " + e.getMessage());
+//                    Toast.makeText(getContext(), "Failed to load product list.", Toast.LENGTH_SHORT).show();
+//                    // Optional: Call the old setupProductRecyclerView() here to load fake data as a fallback
+//                });
     }
 
     private void setupPoolResultListener() {

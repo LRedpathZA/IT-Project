@@ -229,8 +229,7 @@
                                 android:layout_height="24dp"
                                 android:layout_marginEnd="16dp"
                                 android:contentDescription="Account Settings Icon"
-                                android:src="@drawable/ic_account_settings"
-                                app:tint="@color/black" />
+                                android:src="@drawable/profile" />
 
                             <TextView
                                 android:id="@+id/tv_label_account"
@@ -269,7 +268,7 @@
                                 android:layout_marginEnd="16dp"
                                 android:contentDescription="Security and Privacy Icon"
                                 android:src="@drawable/password"
-                                app:tint="@color/black" />
+                            />
 
                             <TextView
                                 android:id="@+id/tv_label_security"
@@ -307,8 +306,8 @@
                                 android:layout_height="24dp"
                                 android:layout_marginEnd="16dp"
                                 android:contentDescription="Help Center Icon"
-                                android:src="@drawable/ic_help_center"
-                                app:tint="@color/black" />
+                                android:src="@drawable/help"
+                             />
 
                             <TextView
                                 android:id="@+id/tv_label_help"

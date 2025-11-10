@@ -1,5 +1,6 @@
-package com.example.splashscreen;
+package com.example.splashscreen.adapters;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,13 +9,16 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.splashscreen.R;
 import com.example.splashscreen.data.models.ItemModel;
+import com.example.splashscreen.utils.ProfilePictureManager;
 
 import java.util.List;
 
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder> {
 
     private final List<ItemModel> itemList;
+    private Context context;
 
     public ItemAdapter(List<ItemModel> itemList) {
         this.itemList = itemList;
@@ -23,8 +27,10 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
     @NonNull
     @Override
     public ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // ⭐ Initialize Context here
+        this.context = parent.getContext();
 
-        View view = LayoutInflater.from(parent.getContext())
+        View view = LayoutInflater.from(context)
                 .inflate(R.layout.item_generic_list_card, parent, false);
         return new ItemViewHolder(view);
     }
@@ -35,12 +41,34 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
 
         holder.titleTextView.setText(item.getTitle());
         holder.subTextView.setText(item.getSubText());
-        holder.imageView.setImageResource(item.getImageResId());
+
+        // ⭐ UPDATED IMAGE LOADING LOGIC
+        String imageUrl = item.getImageUrl();
+        int imageResId = item.getImageResId();
+
+        if (imageUrl != null && !imageUrl.isEmpty() && context != null) {
+            ProfilePictureManager.loadPicture(
+                    context,
+                    imageUrl,
+                    holder.imageView,
+                    R.drawable.ic_profile_placeholder // Fallback to a generic placeholder
+            );
+        } else if (imageResId != 0) {
+            holder.imageView.setImageResource(imageResId);
+        } else {
+            holder.imageView.setImageResource(R.drawable.ic_profile_placeholder);
+        }
 
 
         holder.itemView.setOnClickListener(v -> {
-            // Log.d("ItemAdapter", "Clicked on: " + item.getTitle());
+
         });
+    }
+
+    public void updateList(List<ItemModel> newList) {
+        this.itemList.clear();
+        this.itemList.addAll(newList);
+        notifyDataSetChanged();
     }
 
     @Override
@@ -55,7 +83,6 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
 
         public ItemViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Link the ViewHolder variables to the IDs in card_list_item_generic.xml
             imageView = itemView.findViewById(R.id.iv_item_image);
             titleTextView = itemView.findViewById(R.id.tv_item_title);
             subTextView = itemView.findViewById(R.id.tv_item_subtext);

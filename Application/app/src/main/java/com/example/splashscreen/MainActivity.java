@@ -103,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
                 setupRoleBasedUI(userRole);
                 userViewModel.username.observe(this, this::populateDrawerUsername);
 
-                // Only set the initial fragment ONCE.
                 if (isInitialFragmentSet) {
                     return;
                 }
@@ -183,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (v.getId() == R.id.btnBubbles) {
                  navigateToFragment(new BubblesFragment(), true);
             } else if (v.getId() == R.id.btnLoadshedding) {
-                Toast.makeText(this, "Coming Soon " + title, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Coming Soon: " + title, Toast.LENGTH_SHORT).show();
             } else if (v.getId() == R.id.btnRestrictions) {
                 navigateToFragment(new BubblesFragment(), true);
             } else if (v.getId() == R.id.btnServiceRequest) {

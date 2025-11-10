@@ -14,10 +14,11 @@ import android.widget.ImageButton;
 
 import com.example.splashscreen.data.models.UserViewModel;
 import com.example.splashscreen.utils.ProfilePictureManager;
+import com.google.android.material.imageview.ShapeableImageView;
 
 public class PO_Marketplace extends Fragment implements HeaderUpdatable {
     private UserViewModel userViewModel;
-    private ImageButton btnProfilePic;
+    private ShapeableImageView btnProfilePic;
 
     public PO_Marketplace() {
         // Required empty public constructor
