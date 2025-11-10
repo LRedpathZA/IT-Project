@@ -109,7 +109,7 @@
                             android:id="@+id/tv_weather_temp"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="28°C / Sunny"
+                            android:text="View Weather"
                             android:textColor="@color/white"
                             android:textSize="24sp"
                             android:textStyle="bold" />
@@ -118,7 +118,7 @@
                             android:id="@+id/tv_weather_location"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Pretoria, South Africa"
+                            android:text="Detailed Forecast"
                             android:textColor="@color/white"
                             android:textSize="14sp" />
                     </LinearLayout>

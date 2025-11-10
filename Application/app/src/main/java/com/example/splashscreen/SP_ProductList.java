@@ -19,16 +19,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.splashscreen.adapters.SP_ProductAdapter;
 import com.example.splashscreen.data.models.ProductModel;
 import com.example.splashscreen.data.models.ProductViewModel;
-import com.example.splashscreen.data.models.UserViewModel; // ⭐ REQUIRED IMPORT
+import com.example.splashscreen.data.models.UserViewModel;
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.auth.FirebaseAuth; // ⭐ Use FirebaseAuth to get current userId
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 
 public class SP_ProductList extends Fragment implements SP_ProductAdapter.ProductActionListener, HeaderUpdatable {
 
+    // ⭐ ADDED: Constant for the argument key used in Fragment transaction
+    public static final String ARG_PRODUCT_ID = "PRODUCT_ID";
+
     private ProductViewModel productViewModel;
-    private UserViewModel userViewModel; // ⭐ Added UserViewModel
+    private UserViewModel userViewModel;
     private SP_ProductAdapter productAdapter;
     private RecyclerView rvProductList;
     private TextView tvEmptyState;
@@ -46,7 +49,7 @@ public class SP_ProductList extends Fragment implements SP_ProductAdapter.Produc
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.sp_product_list, container, false);
     }
-        @Override
+    @Override
     public void updateActivityHeader() {
         if (getActivity() instanceof MainActivity) {
             String title =  "Product List";
@@ -70,8 +73,6 @@ public class SP_ProductList extends Fragment implements SP_ProductAdapter.Produc
         btnAddProduct = view.findViewById(R.id.btn_add_product);
 
         // 1. Setup ViewModels
-        // Note: You might need to use requireActivity() for the UserViewModel
-        // if it's shared across the main activity scope.
         productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
 
@@ -130,22 +131,40 @@ public class SP_ProductList extends Fragment implements SP_ProductAdapter.Produc
     // --- Navigation ---
 
     private void navigateToAddProduct() {
-        // Pass the userId to the AddProduct activity so it can be saved with the product
-        Intent intent = new Intent(getActivity(), SP_AddProduct.class);
-        intent.putExtra("USER_ID", currentUserId); // Pass the required userId
-        startActivity(intent);
+        SP_AddProduct addProductFragment = new SP_AddProduct();
+
+        if (getActivity() != null) {
+            // R.id.fragment_container should be the ID of the FrameLayout/container in your host Activity (e.g., MainActivity)
+            getActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, addProductFragment) // Use the created instance
+                    .addToBackStack(null) // Allows the user to press the back button to return to SP_ProductList
+                    .commit();
+        }
     }
 
-    private void navigateToEditProduct(String productId) {
-        // Navigate to SP_AddProduct with a product ID for EDIT mode
-        Intent intent = new Intent(getActivity(), SP_AddProduct.class);
-        intent.putExtra(SP_AddProduct.EXTRA_PRODUCT_ID, productId);
-        intent.putExtra("USER_ID", currentUserId); // Pass the required userId
-        startActivity(intent);
+    /**
+     * Navigates to the SP_AddProduct Fragment in EDIT mode.
+     * @param productId The ID of the product to be edited.
+     */
+    public void navigateToEditProduct(String productId) {
+
+        Bundle bundle = new Bundle();
+
+        bundle.putString(ARG_PRODUCT_ID, productId);
+
+
+        SP_AddProduct editFragment = new SP_AddProduct();
+        editFragment.setArguments(bundle);
+
+        getParentFragmentManager()
+                .beginTransaction()
+                // Replace the current fragment with the edit fragment
+                .replace(R.id.fragment_container, editFragment)
+                // Add to the back stack so the user can press the back button to return to the list
+                .addToBackStack(null)
+                .commit();
     }
 
-
-    // --- SP_ProductAdapter.ProductActionListener Implementation ---
 
     @Override
     public void onEditClick(ProductModel product) {
@@ -175,7 +194,6 @@ public class SP_ProductList extends Fragment implements SP_ProductAdapter.Produc
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Clean up the executor service in the adapter
         if (productAdapter != null) {
             productAdapter.shutdownExecutor();
         }

@@ -22,8 +22,13 @@
         "appinvite_service": {
           "other_platform_oauth_client": []
         }
+      ,"cloud_messaging_service": {
+          "status": 1,
+          "apns_config": []
+        }
       }
     }
   ],
-  "configuration_version": "1"
+  "configuration_version": "1",
+  "gcm_sender_id": "538296307572"
 }

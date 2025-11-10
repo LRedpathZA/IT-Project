@@ -112,7 +112,7 @@
                             android:id="@+id/tv_weather_temp"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="28°C / Sunny"
+                            android:text="View Weather"
                             android:textColor="@color/white"
                             android:textSize="24sp"
                             android:textStyle="bold" />
@@ -121,7 +121,7 @@
                             android:id="@+id/tv_weather_location"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Pretoria, South Africa"
+                            android:text="Detailed Forecast"
                             android:textColor="@color/white"
                             android:textSize="14sp" />
                     </LinearLayout>
@@ -284,55 +284,9 @@
                 tools:itemCount="2"
                 tools:listitem="@layout/item_public_pool_card"/>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="8dp">
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Top Products"
-                    android:textColor="@color/black"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
 
-                <ImageButton
-                    android:id="@+id/btn_prev_product"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_arrow_back_white_24dp"
-                    app:tint="@color/black"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="Previous Product"
-                    android:padding="4dp"/>
 
-                <ImageButton
-                    android:id="@+id/btn_next_product"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_arrow_forward_black_24dp"
-                    app:tint="@color/black"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="Next Product"
-                    android:padding="4dp"/>
-            </LinearLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_products"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp"
-                android:clipToPadding="false"
-                android:layout_marginBottom="24dp"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/item_generic_list_card"/>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

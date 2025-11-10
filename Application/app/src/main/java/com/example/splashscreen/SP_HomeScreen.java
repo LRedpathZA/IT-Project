@@ -100,7 +100,7 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         loadClientData();
         loadServiceData();
         setupPublicPoolsListener(); // Uses real-time Firestore query
-        loadProductData();
+//        loadProductData();
 
         // 4. Set up Weather Card (Simulated UI Update)
         TextView tvWeatherTemp = view.findViewById(R.id.tv_weather_temp);
@@ -246,17 +246,17 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         rvServices.setAdapter(adapter);
     }
 
-    private void loadProductData() {
-        // Since we don't have item_generic_list_card, we'll assume the ProductAdapter uses TextViews for binding.
-        List<ProductItem> products = new ArrayList<>();
-        products.add(new ProductItem("Chlorine Granules", "10kg bucket", "R 450.00"));
-        products.add(new ProductItem("pH Increaser", "5L bottle", "R 120.00"));
-        products.add(new ProductItem("Algaecide", "1L bottle", "R 90.00"));
-
-        ProductAdapter adapter = new ProductAdapter(products);
-        rvProducts.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        rvProducts.setAdapter(adapter);
-    }
+//    private void loadProductData() {
+//        // Since we don't have item_generic_list_card, we'll assume the ProductAdapter uses TextViews for binding.
+//        List<ProductItem> products = new ArrayList<>();
+//        products.add(new ProductItem("Chlorine Granules", "10kg bucket", "R 450.00"));
+//        products.add(new ProductItem("pH Increaser", "5L bottle", "R 120.00"));
+//        products.add(new ProductItem("Algaecide", "1L bottle", "R 90.00"));
+//
+//        ProductAdapter adapter = new ProductAdapter(products);
+//        rvProducts.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+//        rvProducts.setAdapter(adapter);
+//    }
 
 
     // ------------------------------------------

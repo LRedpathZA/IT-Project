@@ -3,6 +3,7 @@ package com.example.splashscreen;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+// ... (rest of the imports are unchanged)
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.FirebaseTooManyRequestsException;
+import com.google.firebase.auth.AuthResult; // Added for Email/Password sign up task
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
@@ -65,14 +67,12 @@ public class SP_SignUp extends Fragment {
     // Location & Data
     private FusedLocationProviderClient fusedLocationClient;
     private final ExecutorService geocodeExecutor = Executors.newSingleThreadExecutor();
-    // private GeoPoint currentGeoPoint = null; // ⭐ REMOVED - Using ViewModel temp field
-    // private String currentLocationAddress = null; // ⭐ REMOVED - Using ViewModel temp field
 
     // State variables
     private boolean isPassword1Visible = false;
     private boolean isPassword2Visible = false;
 
-    // NEW: Variable to hold the verification ID required for OTP confirmation
+    // OLD: Variable to hold the verification ID required for OTP confirmation
     private String verificationId;
 
     // Location Permission Launcher
@@ -171,7 +171,7 @@ public class SP_SignUp extends Fragment {
         return view;
     }
 
-    // --- (Existing Helper Methods: togglePasswordVisibility, checkLocationPermission) ---
+    // --- (Existing Helper Methods: togglePasswordVisibility, checkLocationPermission, getLocation, startReverseGeocoding, updateUI - UNCHANGED) ---
     private void togglePasswordVisibility(EditText editText, ImageView toggleIcon, boolean isCurrentlyVisible) {
         if (isCurrentlyVisible) {
             editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -193,8 +193,6 @@ public class SP_SignUp extends Fragment {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
         }
     }
-
-    // --- (Updated getLocation and startReverseGeocoding) ---
 
     private void getLocation() {
         if (getContext() == null || fusedLocationClient == null || ContextCompat.checkSelfPermission(
@@ -285,8 +283,9 @@ public class SP_SignUp extends Fragment {
         }
     }
 
+
     // =========================================================================================
-    //                                NEW OTP FLOW LOGIC
+    //                                MODIFIED SIGN-UP FLOW LOGIC
     // =========================================================================================
 
     private void handleSignUp() {
@@ -308,13 +307,13 @@ public class SP_SignUp extends Fragment {
             return;
         }
 
-        // ⭐ UPDATED: Use the new temporary ViewModel getters for validation
+        // Location Check
         if (userViewModel.getTempGeoPoint() == null || userViewModel.getTempLocationAddress() == null) {
             NotificationHelper.showNotification(getView(), "Location Required", "Please tap 'Get Business Location' to set your address.", NotificationHelper.NotificationType.ERROR);
             return;
         }
 
-        // Ensure the phone number is in E.164 format
+        // Ensure the phone number is in E.164 format (though not used for verification, it's saved to Firestore)
         String fullPhoneNumber = formatPhoneNumber(phone);
 
         if (fullPhoneNumber == null) {
@@ -322,162 +321,100 @@ public class SP_SignUp extends Fragment {
             return;
         }
 
-        // Store the E.164 phone number in the ViewModel for the OTP fragment to access
+        // Store the E.164 phone number in the ViewModel (primarily for saving to Firestore later)
         userViewModel.setCurrentPhone(fullPhoneNumber);
 
         signupButton.setEnabled(false);
-        signupButton.setText("Verifying Phone...");
+        signupButton.setText("Signing Up...");
 
-        // 2. Start Phone Verification process
-        startPhoneNumberVerification(fullPhoneNumber, ownerName, businessName, email, password);
+        // ⭐ 2. DIRECTLY CALL CREATE USER WITH EMAIL/PASSWORD (Skipping SMS verification)
+        createFirebaseUserWithEmail(ownerName, businessName, email, password, fullPhoneNumber);
     }
 
     /**
-     * Helper to format phone number to E.164. Adjust as per your app's logic.
-     * This example assumes the user enters a 10-digit number and prepends +27.
+     * Helper to format phone number to E.164.
      */
     private String formatPhoneNumber(String phone) {
         String cleanPhone = phone.replaceAll("[^0-9]", ""); // Remove all non-digit characters
 
-        if (cleanPhone.startsWith("0") && cleanPhone.length() > 9) {
-            // If it starts with a local zero and is long enough, remove the zero.
+        // This assumes South African (ZA) country code (+27)
+        if (cleanPhone.startsWith("0") && cleanPhone.length() >= 10) {
+            // Remove local zero and prepend +27 (e.g., 062... -> +2762...)
             return "+27" + cleanPhone.substring(1);
-        } else if (cleanPhone.startsWith("27") && cleanPhone.length() > 9) {
+        } else if (cleanPhone.startsWith("27") && cleanPhone.length() >= 11) {
             // If they entered '276211...' without the '+'
             return "+" + cleanPhone;
-        } else if (phone.startsWith("+")) {
+        } else if (phone.startsWith("+") && cleanPhone.length() >= 11) {
+            return phone;
+        }
+        // Basic check for international format with country code
+        if (phone.startsWith("+") && cleanPhone.length() > 5) {
             return phone;
         }
         return null; // Invalid format
     }
 
 
-    private void startPhoneNumberVerification(String fullPhoneNumber, String ownerName, String businessName, String email, String password) {
-        // Create the PhoneAuthOptions object
-        PhoneAuthOptions options =
-                PhoneAuthOptions.newBuilder(auth)
-                        .setPhoneNumber(fullPhoneNumber)
-                        .setTimeout(60L, TimeUnit.SECONDS)
-                        .setActivity(requireActivity())
-                        .setCallbacks(mCallbacks)
-                        .build();
-        PhoneAuthProvider.verifyPhoneNumber(options);
-    }
-
-    // NEW: The callback listener for the phone verification process
-    private final PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks =
-            new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-
-                @Override
-                public void onVerificationCompleted(@NonNull PhoneAuthCredential credential) {
-                    // Instantly verified (e.g., via SMS auto-retrieval). Proceed directly.
-                    Log.d(TAG, "onVerificationCompleted: Phone number instantly verified.");
-
-                    // Proceed directly to Firebase Auth creation
-                    String ownerName = ownerNameEditText.getText().toString().trim();
-                    String businessName = businessNameEditText.getText().toString().trim();
-                    String email = emailEditText.getText().toString().trim();
-                    String password = passwordEditText1.getText().toString();
-                    String phone = userViewModel.getCurrentPhone(); // Get the formatted phone number
-
-                    createFirebaseUserWithPhoneAuth(credential, ownerName, businessName, email, password, phone);
-                }
-
-                @Override
-                public void onVerificationFailed(@NonNull FirebaseException e) {
-                    // Verification failed
-                    Log.w(TAG, "onVerificationFailed: ", e);
-                    if (getView() == null) return; // Safety check
-                    signupButton.setEnabled(true);
-                    signupButton.setText("Sign Up");
-
-                    String message = "Phone verification failed. Error: " + e.getMessage();
-                    if (e instanceof FirebaseAuthInvalidCredentialsException) {
-                        message = "Invalid phone number or verification code.";
-                    } else if (e instanceof FirebaseTooManyRequestsException) {
-                        message = "Quota exceeded. Try again later.";
-                    }
-
-                    NotificationHelper.showNotification(getView(), "Verification Failed", message, NotificationHelper.NotificationType.ERROR);
-                }
-
-                @Override
-                public void onCodeSent(@NonNull String verId,
-                                       @NonNull PhoneAuthProvider.ForceResendingToken token) {
-                    // SMS code sent. Navigate to OTP fragment.
-                    Log.d(TAG, "onCodeSent:" + verId);
-                    verificationId = verId;
-
-                    String ownerName = ownerNameEditText.getText().toString().trim();
-                    String businessName = businessNameEditText.getText().toString().trim();
-                    String email = emailEditText.getText().toString().trim();
-                    String password = passwordEditText1.getText().toString();
-
-                    // Navigate to the OTP verification screen
-                    // We don't pass location/phone because it's stored in the ViewModel
-                    Bundle args = new Bundle();
-                    args.putString("VERIFICATION_ID", verId);
-                    args.putString("OWNER_NAME", ownerName);
-                    args.putString("BUSINESS_NAME", businessName);
-                    args.putString("EMAIL", email);
-                    args.putString("PASSWORD", password);
-
-                    OTPVerification otpFragment = new OTPVerification();
-                    otpFragment.setArguments(args);
-
-                    if (getActivity() != null) {
-                        getActivity().getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.fragment_container, otpFragment)
-                                .addToBackStack(null)
-                                .commit();
-                    }
-
-                    signupButton.setEnabled(true);
-                    signupButton.setText("Sign Up");
-                }
-            };
-
-    private void createFirebaseUserWithPhoneAuth(PhoneAuthCredential credential, String ownerName, String businessName, String email, String password, String phone) {
-        auth.signInWithCredential(credential)
+    /**
+     * ⭐ NEW METHOD: Creates a Firebase user using Email and Password directly.
+     */
+    private void createFirebaseUserWithEmail(String ownerName, String businessName, String email, String password, String phone) {
+        auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // 1. Phone Auth successful.
-                        FirebaseUser phoneUser = auth.getCurrentUser();
-                        if (phoneUser != null) {
-                            auth.signOut(); // Sign out the temporary phone-authenticated user
+                        FirebaseUser newUser = auth.getCurrentUser();
+                        if (newUser != null) {
+                            // Save user data to Firestore
+                            saveBusinessDataToFirestore(newUser, ownerName, businessName, email, phone);
+                        }
+                    } else {
+                        // Email/Password creation failed
+                        Log.e(TAG, "Email/Password creation failed: " + task.getException().getMessage());
+                        if (getView() == null) return;
+                        String errorMessage = "Sign up failed: " + task.getException().getMessage();
+
+                        // Check for common errors
+                        if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
+                            errorMessage = "Invalid email format or weak password (must be 6+ chars).";
+                        } else if (task.getException() != null && task.getException().getMessage() != null && task.getException().getMessage().contains("in use")) {
+                            errorMessage = "This email address is already registered.";
                         }
 
-                        // 2. Create the permanent Email/Password user
-                        auth.createUserWithEmailAndPassword(email, password)
-                                .addOnCompleteListener(emailTask -> {
-                                    if (emailTask.isSuccessful()) {
-                                        FirebaseUser newUser = auth.getCurrentUser();
-                                        if (newUser != null) {
-                                            // 3. Save to Firestore
-                                            saveBusinessDataToFirestore(newUser, ownerName, businessName, email, phone);
-                                        }
-                                    } else {
-                                        Log.e(TAG, "Email/Password creation failed after phone verification: " + emailTask.getException().getMessage());
-                                        if (getView() == null) return;
-                                        NotificationHelper.showNotification(
-                                                getView(),
-                                                "Sign up failed",
-                                                "Email/Password account creation failed.",
-                                                NotificationHelper.NotificationType.ERROR
-                                        );
-                                        signupButton.setEnabled(true);
-                                        signupButton.setText("Sign Up");
-                                    }
-                                });
-
-                    } else {
-                        if (getView() == null) return;
-                        NotificationHelper.showNotification(getView(), "Phone Login Failed", task.getException().getMessage(), NotificationHelper.NotificationType.ERROR);
+                        NotificationHelper.showNotification(
+                                getView(),
+                                "Sign up failed",
+                                errorMessage,
+                                NotificationHelper.NotificationType.ERROR
+                        );
                         signupButton.setEnabled(true);
                         signupButton.setText("Sign Up");
                     }
                 });
     }
+
+    /*
+    // ⭐ REMOVED: Since we are removing SMS verification, the startPhoneNumberVerification method
+    // and the mCallbacks (OnVerificationStateChangedCallbacks) are no longer needed.
+    // They are replaced by the direct call to createFirebaseUserWithEmail.
+
+    private void startPhoneNumberVerification(String fullPhoneNumber, String ownerName, String businessName, String email, String password) {
+        // ... (removed contents)
+    }
+
+    private final PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks =
+            new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                // ... (removed contents)
+            };
+    */
+
+    /*
+    // ⭐ REMOVED: This method was used only after phone verification was successful to switch to Email/Password
+    // It is replaced by the simplified createFirebaseUserWithEmail
+
+    private void createFirebaseUserWithPhoneAuth(PhoneAuthCredential credential, String ownerName, String businessName, String email, String password, String phone) {
+        // ... (removed contents)
+    }
+    */
 
     private void saveBusinessDataToFirestore(FirebaseUser firebaseUser, String ownerName, String businessName, String email, String phone) {
         // ⭐ UPDATED: Use the new temporary getters for location

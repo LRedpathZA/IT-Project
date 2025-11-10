@@ -93,6 +93,8 @@ public class SP_ProductRepository {
      */
     public Task<Void> addProduct(ProductModel product) {
         // Firestore adds will automatically generate the ID
+        Log.d(TAG, "  -> Product Name: " + product.getName());
+        Log.d(TAG, "  -> businessId: " + product.getUserId());
         return productsCollection.document().set(product);
     }
 
