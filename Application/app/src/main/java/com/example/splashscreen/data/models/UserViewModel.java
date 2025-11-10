@@ -11,7 +11,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.ListenerRegistration; // NEW IMPORT
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +26,7 @@ public class UserViewModel extends ViewModel {
     private final MutableLiveData<String> _username = new MutableLiveData<>();
     public LiveData<String> username = _username;
 
+    // Persisted location data (for after registration)
     private final MutableLiveData<GeoPoint> _spLocationGeoPoint = new MutableLiveData<>();
     public LiveData<GeoPoint> spLocationGeoPoint = _spLocationGeoPoint;
 
@@ -36,6 +37,11 @@ public class UserViewModel extends ViewModel {
     private final MutableLiveData<String> _businessName = new MutableLiveData<>();
     public LiveData<String> businessName = _businessName;
 
+    // ⭐ NEW TRANSIENT FIELDS for Sign-up Data Transfer (The Fix)
+    private String currentPhoneNumber;
+    private GeoPoint tempGeoPoint; // Temporary storage for location during sign-up
+    private String tempLocationAddress; // Temporary storage for address during sign-up
+
     private static final int ROLE_POOL_OWNER = 1;
     private static final int ROLE_SERVICE_PROVIDER = 2;
 
@@ -44,9 +50,39 @@ public class UserViewModel extends ViewModel {
 
     private ListenerRegistration userListenerRegistration;
 
+    // -----------------------------------------------------------------
+    // ⭐ GETTER & SETTER FOR TRANSIENT SIGN-UP DATA (THE FIX)
+    // -----------------------------------------------------------------
+
+    public String getCurrentPhone() {
+        return currentPhoneNumber;
+    }
+
+    public void setCurrentPhone(String phone) {
+        this.currentPhoneNumber = phone;
+    }
+
+    public void setTempGeoPoint(GeoPoint geoPoint) {
+        this.tempGeoPoint = geoPoint;
+    }
+
+    public GeoPoint getTempGeoPoint() {
+        return tempGeoPoint;
+    }
+
+    public void setTempLocationAddress(String address) {
+        this.tempLocationAddress = address;
+    }
+
+    public String getTempLocationAddress() {
+        return tempLocationAddress;
+    }
+
+    // Existing methods that were slightly redundant but kept for back-compat/clarity
     public GeoPoint getSpLocationGeoPoint() {
         return _spLocationGeoPoint.getValue();
     }
+    // -----------------------------------------------------------------
 
     /**
      * Fetches the user's data in real-time and populates all associated LiveData.
@@ -116,6 +152,13 @@ public class UserViewModel extends ViewModel {
         return role != null && role == ROLE_SERVICE_PROVIDER;
     }
 
+    /**
+     * Creates a Map of fields used to update Firestore with location data.
+     * @param lat Latitude.
+     * @param lon Longitude.
+     * @param address Formatted address string.
+     * @return Map of fields.
+     */
     public Map<String, Object> updateLocationFields(double lat, double lon, String address) {
         Map<String, Object> locationData = new HashMap<>();
         locationData.put("location", new GeoPoint(lat, lon));

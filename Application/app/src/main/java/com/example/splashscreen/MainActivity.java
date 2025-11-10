@@ -239,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
                 // CRITICAL FOR QUOTING: Navigate to the list of OPEN requests available for quotingS
                 navigateToFragment(new SP_ServiceRequestList(), true);
             } else if (v.getId() == R.id.btnTips) {
-                // navigateToFragment(new TipsFragment()); // Assuming shared fragments
+                 navigateToFragment(new SP_ProductList(), true); // Assuming shared fragments
             } else if (v.getId() == R.id.btnLoadshedding) {
                 // navigateToFragment(new LoadsheddingFragment()); // Assuming shared fragments
             } else if (v.getId() == R.id.btnRestrictions) {

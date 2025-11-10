@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg"
+    tools:context=".SP_AddProduct">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:cardElevation="4dp"
+        app:cardCornerRadius="0dp"
+        app:cardBackgroundColor="@android:color/white"/>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="16dp">
+
+            <LinearLayout
+                android:id="@+id/productNameLayout"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_input_bg"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp">
+
+                <EditText
+                    android:id="@+id/et_product_name"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:hint="Product Name (e.g., pH Increaser)"
+                    android:inputType="textCapWords"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="0dp"
+                    android:textColor="@color/black"
+                    android:textColorHint="@color/grey_dark"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center_vertical"
+                    android:contentDescription="Product Icon"
+                    android:src="@drawable/tools" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/productCategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_input_bg"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp">
+
+                <EditText
+                    android:id="@+id/et_product_category"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:hint="Category (e.g., Chemical, Equipment, Accessory)"
+                    android:inputType="none"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="0dp"
+                    android:textColor="@color/black"
+                    android:textColorHint="@color/grey_dark"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center_vertical"
+                    android:contentDescription="Category Icon"
+                    android:src="@drawable/settings" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/productBrandLayout"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_input_bg"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp">
+
+                <EditText
+                    android:id="@+id/et_product_brand"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:hint="Brand (e.g., HTH, Zodiac)"
+                    android:inputType="textCapWords"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="0dp"
+                    android:textColor="@color/black"
+                    android:textColorHint="@color/grey_dark"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center_vertical"
+                    android:contentDescription="Brand Icon"
+                    android:src="@drawable/profile" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/productPriceLayout"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_input_bg"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:paddingStart="8dp"
+                    android:text="R"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/et_product_price"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:hint="Price (e.g., 299.99)"
+                    android:inputType="numberDecimal"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="0dp"
+                    android:textColor="@color/black"
+                    android:textColorHint="@color/grey_dark"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center_vertical"
+                    android:contentDescription="Price Icon"
+                    android:src="@drawable/money" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:id="@+id/productQuantityLayout"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/rounded_input_bg"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp">
+
+                    <EditText
+                        android:id="@+id/et_product_quantity"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:hint="Stock"
+                        android:inputType="numberDecimal"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="0dp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/grey_dark"
+                        android:textSize="16sp" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center_vertical"
+                        android:contentDescription="Quantity Icon"
+                        android:src="@drawable/inventory" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/productUnitLayout"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/rounded_input_bg"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp">
+
+                    <EditText
+                        android:id="@+id/et_product_unit"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:clickable="false"
+                        android:focusable="false"
+                        android:hint="Unit (kg/L/Each)"
+                        android:inputType="none"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="0dp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/grey_dark"
+                        android:textSize="16sp" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center_vertical"
+                        android:contentDescription="Unit Icon"
+                        android:src="@drawable/water_clock" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/lastRestockDateLayout"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_input_bg"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp">
+
+                <EditText
+                    android:id="@+id/et_last_restock_date"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:hint="Last Restock Date"
+                    android:inputType="none"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="0dp"
+                    android:textColor="@color/black"
+                    android:textColorHint="@color/grey_dark"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center_vertical"
+                    android:contentDescription="Date Icon"
+                    android:src="@drawable/calendar" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/expirationDateLayout"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_input_bg"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp">
+
+                <EditText
+                    android:id="@+id/et_expiration_date"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:hint="Expiration Date (Optional)"
+                    android:inputType="none"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="0dp"
+                    android:textColor="@color/black"
+                    android:textColorHint="@color/grey_dark"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center_vertical"
+                    android:contentDescription="Expiration Date Icon"
+                    android:src="@drawable/water_clock" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/productDescriptionLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/rounded_input_bg"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <EditText
+                    android:id="@+id/et_product_description"
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"
+                    android:background="@android:color/transparent"
+                    android:gravity="top|start"
+                    android:hint="Detailed Product Description..."
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:padding="4dp"
+                    android:textColor="@color/black"
+                    android:textColorHint="@color/grey_dark"
+                    android:textSize="16sp"
+                    android:scrollbars="vertical" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/fl_image_container"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:layout_marginBottom="32dp">
+
+                <LinearLayout
+                    android:id="@+id/ll_upload_photos_placeholder"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/dashed_border_area"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginBottom="4dp"
+                        android:contentDescription="Upload Icon"
+                        android:src="@drawable/camera" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Upload Product Photo"
+                        android:textColor="@color/grey_dark"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Optional: Helps customers visualize the product"
+                        android:textColor="@color/grey_dark"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/iv_selected_product_photo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="Selected Product Photo"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/btn_delete_photo"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/circle_red_background"
+                    android:contentDescription="Delete Photo"
+                    android:padding="4dp"
+                    android:src="@drawable/ic_delete_circle"
+                    android:visibility="gone"
+                    app:tint="@android:color/white" />
+
+            </FrameLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_save_product"
+                android:layout_width="250dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/custom_button"
+                android:text="Save Product"
+                android:textColor="@color/white"
+                android:textSize="18dp"
+                app:backgroundTint="@null"
+                app:rippleColor="@color/white_transparent_50" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_delete_product"
+                android:layout_width="250dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/custom_button2"
+                android:paddingVertical="12dp"
+                android:text="Delete Product"
+                android:textColor="@color/white"
+                android:textSize="18dp"
+                app:backgroundTint="@null"
+                app:rippleColor="@color/white_transparent_50" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_cancel"
+                android:layout_width="250dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/custom_button2"
+                android:paddingVertical="12dp"
+                android:text="Cancel"
+                android:textColor="@color/white"
+                app:backgroundTint="@null"
+                app:rippleColor="@color/white_transparent_50" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

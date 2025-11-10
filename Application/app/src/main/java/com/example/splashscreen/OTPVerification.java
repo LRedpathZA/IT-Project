@@ -28,9 +28,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 // NOTE: You must also implement the resend code logic if needed, which is omitted for brevity.
-public class OTPVerificationFragment extends Fragment {
+public class OTPVerification extends Fragment {
 
-    private static final String TAG = "OTPVerificationFragment";
+    private static final String TAG = "OTPVerification";
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
@@ -45,7 +45,7 @@ public class OTPVerificationFragment extends Fragment {
     private String verificationId;
     private String ownerName, businessName, email, password;
 
-    public OTPVerificationFragment() {
+    public OTPVerification() {
         // Required empty public constructor
     }
 
@@ -77,7 +77,7 @@ public class OTPVerificationFragment extends Fragment {
         resendCodeLink = view.findViewById(R.id.resend_code_link);
         phoneInfoText = view.findViewById(R.id.phone_info_text);
 
-        // Update UI text to show which number the code was sent to
+        // ⭐ FIXED: Use the new getter method
         String phoneNumber = userViewModel.getCurrentPhone();
         if (phoneNumber != null) {
             phoneInfoText.setText("Please enter the 6-digit code sent to " + phoneNumber + ".");
@@ -127,6 +127,7 @@ public class OTPVerificationFragment extends Fragment {
                                         FirebaseUser newUser = auth.getCurrentUser();
                                         if (newUser != null) {
                                             // 3. Save Business Data
+                                            // ⭐ FIXED: Use the new getter for phone number
                                             saveBusinessDataToFirestore(newUser, ownerName, businessName, email, userViewModel.getCurrentPhone());
                                         }
                                     } else {
@@ -149,9 +150,9 @@ public class OTPVerificationFragment extends Fragment {
     }
 
     private void saveBusinessDataToFirestore(FirebaseUser firebaseUser, String ownerName, String businessName, String email, String phone) {
-        // Fetch location data from ViewModel (must be stored in SP_SignUp)
-        GeoPoint currentGeoPoint = userViewModel.getCurrentGeoPoint();
-        String currentLocationAddress = userViewModel.getCurrentLocationAddress();
+        // ⭐ FIXED: Use the new getter methods
+        GeoPoint currentGeoPoint = userViewModel.getTempGeoPoint();
+        String currentLocationAddress = userViewModel.getTempLocationAddress();
 
         if (currentGeoPoint == null || currentLocationAddress == null) {
             if (getView() == null) return;

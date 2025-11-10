@@ -29,7 +29,6 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.FirebaseTooManyRequestsException;
-import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
@@ -66,8 +65,8 @@ public class SP_SignUp extends Fragment {
     // Location & Data
     private FusedLocationProviderClient fusedLocationClient;
     private final ExecutorService geocodeExecutor = Executors.newSingleThreadExecutor();
-    private GeoPoint currentGeoPoint = null;
-    private String currentLocationAddress = null;
+    // private GeoPoint currentGeoPoint = null; // ⭐ REMOVED - Using ViewModel temp field
+    // private String currentLocationAddress = null; // ⭐ REMOVED - Using ViewModel temp field
 
     // State variables
     private boolean isPassword1Visible = false;
@@ -84,8 +83,9 @@ public class SP_SignUp extends Fragment {
                     getLocation();
                 } else {
                     tvLocationStatus.setText("Status: Location permission denied. Location is required for SPs.");
-                    currentGeoPoint = null;
-                    currentLocationAddress = null;
+                    // ⭐ UPDATED: Clear ViewModel temp fields on denial
+                    userViewModel.setTempGeoPoint(null);
+                    userViewModel.setTempLocationAddress(null);
                 }
             });
 
@@ -116,6 +116,12 @@ public class SP_SignUp extends Fragment {
         View view = inflater.inflate(R.layout.sp_signup, container, false);
 
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
+
+        // ⭐ IMPORTANT: Clear previous sign-up data when fragment is created
+        userViewModel.setTempGeoPoint(null);
+        userViewModel.setTempLocationAddress(null);
+        userViewModel.setCurrentPhone(null);
+
 
         // Input Fields Initialization
         ownerNameEditText = view.findViewById(R.id.ownerNameEditText);
@@ -165,7 +171,7 @@ public class SP_SignUp extends Fragment {
         return view;
     }
 
-    // --- (Existing Helper Methods: togglePasswordVisibility, checkLocationPermission, getLocation, etc. remain here) ---
+    // --- (Existing Helper Methods: togglePasswordVisibility, checkLocationPermission) ---
     private void togglePasswordVisibility(EditText editText, ImageView toggleIcon, boolean isCurrentlyVisible) {
         if (isCurrentlyVisible) {
             editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -188,6 +194,8 @@ public class SP_SignUp extends Fragment {
         }
     }
 
+    // --- (Updated getLocation and startReverseGeocoding) ---
+
     private void getLocation() {
         if (getContext() == null || fusedLocationClient == null || ContextCompat.checkSelfPermission(
                 requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -202,24 +210,28 @@ public class SP_SignUp extends Fragment {
                 .addOnSuccessListener(requireActivity(), location -> {
                     btnFetchLocation.setEnabled(true);
                     if (location != null) {
-                        currentGeoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                        // Store in ViewModel for OTP Fragment access
-                        userViewModel.setCurrentGeoPoint(currentGeoPoint);
-                        startReverseGeocoding(currentGeoPoint);
+                        GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+
+                        // ⭐ UPDATED: Store location in ViewModel's temporary field
+                        userViewModel.setTempGeoPoint(geoPoint);
+
+                        startReverseGeocoding(geoPoint);
                         tvLocationStatus.setText("Status: Location found and ready to save.");
                     } else {
                         tvLocationStatus.setText("Status: Could not get location. Try again or check settings.");
                         tvLocationAddress.setText("Address: Not available");
                         tvCoordinates.setText("Coords: Not available");
-                        currentGeoPoint = null;
-                        currentLocationAddress = null;
+                        // ⭐ UPDATED: Clear ViewModel's temporary fields
+                        userViewModel.setTempGeoPoint(null);
+                        userViewModel.setTempLocationAddress(null);
                     }
                 })
                 .addOnFailureListener(e -> {
                     btnFetchLocation.setEnabled(true);
                     tvLocationStatus.setText("Status: Error getting location: " + e.getMessage());
-                    currentGeoPoint = null;
-                    currentLocationAddress = null;
+                    // ⭐ UPDATED: Clear ViewModel's temporary fields
+                    userViewModel.setTempGeoPoint(null);
+                    userViewModel.setTempLocationAddress(null);
                 });
     }
 
@@ -230,6 +242,7 @@ public class SP_SignUp extends Fragment {
             try {
                 if (!Geocoder.isPresent()) {
                     updateUI(() -> tvLocationAddress.setText("Address: Geocoder not available."));
+                    userViewModel.setTempLocationAddress(null); // ⭐ UPDATED: Clear ViewModel field
                     return;
                 }
 
@@ -249,22 +262,19 @@ public class SP_SignUp extends Fragment {
                                 address.getAddressLine(0) :
                                 (address.getLocality() != null ? address.getLocality() : "Unknown Area.");
 
-                        currentLocationAddress = finalDisplayAddress;
-                        // Store in ViewModel for OTP Fragment access
-                        userViewModel.setCurrentLocationAddress(currentLocationAddress);
+                        // ⭐ UPDATED: Store address in ViewModel's temporary field
+                        userViewModel.setTempLocationAddress(finalDisplayAddress);
                         tvLocationAddress.setText("Address: " + finalDisplayAddress);
                     } else {
                         tvLocationAddress.setText("Address: Address not found.");
-                        currentLocationAddress = null;
-                        userViewModel.setCurrentLocationAddress(null);
+                        userViewModel.setTempLocationAddress(null); // ⭐ UPDATED: Clear ViewModel field
                     }
                 });
 
             } catch (IOException e) {
                 Log.e(TAG, "Reverse Geocoding failed: " + e.getMessage());
                 updateUI(() -> tvLocationAddress.setText("Address: Geocoding error."));
-                currentLocationAddress = null;
-                userViewModel.setCurrentLocationAddress(null);
+                userViewModel.setTempLocationAddress(null); // ⭐ UPDATED: Clear ViewModel field
             }
         });
     }
@@ -298,8 +308,8 @@ public class SP_SignUp extends Fragment {
             return;
         }
 
-        // Use ViewModel location data for validation as well
-        if (userViewModel.getCurrentGeoPoint() == null || userViewModel.getCurrentLocationAddress() == null) {
+        // ⭐ UPDATED: Use the new temporary ViewModel getters for validation
+        if (userViewModel.getTempGeoPoint() == null || userViewModel.getTempLocationAddress() == null) {
             NotificationHelper.showNotification(getView(), "Location Required", "Please tap 'Get Business Location' to set your address.", NotificationHelper.NotificationType.ERROR);
             return;
         }
@@ -327,12 +337,16 @@ public class SP_SignUp extends Fragment {
      * This example assumes the user enters a 10-digit number and prepends +27.
      */
     private String formatPhoneNumber(String phone) {
-        // Simple placeholder logic:
-        if (phone.startsWith("+")) {
+        String cleanPhone = phone.replaceAll("[^0-9]", ""); // Remove all non-digit characters
+
+        if (cleanPhone.startsWith("0") && cleanPhone.length() > 9) {
+            // If it starts with a local zero and is long enough, remove the zero.
+            return "+27" + cleanPhone.substring(1);
+        } else if (cleanPhone.startsWith("27") && cleanPhone.length() > 9) {
+            // If they entered '276211...' without the '+'
+            return "+" + cleanPhone;
+        } else if (phone.startsWith("+")) {
             return phone;
-        } else if (phone.length() == 10) {
-            // REPLACE +27 with your actual default country code (e.g., +1 for US/Canada)
-            return "+27" + phone;
         }
         return null; // Invalid format
     }
@@ -394,23 +408,21 @@ public class SP_SignUp extends Fragment {
                     Log.d(TAG, "onCodeSent:" + verId);
                     verificationId = verId;
 
-                    // Get all necessary sign-up data
                     String ownerName = ownerNameEditText.getText().toString().trim();
                     String businessName = businessNameEditText.getText().toString().trim();
                     String email = emailEditText.getText().toString().trim();
                     String password = passwordEditText1.getText().toString();
 
                     // Navigate to the OTP verification screen
+                    // We don't pass location/phone because it's stored in the ViewModel
                     Bundle args = new Bundle();
                     args.putString("VERIFICATION_ID", verId);
                     args.putString("OWNER_NAME", ownerName);
                     args.putString("BUSINESS_NAME", businessName);
                     args.putString("EMAIL", email);
                     args.putString("PASSWORD", password);
-                    // No need to pass phone, as it's in the ViewModel
 
-                    // Switch to the OTP input fragment
-                    OTPVerificationFragment otpFragment = new OTPVerificationFragment();
+                    OTPVerification otpFragment = new OTPVerification();
                     otpFragment.setArguments(args);
 
                     if (getActivity() != null) {
@@ -468,10 +480,11 @@ public class SP_SignUp extends Fragment {
     }
 
     private void saveBusinessDataToFirestore(FirebaseUser firebaseUser, String ownerName, String businessName, String email, String phone) {
+        // ⭐ UPDATED: Use the new temporary getters for location
         Map<String, Object> locationFields = userViewModel.updateLocationFields(
-                userViewModel.getCurrentGeoPoint().getLatitude(),
-                userViewModel.getCurrentGeoPoint().getLongitude(),
-                userViewModel.getCurrentLocationAddress()
+                userViewModel.getTempGeoPoint().getLatitude(),
+                userViewModel.getTempGeoPoint().getLongitude(),
+                userViewModel.getTempLocationAddress()
         );
 
         Map<String, Object> businessData = new HashMap<>();

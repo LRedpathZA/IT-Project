@@ -187,8 +187,7 @@
                     <ImageView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@drawable/ic_inventory_24dp"
-                        app:tint="@color/PrimaryColour"
+                        android:src="@drawable/services"
                         android:contentDescription="Manage Products Icon" />
 
                     <LinearLayout

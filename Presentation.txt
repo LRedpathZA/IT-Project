@@ -1,0 +1,66 @@
+1. Introduction -> 3 Minutes
+	Title + Team
+	Problem Statement | The Importance of Water in South Africa -> Swimming Pool Maintenance
+	Why Swimming Pool Maintenance is Problematic
+2. Project Objectives -> 2 Minutes
+	List of Objectives 
+	Hardware/Software Requirements of SplashScreen
+3. Technical Design -> 5 Minutes
+	High Level Use Case Diagram | PO | SP | System | External
+	Relational Database Model (ERD)
+4. Technical Architecture -> 5 Minute
+	Agile Methodoloy Using GitHub and ZenHub Timeline
+	Prominent Design Patterns
+	Repository | Observer | Singleton | Factory | Cache Aside Pattern
+	Tools
+	Android Studio (Mobile Development Environment)
+	Botpress (AI Agent Platform)
+	Cloudflare (CDN/Landing Page Hosting Platform)
+	Cloudinary (Media Management Platform)
+	Firebase (Backend as a Service Platform)
+	GitHub (Version Control Platform)
+
+	Technologies
+	Java (SplashScreen Mobile App)
+	JavaScript (SplashScreen Landing Page + Bubbles Configuration)
+	Tailwind CSS (Landing Page)
+	TypeScript( Firebase Cloudinary Function)
+	XML
+	
+		
+4. System Demonstration -> 10 Minutes
+	Landing Page, get them to download the app 
+	System:
+		PO (Line)
+		0. Create Profile with Profile Picture
+		1. Delete Existing Pool
+		2. Create Pool 
+		3. Update Pool (Update Location)
+		4. Delete Maintenance Event
+		5. Create Maintenance Event
+		6. Update Maintenance Event
+		7. Check Pool Health
+		8. Go to Calculator and do some stuff
+		9. Test Logs can't be deleted
+		10. Check Pool Health again
+		11. General Tips and Water Restrictions
+		12. Request a Service
+		
+		SP (Juanette)
+		0. Create Profile (With Validation But for now open)
+		1. View Public Pools
+		2. Clients should be empty (If we get them)
+		3. Services should be empty (If we get here)
+		4. View Service Requests
+		5. Offer a Quote to Line
+		6. Go back to Line
+		7. Accept Quote ( Which will make Line client)
+		8. Delete Product
+		9. Create Product
+		10. Update Product
+		11. Don't forget to add BUSINESS Banner
+		 
+				
+		
+		
+5 Business Model -> Business Model and Future Scope |

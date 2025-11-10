@@ -4,9 +4,9 @@ import com.google.firebase.firestore.DocumentSnapshot;
 
 /**
  * Model class for managing individual pool products (chemicals, equipment, accessories).
- * Includes fields for product details, price, and description.
+ * Includes fields for product details, price, description, and the uploaded photo URL.
  */
-public class PoolProductModel {
+public class ProductModel {
     private String productId;
     private String name;
     private String category; // e.g., "Chemical", "Filter", "Accessory"
@@ -16,9 +16,11 @@ public class PoolProductModel {
     private Long lastRestockDate; // Timestamp of the last purchase/restock
     private Long expirationDate; // Optional: Expiration date for chemicals
     private Double price; // Price of the product
-    private String description; // ⭐ NEW: Detailed description of the product
+    private String description; // Detailed description of the product
+    private String photoUrl; // ⭐ NEW: URL for the product image stored in Cloudinary/Firestore
+    private String userId;
 
-    public PoolProductModel() {
+    public ProductModel() {
         // Required empty public constructor for Firestore
     }
 
@@ -26,12 +28,13 @@ public class PoolProductModel {
      * Constructor to map fields from a Firestore DocumentSnapshot.
      * @param document The Firestore DocumentSnapshot.
      */
-    public PoolProductModel(DocumentSnapshot document) {
+    public ProductModel(DocumentSnapshot document) {
         if (document != null && document.exists()) {
             this.productId = document.getId();
             this.name = document.getString("name");
             this.category = document.getString("category");
             this.brand = document.getString("brand");
+            this.userId = document.getString("userId");
 
             // Firestore uses 'double' internally for floating point numbers
             Double quantityObject = document.getDouble("quantity");
@@ -41,16 +44,17 @@ public class PoolProductModel {
             this.lastRestockDate = document.getLong("lastRestockDate");
             this.expirationDate = document.getLong("expirationDate");
             this.price = document.getDouble("price");
-            this.description = document.getString("description"); // ⭐ INITIALIZE NEW FIELD
+            this.description = document.getString("description");
+            this.photoUrl = document.getString("photoUrl"); // ⭐ INITIALIZE NEW FIELD
         }
     }
 
     /**
      * Full parameter constructor for creating a new product object.
      */
-    public PoolProductModel(String name, String category, String brand,
-                            Double quantity, String unit, Long lastRestockDate, Long expirationDate,
-                            Double price, String description) { // ⭐ NEW PARAMETER
+    public ProductModel(String name, String category, String brand,
+                        Double quantity, String unit, Long lastRestockDate, Long expirationDate,
+                        Double price, String description, String photoUrl) { // ⭐ UPDATED PARAMETERS
         this.name = name;
         this.category = category;
         this.brand = brand;
@@ -59,7 +63,8 @@ public class PoolProductModel {
         this.lastRestockDate = lastRestockDate;
         this.expirationDate = expirationDate;
         this.price = price;
-        this.description = description; // Initialize new field
+        this.description = description;
+        this.photoUrl = photoUrl; // Initialize new field
     }
 
     // --- GETTERS ---
@@ -99,8 +104,15 @@ public class PoolProductModel {
         return price;
     }
 
-    public String getDescription() { // ⭐ NEW GETTER
+    public String getDescription() {
         return description;
+    }
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getPhotoUrl() { // ⭐ NEW GETTER
+        return photoUrl;
     }
 
 
@@ -141,7 +153,14 @@ public class PoolProductModel {
         this.price = price;
     }
 
-    public void setDescription(String description) { // ⭐ NEW SETTER
+    public void setDescription(String description) {
         this.description = description;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
+    public void setUserId(String userId) { 
+        this.userId = userId;
     }
 }

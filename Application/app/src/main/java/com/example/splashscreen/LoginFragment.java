@@ -155,7 +155,7 @@ public class LoginFragment extends Fragment {
                         getView(),
                         "Verification Required",
                         "Please check your email and click the verification link. Click here to resend the verification email.",
-                        NotificationHelper.NotificationType.WARNING
+                        NotificationHelper.NotificationType.ERROR
                 );
 
                 // IMPORTANT: Sign out the user so they cannot access the app until verified
