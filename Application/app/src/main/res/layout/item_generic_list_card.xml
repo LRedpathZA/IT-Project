@@ -22,7 +22,7 @@
             android:id="@+id/iv_item_image"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/password"
+            android:src="@drawable/fake_chlorine"
 
             android:scaleType="centerCrop"
             android:contentDescription="Item Image"/>
