@@ -296,18 +296,29 @@
                 android:layout_marginTop="8dp"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="4dp"
-
                 >
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/fake_pool"
+                    android:contentDescription="Calendar background image" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="Calendar Placeholder"
-                    android:textColor="@android:color/black"
-                    android:textSize="20sp"
+                    android:text="Pool Calendar"
+                    android:textColor="@android:color/white"
+                    android:textSize="24sp"
                     android:textStyle="bold"
+                    android:shadowColor="@android:color/black"
+                    android:shadowDx="1"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
                     />
+
             </androidx.cardview.widget.CardView>
 
             <LinearLayout
@@ -349,18 +360,39 @@
                     android:padding="4dp"/>
             </LinearLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_products"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:paddingHorizontal="16dp"
-                android:padding="10dp"
-                android:clipToPadding="false"
                 android:layout_marginBottom="24dp"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/item_generic_list_card"/>
+                android:clipToPadding="false"
+                android:padding="10dp">
 
+                <include
+                    android:id="@+id/product_card_1"
+                    layout="@layout/item_generic_list_card"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp" />
+
+                <include
+                    android:id="@+id/product_card_2"
+                    layout="@layout/item_generic_list_card"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp" />
+
+                <include
+                    android:id="@+id/product_card_3"
+                    layout="@layout/item_generic_list_card"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

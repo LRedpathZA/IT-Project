@@ -1,6 +1,9 @@
 package com.example.splashscreen;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log; // Required for logging
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,11 +19,10 @@ import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.splashscreen.adapters.ItemAdapter;
-import com.example.splashscreen.data.models.ItemModel;
+import com.example.splashscreen.adapters.ItemAdapter; // NOTE: This import can be removed if ItemAdapter is no longer used anywhere else
+import com.example.splashscreen.data.models.ItemModel; // NOTE: This import can be removed if ItemModel is no longer used anywhere else
 import com.example.splashscreen.data.models.PoolModel;
 import com.example.splashscreen.data.models.PoolViewModel;
 import com.example.splashscreen.data.models.UserViewModel;
@@ -32,10 +34,17 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.Query;
 
+import java.io.InputStream; // Required for InputStream
+import java.net.URL;       // Required for URL
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor; // Required for Executor
+import java.util.concurrent.Executors; // Required for Executors
 
 public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
+
+    private static final String TAG = "PO_HomeScreen"; // Added TAG for logging
+    private final Executor networkExecutor = Executors.newSingleThreadExecutor(); // Added Executor for network tasks
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
@@ -47,8 +56,8 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
     private LinearLayout llAddPoolPlaceholder;
     private FrameLayout flHomePoolContent;
 
-    private RecyclerView rvProducts;
-    private ItemAdapter productAdapter;
+    // REMOVED: private RecyclerView rvProducts;
+    // REMOVED: private ItemAdapter productAdapter;
 
     public static final String REQUEST_KEY_POOL_ADDED = "pool_added_key";
     public static final String BUNDLE_KEY_POOL_ID = "new_pool_id";
@@ -98,7 +107,7 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
         ivProfileIcon = view.findViewById(R.id.ivProfileIcon);
         llAddPoolPlaceholder = view.findViewById(R.id.ll_add_pool_placeholder);
         flHomePoolContent = view.findViewById(R.id.fl_home_pool_content);
-        rvProducts = view.findViewById(R.id.rv_products);
+        // REMOVED: rvProducts = view.findViewById(R.id.rv_products);
         tvWeatherLocation = view.findViewById(R.id.tv_weather_location);
 
         View calendarCardContainer = view.findViewById(R.id.calendarCard);
@@ -114,7 +123,7 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
         });
 
         setupPoolResultListener();
-      fetchProductsAndSetupRecyclerView();
+        // REMOVED: fetchProductsAndSetupRecyclerView();
         initNavigation();
 
         observeUserData();
@@ -258,47 +267,7 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
         navigateToFragment(weatherScreen);
     }
 
-    private void fetchProductsAndSetupRecyclerView() {
-        // 1. Setup the RecyclerView initially with an empty list
-        if (productAdapter == null) {
-            productAdapter = new ItemAdapter(new ArrayList<>());
-            // Assuming rvProducts is already initialized in onViewCreated
-            rvProducts.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-            rvProducts.setAdapter(productAdapter);
-        }
-
-        // 2. Fetch data from Firestore
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("products")
-                .orderBy("name", Query.Direction.ASCENDING) // Order by product name
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<ItemModel> productList = new ArrayList<>();
-                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-
-                        // ⭐ Map Firestore fields to ItemModel
-                        String title = document.getString("name");
-                        String subText = document.getString("description"); // Assuming a 'description' field exists
-                        String imageUrl = document.getString("imageUrl");   // Assuming an 'imageUrl' field exists
-
-                        if (title != null && subText != null && imageUrl != null) {
-                            // Use the new constructor with the image URL
-                            productList.add(new ItemModel(title, subText, imageUrl));
-                        }
-                    }
-
-                    // 3. Update the adapter with the real data
-                    if (productAdapter != null) {
-                        // The ItemAdapter must have an updateList method
-                        productAdapter.updateList(productList);
-                    }
-                });
-//                .addOnFailureListener(e -> {
-//                    Log.e(TAG, "Error fetching products: " + e.getMessage());
-//                    Toast.makeText(getContext(), "Failed to load product list.", Toast.LENGTH_SHORT).show();
-//                    // Optional: Call the old setupProductRecyclerView() here to load fake data as a fallback
-//                });
-    }
+    // REMOVED: The entire fetchProductsAndSetupRecyclerView() method is gone.
 
     private void setupPoolResultListener() {
         getParentFragmentManager().setFragmentResultListener(REQUEST_KEY_POOL_ADDED, this, (requestKey, bundle) -> {
@@ -321,6 +290,9 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
             String poolLocation = poolModel.getLocationAddress();
             Long capacity = poolModel.getWaterCapacityLiters();
             String poolId = poolModel.getPoolId();
+            // ⭐ NEW: Get the image URL
+            String poolImageUrl = poolModel.getPhotoUrl();
+
 
             boolean poolCardExists = flHomePoolContent.getChildCount() > 0 &&
                     flHomePoolContent.getChildAt(0) == poolCardView;
@@ -341,8 +313,14 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
                 ivPoolImage = poolCardView.findViewById(R.id.iv_pool_image);
 
                 if (ivPoolImage != null) {
-                    ivPoolImage.setImageResource(R.drawable.fake_pool);
+                    // ⭐ REMOVE: Comment out or remove the hardcoded placeholder
+                    // ivPoolImage.setImageResource(R.drawable.fake_pool);
                 }
+            }
+
+            // ⭐ NEW: Load the image using the URL
+            if (ivPoolImage != null) {
+                loadPoolImageFromUrl(poolImageUrl, ivPoolImage);
             }
 
             if (tvPoolName != null) tvPoolName.setText(poolName);
@@ -361,6 +339,46 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
                 llAddPoolPlaceholder.setVisibility(View.VISIBLE);
             }
         }
+    }
+    private void loadPoolImageFromUrl(String url, ImageView targetImageView) {
+        if (url == null || url.isEmpty()) {
+            if (targetImageView != null) {
+                targetImageView.setImageResource(R.drawable.fake_pool);
+            }
+            return;
+        }
+
+        // Use the dedicated network executor
+        networkExecutor.execute(() -> {
+            Bitmap bitmap = null;
+            try {
+                // Simple network request to fetch the image
+                InputStream in = new URL(url).openStream();
+                bitmap = BitmapFactory.decodeStream(in);
+                Log.d(TAG, "Successfully decoded pool bitmap from URL.");
+            } catch (Exception e) {
+                // Log the error for debugging
+                Log.e(TAG, "Error loading pool bitmap from URL: " + e.getMessage());
+            }
+
+            Bitmap finalBitmap = bitmap;
+
+
+            if (isAdded()) {
+
+                requireActivity().runOnUiThread(() -> {
+                    if (targetImageView != null) {
+                        if (finalBitmap != null) {
+                            targetImageView.setImageBitmap(finalBitmap);
+                        } else {
+                            // Fallback to placeholder on failed load
+                            targetImageView.setImageResource(R.drawable.fake_pool);
+                            Toast.makeText(getContext(), "Failed to load pool image.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        });
     }
 
     private void navigateToEditPool(String poolId) {

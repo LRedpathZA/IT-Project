@@ -128,7 +128,7 @@
                 <ImageView
                     android:id="@+id/ivBubblesIcon"
                     style="@style/NavDrawerMenuItemIconStyle"
-                    android:src="@drawable/profile"
+                    android:src="@drawable/ai"
                     app:tint="@color/white" />
 
                 <TextView
