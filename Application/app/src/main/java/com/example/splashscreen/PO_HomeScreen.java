@@ -371,7 +371,7 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
                         if (finalBitmap != null) {
                             targetImageView.setImageBitmap(finalBitmap);
                         } else {
-                            // Fallback to placeholder on failed load
+
                             targetImageView.setImageResource(R.drawable.fake_pool);
                             Toast.makeText(getContext(), "Failed to load pool image.", Toast.LENGTH_SHORT).show();
                         }

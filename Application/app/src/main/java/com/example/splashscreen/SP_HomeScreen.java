@@ -303,7 +303,7 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         Query serviceQuery = db.collection("bookings")
                 .whereEqualTo("businessId", spId)
                 .whereEqualTo("status", "Scheduled")
-                .orderBy("serviceDate", Query.Direction.ASCENDING); 
+                .orderBy("serviceDate", Query.Direction.ASCENDING);
 
         serviceListener = serviceQuery.addSnapshotListener((snapshots, e) -> {
             if (e != null) {
