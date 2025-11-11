@@ -131,9 +131,9 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         });
 
         // 4. Load Data using Real-Time Listeners
-        setupClientsListener(currentUserId); // ⭐ FETCHES REAL CLIENTS
-        setupServiceListener(currentUserId); // ⭐ FETCHES REAL SERVICES
-        setupPublicPoolsListener();          // ⭐ FETCHES PUBLIC POOLS
+        setupClientsListener(currentUserId);
+        setupServiceListener(currentUserId);
+        setupPublicPoolsListener();
 
         // 5. Observe LiveData
         observeLocationAndUserData();
@@ -302,8 +302,8 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         // Query the 'bookings' collection for services linked to the current SP, ordered by date
         Query serviceQuery = db.collection("bookings")
                 .whereEqualTo("businessId", spId)
-                .whereEqualTo("status", "Scheduled") // Filter for upcoming services
-                .orderBy("serviceDate", Query.Direction.ASCENDING); // Sort by earliest date
+                .whereEqualTo("status", "Scheduled")
+                .orderBy("serviceDate", Query.Direction.ASCENDING); 
 
         serviceListener = serviceQuery.addSnapshotListener((snapshots, e) -> {
             if (e != null) {
