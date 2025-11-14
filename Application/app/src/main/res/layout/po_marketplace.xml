@@ -15,86 +15,80 @@
         app:layout_constraintTop_toTopOf="parent"
         app:cardElevation="4dp"
         app:cardCornerRadius="0dp"
-        app:cardBackgroundColor="@android:color/white">
+        app:cardBackgroundColor="@android:color/transparent"> <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cl_top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="8dp"
+        android:paddingHorizontal="8dp"
+        android:padding="20dp"
+        android:background="@drawable/custom_background"> <ImageButton
+        android:id="@+id/btn_back"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="12dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_arrow_back_white_24dp"
+        app:tint="@color/white" android:contentDescription="Back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="8dp"/>
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/cl_top_bar"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingVertical="8dp"
-            android:paddingHorizontal="8dp"
-            android:padding="20dp">
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
 
-            <ImageButton
-                android:id="@+id/btn_back"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:padding="12dp"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_arrow_back_white_24dp"
-                app:tint="@color/black"
-                android:contentDescription="Back"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:layout_marginStart="8dp"/>
-
-            <LinearLayout
+            <TextView
+                android:id="@+id/tv_marketplace_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center_horizontal"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent">
+                android:text="Marketplace"
+                android:textColor="@color/white" android:textSize="20sp"
+                android:textStyle="bold"/>
 
-                <TextView
-                    android:id="@+id/tv_marketplace_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Marketplace"
-                    android:textColor="@color/black"
-                    android:textSize="20sp"
-                    android:textStyle="bold"/>
+            <TextView
+                android:id="@+id/tv_user_location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Port Elizabeth, South Africa"
+                android:textColor="@color/white" android:textSize="14sp"/>
+        </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tv_user_location"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Port Elizabeth, South Africa"
-                    android:textColor="@color/colorPrimary"
-                    android:textSize="14sp"/>
-            </LinearLayout>
+        <ImageButton
+            android:id="@+id/btn_cart"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="8dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Cart"
+            android:src="@drawable/marketplace"
+            app:tint="@color/white" app:layout_constraintEnd_toStartOf="@id/btn_profile"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginEnd="8dp"/>
 
-            <ImageButton
-                android:id="@+id/btn_cart"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:padding="8dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="Cart"
-                android:src="@drawable/marketplace"
-                app:layout_constraintEnd_toStartOf="@id/btn_profile"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:layout_marginEnd="8dp"/>
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/btn_profile"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="16dp"
+            android:src="@drawable/ic_profile_placeholder"
+            android:contentDescription="Profile"
+            android:scaleType="centerCrop"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
+            />
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/btn_profile"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginEnd="16dp"
-                android:src="@drawable/ic_profile_placeholder"
-                android:contentDescription="Profile"
-                android:scaleType="centerCrop"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
-                />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
 
     <View

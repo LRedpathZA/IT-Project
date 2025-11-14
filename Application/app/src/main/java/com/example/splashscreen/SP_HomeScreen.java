@@ -130,19 +130,17 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
             }
         });
 
-        // 4. Load Data using Real-Time Listeners
         setupClientsListener(currentUserId);
         setupServiceListener(currentUserId);
         setupPublicPoolsListener();
 
-        // 5. Observe LiveData
         observeLocationAndUserData();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Crucial: Remove all listeners to prevent memory leaks
+        // Crucial: We Remove all listeners to prevent memory leaks
         if (publicPoolsListener != null) { publicPoolsListener.remove(); }
         if (clientListener != null) { clientListener.remove(); }
         if (serviceListener != null) { serviceListener.remove(); }
@@ -210,7 +208,6 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         navigateToFragment(weatherScreen);
     }
 
-    // --- Clients Listener (FIXED: Only shows clients with "Scheduled" bookings) ---
 
     private void setupClientsListener(String spId) {
         if (clientListener != null) clientListener.remove();
@@ -321,10 +318,7 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         });
     }
 
-    // --- Public Pool Data Listener (Retained: Check DB type for fix) ---
-
     private void setupPublicPoolsListener() {
-        // 1. Initialize RecyclerView and Adapter, implementing the click listener
         List<PoolModel> publicPoolsList = new ArrayList<>();
         PublicPoolCardAdapter adapter = new PublicPoolCardAdapter(publicPoolsList, new PublicPoolCardAdapter.OnPoolClickListener() {
             @Override
@@ -336,12 +330,10 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         rvPublicPools.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         rvPublicPools.setAdapter(adapter);
 
-        // 2. Query Firestore for public pools
         Query query = db.collection("pools")
-                .whereEqualTo("isPublic", true) // CRITICAL FILTER
-                .limit(10); // Limit the list size for performance
+                .whereEqualTo("isPublic", true)
+                .limit(10);
 
-        // 3. Set up the real-time listener
         publicPoolsListener = query.addSnapshotListener((snapshots, e) -> {
             if (e != null) {
                 Log.e(TAG, "Listen failed for public pools: " + e.getMessage());
@@ -408,21 +400,16 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
 
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             ClientModel item = items.get(position);
-
-            // Use the getter method for the client's name
             holder.name.setText(item.getName());
 
-            // ⭐ FIX: Use the correct getter method getAvatarResId()
             Long avatarResId = item.getAvatarResId();
             String photoUrl = item.getPhotoUrl();
 
             if (avatarResId != null && avatarResId > 0) {
-                // Load built-in avatar using Resource ID
                 holder.avatar.setImageResource(avatarResId.intValue());
                 holder.avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
             }
             else if (photoUrl != null && !photoUrl.isEmpty()) {
-                // Use the existing ProfilePictureManager for asynchronous URL loading
                 ProfilePictureManager.loadPicture(getContext(), photoUrl, holder.avatar, R.drawable.ic_profile_placeholder);
             }
             else {
@@ -484,8 +471,6 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
             }
 
             holder.poolName.setText(item.title);
-            // This is displaying the price where the service type should be.
-            // If the title is the service type, remove this line or change the layout.
             holder.serviceType.setText(currencyFormat.format(item.price));
             holder.status.setText(item.status);
         }
@@ -508,8 +493,6 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
             }
         }
     }
-
-    // --- Public Pool Adapter (Retained) ---
 
     public static class PublicPoolCardAdapter extends RecyclerView.Adapter<PublicPoolCardAdapter.ViewHolder> {
 
@@ -549,21 +532,17 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
                 holder.image.setImageResource(R.drawable.ic_wavy_background_placeholder);
             }
 
-            // --- Capacity ---
             String capacityText = String.format(Locale.getDefault(), "%dL", item.getWaterCapacityLiters());
             holder.capacity.setText(capacityText);
 
-            // --- Location ---
             String locationText = item.getLocationAddress() != null && !item.getLocationAddress().isEmpty()
                     ? item.getLocationAddress()
                     : "Location Unknown";
             holder.location.setText(locationText);
 
-            // --- Summary ---
             String summaryText = String.format("%s | %s", item.getType(), item.getSanitizerType());
             holder.summary.setText(summaryText);
 
-            // --- Click Listener ---
             holder.itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onPoolClick(item);

@@ -34,7 +34,6 @@ import java.util.Map;
 
 public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
 
-    // 💥 UPDATED IDs to reference Alkalinity
     private EditText etCurrentAlkalinity, etTargetAlkalinity, etPoolVolume;
     private AutoCompleteTextView actvChemicalType; // Removed actvVolumeUnit
     private TextInputLayout tilChemicalType;
@@ -64,7 +63,6 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initializeChemicalData();
-        // 💥 INITIALIZE FIREBASE
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
     }
@@ -72,7 +70,6 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // 💥 Uses the XML provided in the previous turn
         return inflater.inflate(R.layout.alkalinity_calculator, container, false);
     }
 
@@ -81,8 +78,6 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
         super.onViewCreated(view, savedInstanceState);
 
         poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
-
-        // 💥 BINDING UPDATED ALKALINITY VIEWS
         etCurrentAlkalinity = view.findViewById(R.id.et_current_alkalinity);
         etTargetAlkalinity = view.findViewById(R.id.et_target_alkalinity);
         etPoolVolume = view.findViewById(R.id.et_pool_volume);
@@ -102,7 +97,6 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
     private void setupListeners() {
         btnCalculate.setOnClickListener(v -> calculateDosage());
 
-        // 💥 Listener for Save Log Button
         btnSaveLog.setOnClickListener(v -> saveLogToFirestore());
 
         actvChemicalType.setOnItemClickListener((parent, view, position, id) -> updateChemicalDetails(actvChemicalType.getText().toString()));
@@ -168,11 +162,9 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
         cvResult.setVisibility(View.GONE);
     }
 
-    // 💥 UPDATED CHEMICAL DATA FOR ALKALINITY
     private void initializeChemicalData() {
         chemicalInfoMap = new HashMap<>();
 
-        // Alkalinity Increaser (Sodium Bicarbonate - Baking Soda)
         chemicalInfoMap.put("Alkalinity Increaser (Sodium Bicarbonate)", new ChemicalDosageInfo(
                 "Sodium Bicarbonate (Baking Soda, $\\text{NaHCO}_3$). Safest way to raise TA. Pre-dissolve in water and broadcast over the pool surface. Slowly raise TA by no more than 20 ppm per day.",
                 "TA Increaser (Granular)",
@@ -188,7 +180,6 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
     }
 
     private void calculateDosage() {
-        // Reset saved values
         savedDosageAmount = 0.0;
         savedDosageUnit = "";
         savedChemicalName = "";
@@ -260,17 +251,17 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
             double dosageToDisplay;
 
             if (info.baseType.toLowerCase().contains("liquid")) {
-                dosageToDisplay = dosageRequiredMetric / 1000.0; // Convert ml to L
+                dosageToDisplay = dosageRequiredMetric / 1000.0;
                 finalUnit = "L";
                 chemicalType = "of " + chemicalName.split("\\(")[0].trim();
                 amountFormat = "%.2f";
             } else {
                 if (volume > 40000) {
-                    dosageToDisplay = dosageRequiredMetric / 1000.0; // Convert g to kg
+                    dosageToDisplay = dosageRequiredMetric / 1000.0;
                     finalUnit = "kg";
                     amountFormat = "%.2f";
                 } else {
-                    dosageToDisplay = dosageRequiredMetric; // Display in g
+                    dosageToDisplay = dosageRequiredMetric;
                     finalUnit = "g";
                     amountFormat = "%.0f";
                 }
@@ -303,7 +294,7 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
         return poolId + "_" + dateString;
     }
 
-    // 💥 UPDATED: Method to save the log to Firestore using MERGE/UPSERT
+
     private void saveLogToFirestore() {
         if (poolId == null || poolId.isEmpty()) {
             Toast.makeText(getContext(), "Error: No pool selected. Please select or create a pool first.", Toast.LENGTH_LONG).show();
@@ -320,10 +311,10 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
             double targetAlk = etTargetAlkalinity.getText().toString().isEmpty() ? IDEAL_ALKALINITY : Double.parseDouble(etTargetAlkalinity.getText().toString());
             double volume = Double.parseDouble(etPoolVolume.getText().toString());
 
-            // 1. Prepare data (only the fields we want to update/set)
+            //  Prepare data (only the fields we want to update/set)
             Map<String, Object> logUpdates = new HashMap<>();
 
-            // Core Metric 💥 UPDATED KEY
+
             logUpdates.put("alkalinity", currentAlk);
 
 

@@ -1,7 +1,3 @@
-// ----------------------------------------------------------------------
-// SP_PoolDetailFragment.java (Updated for Security/Data Duplication)
-// ----------------------------------------------------------------------
-
 package com.example.splashscreen;
 
 import android.os.Bundle;
@@ -37,7 +33,7 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
     private TextView tvPoolLocation;
     private TextView tvPoolDetails;
     private TextView tvPoolCapacity;
-    private TextView tvPoolOwnerName; // Now populated from the PoolModel's duplicated data
+    private TextView tvPoolOwnerName;
     private Button btnRequestService;
     private ImageView ivPoolImage;
 
@@ -74,7 +70,7 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Initialize UI elements
+
         tvPoolName = view.findViewById(R.id.tv_pool_detail_name);
         tvPoolLocation = view.findViewById(R.id.tv_pool_detail_location);
         tvPoolDetails = view.findViewById(R.id.tv_pool_detail_summary);
@@ -83,18 +79,18 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
         btnRequestService = view.findViewById(R.id.btn_request_service);
         ivPoolImage = view.findViewById(R.id.iv_pool_detail_image);
 
-        // 2. Fetch data if poolId is available
+
         if (poolId != null) {
             fetchPoolDetails(poolId);
         } else {
             Toast.makeText(getContext(), "Pool ID is missing.", Toast.LENGTH_LONG).show();
         }
 
-        // 3. Set action listeners
+
         btnRequestService.setOnClickListener(v -> handleServiceRequest());
     }
 
-    // --- Data Fetching and Binding ---
+
 
     private void fetchPoolDetails(String id) {
         DocumentReference poolRef = db.collection("pools").document(id);

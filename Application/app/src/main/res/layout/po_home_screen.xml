@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:padding="25dp"
-            android:background="@color/white"
+            android:background="@drawable/custom_background"
             android:gravity="center_vertical">
             <LinearLayout
                 android:layout_width="0dp"

@@ -7,17 +7,13 @@ import java.util.Map;
 import android.util.Log;
 
 public class App extends Application {
-
+// This might not work but left it for future scaling
     private static final String TAG = "AppInit";
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        // Configuration map for Cloudinary (uses your static cloud name)
-        // NOTE: If your API key/secret are confidential, it's safer to rely
-        // entirely on the signed upload from the Firebase function and omit them here,
-        // but you MUST set the cloud_name.
         try {
             Map config = new HashMap();
             // **REPLACE "YOUR_STATIC_CLOUD_NAME" with the actual Cloudinary Cloud Name**

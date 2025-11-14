@@ -23,6 +23,7 @@
     <color name="grey_background">#F5F5F5</color>
     <color name="black_overlay">#80000000</color>
     <color name="white_transparent_50">#80FFFFFF</color>
+    <color name="ripple_dark_translucent">#25000000</color>
     <color name="black_transparent_50">#80000000</color>
     <color name="off_white_background">#F0F2F5</color>
     <color name="green_icon_bg">#4CAF50</color>

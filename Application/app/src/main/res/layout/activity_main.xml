@@ -19,15 +19,23 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toTopOf="parent"
+
             app:cardElevation="4dp"
             app:cardCornerRadius="0dp"
-           >
+
+            app:cardBackgroundColor="@android:color/transparent"
+
+            >
+
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/cl_top_bar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingVertical="8dp"
-                android:paddingHorizontal="8dp">
+                android:paddingHorizontal="8dp"
+
+                android:background="@drawable/custom_background">
+
                 <ImageButton
                     android:id="@+id/btn_back"
                     android:layout_width="48dp"
@@ -35,18 +43,19 @@
                     android:padding="12dp"
                     android:background="@android:color/transparent"
                     android:src="@drawable/ic_arrow_back_white_24dp"
-                    app:tint="@color/black"
+                    app:tint="@color/white"
                     android:contentDescription="Back"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     android:layout_marginStart="8dp"/>
+
                 <TextView
                     android:id="@+id/tv_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Dashboard Title"
-                    android:textColor="@color/black"
+                    android:textColor="@color/white"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
@@ -60,6 +69,7 @@
                     android:layout_height="48dp"
                     app:cardCornerRadius="24dp"
                     app:cardElevation="0dp"
+                    app:cardBackgroundColor="@android:color/white"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -81,7 +91,8 @@
             android:id="@+id/fragment_container"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:layout_constraintTop_toBottomOf="@id/card_top_bar"  app:layout_constraintBottom_toTopOf="@id/bottom_navigation_view" />
+            app:layout_constraintTop_toBottomOf="@id/card_top_bar"
+            app:layout_constraintBottom_toTopOf="@id/bottom_navigation_view" />
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_navigation_view"
@@ -89,11 +100,11 @@
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:labelVisibilityMode="labeled"
-            android:background="?attr/colorPrimaryVariant"
+            android:background="@drawable/custom_background"
             app:itemIconTint="?attr/colorOnPrimary"
             app:itemTextColor="?attr/colorOnPrimary"
-            app:itemActiveIndicatorStyle="@color/PrimaryColour"
-            app:itemRippleColor="@color/PrimaryColour"
+            app:itemActiveIndicatorStyle="@color/light_blue_icon_bg"
+            app:itemRippleColor="@color/ripple_dark_translucent"
             />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

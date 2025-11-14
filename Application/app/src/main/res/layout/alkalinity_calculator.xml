@@ -38,7 +38,7 @@
                 app:cardElevation="4dp"
                 android:layout_marginBottom="16dp">
 
-            </androidx.cardview.widget.CardView>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -71,7 +71,7 @@
                         android:background="@android:color/transparent"
                         android:hint="Current Alkalinity (ppm) *"
                         android:inputType="number"
-                        android:maxLength="3"
+                        android:maxLength="5"
                         android:paddingStart="8dp"
                         android:paddingEnd="0dp"
                         android:textColor="@color/black"
@@ -103,7 +103,7 @@
                         android:background="@android:color/transparent"
                         android:hint="Target Alkalinity (Ideal 80 - 120 ppm)"
                         android:inputType="number"
-                        android:maxLength="3"
+                        android:maxLength="5"
                         android:paddingStart="8dp"
                         android:paddingEnd="0dp"
                         android:textColor="@color/black"
@@ -150,6 +150,7 @@
                 </LinearLayout>
 
             </LinearLayout>
+            </androidx.cardview.widget.CardView>
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

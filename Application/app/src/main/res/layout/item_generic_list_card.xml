@@ -32,7 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Generic Title"
+            android:text="Coming Soon"
             android:textSize="14sp"
             android:maxLines="1"
             android:ellipsize="end"
@@ -43,7 +43,7 @@
             android:id="@+id/tv_item_subtext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="R 0.00 / details"
+            android:text="R 0.00"
             android:textSize="12sp"
             android:textColor="@color/colorPrimary"/>
 

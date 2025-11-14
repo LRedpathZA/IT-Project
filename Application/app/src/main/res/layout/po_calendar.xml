@@ -37,7 +37,8 @@
                     android:focusedMonthDateColor="@color/black"
                     android:padding="8dp"
                     android:selectedWeekBackgroundColor="@color/PrimaryColour"
-                    android:unfocusedMonthDateColor="@color/grey" />
+                    android:unfocusedMonthDateColor="@color/grey"
+                    android:minDate="11/14/2025"/>
 
             </androidx.cardview.widget.CardView>
 
