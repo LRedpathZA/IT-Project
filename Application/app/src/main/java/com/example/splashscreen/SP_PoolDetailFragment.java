@@ -20,10 +20,20 @@ import com.example.splashscreen.data.models.UserViewModel;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+// ⭐ NEW IMPORTS FOR MANUAL IMAGE LOADING ⭐
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+// ⭐ END NEW IMPORTS ⭐
+
 import java.util.Locale;
 
 public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
 
+    private static final String TAG = "SP_PoolDetailFragment";
     private static final String ARG_POOL_ID = "pool_id";
     private String poolId;
     private PoolModel currentPool;
@@ -38,6 +48,9 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
     private ImageView ivPoolImage;
 
     private FirebaseFirestore db;
+
+    // ⭐ NEW: Executor for network operations (manual image loading) ⭐
+    private final Executor networkExecutor = Executors.newSingleThreadExecutor();
 
     /**
      * Factory method to create a new instance of this fragment.
@@ -90,6 +103,47 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
         btnRequestService.setOnClickListener(v -> handleServiceRequest());
     }
 
+    // ⭐ NEW: Manual image loading utility method ⭐
+    private void loadPoolImageFromUrl(String url, ImageView targetImageView) {
+        if (url == null || url.isEmpty()) {
+            if (targetImageView != null) {
+                targetImageView.setImageResource(R.drawable.ic_wavy_background_placeholder);
+            }
+            return;
+        }
+
+        // Use the dedicated network executor
+        networkExecutor.execute(() -> {
+            Bitmap bitmap = null;
+            try {
+                // Simple network request to fetch the image
+                InputStream in = new URL(url).openStream();
+                bitmap = BitmapFactory.decodeStream(in);
+                Log.d(TAG, "Successfully decoded pool bitmap from URL.");
+            } catch (Exception e) {
+                // Log the error for debugging
+                Log.e(TAG, "Error loading pool bitmap from URL: " + e.getMessage());
+            }
+
+            Bitmap finalBitmap = bitmap;
+
+
+            if (isAdded()) {
+
+                requireActivity().runOnUiThread(() -> {
+                    if (targetImageView != null) {
+                        if (finalBitmap != null) {
+                            targetImageView.setImageBitmap(finalBitmap);
+                        } else {
+                            targetImageView.setImageResource(R.drawable.ic_wavy_background_placeholder);
+                            Toast.makeText(getContext(), "Failed to load pool image.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
 
 
     private void fetchPoolDetails(String id) {
@@ -102,11 +156,11 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
 
             } else {
                 Toast.makeText(getContext(), "Pool not found.", Toast.LENGTH_LONG).show();
-                Log.e("SP_PoolDetailFragment", "Pool document does not exist: " + id);
+                Log.e(TAG, "Pool document does not exist: " + id);
             }
         }).addOnFailureListener(e -> {
             Toast.makeText(getContext(), "Failed to load pool details.", Toast.LENGTH_LONG).show();
-            Log.e("SP_PoolDetailFragment", "Error fetching pool: " + e.getMessage());
+            Log.e(TAG, "Error fetching pool: " + e.getMessage());
         });
     }
 
@@ -120,9 +174,7 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
 
         String ownerName = pool.getOwnerName() != null ? pool.getOwnerName() : "Pool Owner";
         tvPoolOwnerName.setText(String.format("Owner: %s", ownerName));
-
-        // TODO: Implement image loading here (e.g., Glide/Picasso)
-        ivPoolImage.setImageResource(R.drawable.ic_wavy_background_placeholder);
+        loadPoolImageFromUrl(pool.getPhotoUrl(), ivPoolImage);
 
         updateActivityHeader();
     }
@@ -135,7 +187,7 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
 
         // TODO: Navigate to SP_RequestServiceFragment.newInstance(currentPool.getPoolId())
 
-        Toast.makeText(getContext(), "Navigating to Service Request for: " + currentPool.getName(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Coming Soon: ", Toast.LENGTH_SHORT).show();
     }
 
     @Override

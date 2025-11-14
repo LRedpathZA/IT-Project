@@ -56,9 +56,6 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
     private LinearLayout llAddPoolPlaceholder;
     private FrameLayout flHomePoolContent;
 
-    // REMOVED: private RecyclerView rvProducts;
-    // REMOVED: private ItemAdapter productAdapter;
-
     public static final String REQUEST_KEY_POOL_ADDED = "pool_added_key";
     public static final String BUNDLE_KEY_POOL_ID = "new_pool_id";
     public static final String ARG_POOL_ID = "POOL_ID";
@@ -117,13 +114,11 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
         userViewModel.userData.observe(getViewLifecycleOwner(), document -> {
             // This runs instantly whenever the data changes anywhere in the app
             if (getContext() != null) {
-                // 4. Use the reusable Manager to load the latest picture
                 ProfilePictureManager.loadPicture(getContext(), document, ivProfileIcon);
             }
         });
 
         setupPoolResultListener();
-        // REMOVED: fetchProductsAndSetupRecyclerView();
         initNavigation();
 
         observeUserData();
@@ -290,7 +285,6 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
             String poolLocation = poolModel.getLocationAddress();
             Long capacity = poolModel.getWaterCapacityLiters();
             String poolId = poolModel.getPoolId();
-            // ⭐ NEW: Get the image URL
             String poolImageUrl = poolModel.getPhotoUrl();
 
 
@@ -348,16 +342,13 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
             return;
         }
 
-        // Use the dedicated network executor
         networkExecutor.execute(() -> {
             Bitmap bitmap = null;
             try {
-                // Simple network request to fetch the image
                 InputStream in = new URL(url).openStream();
                 bitmap = BitmapFactory.decodeStream(in);
                 Log.d(TAG, "Successfully decoded pool bitmap from URL.");
             } catch (Exception e) {
-                // Log the error for debugging
                 Log.e(TAG, "Error loading pool bitmap from URL: " + e.getMessage());
             }
 
