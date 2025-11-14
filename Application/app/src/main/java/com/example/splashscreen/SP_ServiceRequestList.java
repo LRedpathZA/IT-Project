@@ -28,7 +28,6 @@ public class SP_ServiceRequestList extends Fragment
         implements HeaderUpdatable, ServiceRequestAdapter.OnRequestClickListener {
 
     private RecyclerView recyclerView;
-    // Note: The FAB is typically omitted for the SP view as they don't create requests here.
     private LinearLayout layoutEmptyState;
 
     private SP_ServiceRequestViewModel viewModel; // Use the SP-specific ViewModel
@@ -55,7 +54,7 @@ public class SP_ServiceRequestList extends Fragment
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Assuming a layout similar to the PO's list, maybe R.layout.sp_servicerequestlist
+
         return inflater.inflate(R.layout.sp_servicerequestlist, container, false);
     }
 
@@ -63,19 +62,12 @@ public class SP_ServiceRequestList extends Fragment
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Initialize UI components (reusing IDs if layout is similar)
         recyclerView = view.findViewById(R.id.recycler_service_requests);
         layoutEmptyState = view.findViewById(R.id.layout_empty_state);
-
-        // 2. Initialize Adapter and ViewModel
         viewModel = new ViewModelProvider(this).get(SP_ServiceRequestViewModel.class);
         adapter = new ServiceRequestAdapter(getContext(), serviceRequestList, this);
-
-        // 3. Setup RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
-
-        // 4. Observe LiveData from ViewModel (fetches all OPEN requests)
         observeOpenServiceRequests();
     }
 
@@ -86,45 +78,28 @@ public class SP_ServiceRequestList extends Fragment
                 serviceRequestList.clear();
                 serviceRequestList.addAll(requests);
                 adapter.notifyDataSetChanged();
-
-                // Toggle empty state visibility
                 updateUiForData(!requests.isEmpty());
             } else {
-                // Handle null/error state
                 updateUiForData(false);
                 Toast.makeText(getContext(), "Failed to load open service requests.", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // --- ServiceRequestAdapter.OnRequestClickListener Implementation ---
-
-    /**
-     * Handles click on the main list item (Card). Navigates to the Offer Quote screen.
-     */
     @Override
     public void onRequestClick(ServiceRequestModel request) {
         // The core functionality for SP: tapping the request takes them to the quote form.
         navigateToOfferQuoteFragment(request.getRequestId());
     }
-
-    /**
-     * Handles click on the options menu button (three dots).
-     * This method is part of the interface, but the SP view should likely hide the menu button.
-     */
     @Override
     public void onMenuClick(ServiceRequestModel request, View anchorView) {
-        // Since SPs cannot manage or delete others' requests, this action is typically ignored.
-        // If the ImageButton is visible, the card layout should be updated to hide it.
         Toast.makeText(getContext(), "View the details by tapping the card.", Toast.LENGTH_SHORT).show();
     }
 
 
     private void navigateToOfferQuoteFragment(String requestId) {
         if (getParentFragmentManager() != null) {
-            // Pass the ServiceRequest ID to the new fragment
             Fragment offerQuoteFragment = SP_OfferQuoteFragment.newInstance(requestId);
-
             getParentFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, offerQuoteFragment)
                     .addToBackStack(null)

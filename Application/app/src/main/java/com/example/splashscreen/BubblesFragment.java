@@ -20,16 +20,14 @@ public class BubblesFragment extends Fragment implements HeaderUpdatable {
 
     private static final String BUBBLES_URL = "https://splashscreen-20z.pages.dev/bubbles";
     private WebView webView;
-    private LinearLayout errorLayout; // The placeholder/error view
+    private LinearLayout errorLayout;
 
     public BubblesFragment() {
-        // Required empty public constructor
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.bubbles, container, false);
         WebView.setWebContentsDebuggingEnabled(true);
         webView = view.findViewById(R.id.webview_bubbles);
@@ -83,26 +81,25 @@ public class BubblesFragment extends Fragment implements HeaderUpdatable {
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-            // If no errors occurred during loading, show the webview
+
             if (!loadingError) {
                 showWebView();
             } else {
-                // If an error was recorded, show the placeholder
+
                 showErrorPlaceholder();
             }
         }
 
-        // For API 23 and above (Recommended for general errors)
+
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
             if (request.isForMainFrame()) {
                 loadingError = true;
-                // Optional: Show a toast with the error description
+
                 Toast.makeText(getContext(), "Error loading page: " + error.getDescription(), Toast.LENGTH_LONG).show();
             }
         }
 
-        // For older APIs (deprecated but good for backward compatibility)
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             if (failingUrl.equals(BUBBLES_URL)) {

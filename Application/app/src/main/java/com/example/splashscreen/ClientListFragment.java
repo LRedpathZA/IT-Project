@@ -40,7 +40,6 @@ public class ClientListFragment extends Fragment implements ClientListAdapter.On
     private RecyclerView recyclerView;
     private ClientListAdapter adapter;
 
-    // ⭐ FIRESTORE FIELDS
     private FirebaseFirestore db;
     private String currentUserId;
     private ListenerRegistration clientListener;
@@ -72,7 +71,7 @@ public class ClientListFragment extends Fragment implements ClientListAdapter.On
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Initialize RecyclerView and Adapter
+
         recyclerView = view.findViewById(R.id.rv_client_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -81,12 +80,11 @@ public class ClientListFragment extends Fragment implements ClientListAdapter.On
                 DividerItemDecoration.VERTICAL);
         recyclerView.addItemDecoration(dividerItemDecoration);
 
-        // Initialize adapter with an empty list for real data
-        // `this` refers to ClientListFragment, which implements OnClientClickListener
+
         adapter = new ClientListAdapter(new ArrayList<>(), this);
         recyclerView.setAdapter(adapter);
 
-        // 2. Start fetching real data
+
         if (currentUserId != null) {
             setupClientsListener(currentUserId);
         } else {
@@ -97,7 +95,7 @@ public class ClientListFragment extends Fragment implements ClientListAdapter.On
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Crucial: Remove listener to prevent memory leaks
+
         if (clientListener != null) { clientListener.remove(); }
     }
 
@@ -115,7 +113,7 @@ public class ClientListFragment extends Fragment implements ClientListAdapter.On
         updateActivityHeader();
     }
 
-    // --- Firestore Data Fetching Logic (Adapted from SP_HomeScreen) ---
+
 
     private void setupClientsListener(String spId) {
         Query clientQuery = db.collection("bookings")
@@ -131,14 +129,14 @@ public class ClientListFragment extends Fragment implements ClientListAdapter.On
             if (snapshots != null) {
                 Set<String> uniquePoIds = new HashSet<>();
                 for (QueryDocumentSnapshot doc : snapshots) {
-                    // Extract the Pool Owner's ID (the client)
+
                     String poId = doc.getString("userId");
                     if (poId != null) {
                         uniquePoIds.add(poId);
                     }
                 }
 
-                // Fetch the full User data for each unique PO ID
+
                 fetchClientDetails(new ArrayList<>(uniquePoIds));
             }
         });
@@ -151,7 +149,7 @@ public class ClientListFragment extends Fragment implements ClientListAdapter.On
             return;
         }
 
-        // Firestore's whereIn clause is limited to 10 items.
+
         if (poIds.size() > 10) {
             poIds = poIds.subList(0, 10);
         }
@@ -161,18 +159,14 @@ public class ClientListFragment extends Fragment implements ClientListAdapter.On
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         String clientId = doc.getId();
-                        // ⭐ FIX: Ensure this matches the field name in your Firestore 'users' collection.
-                        // Based on the PO_SignUp snippet, 'username' is likely the correct field,
-                        // but sometimes 'name' is used. Reverting to 'name' as requested in the
-                        // last prompt, but if this fails, try "username".
                         String name = doc.getString("name");
                         String photoUrl = doc.getString("profilePictureUrl");
                         Long avatarResId = doc.getLong("profileAvatarResId");
 
                         String description = "Active client with a scheduled service.";
-                        boolean isActive = true; // True because they were fetched via 'Scheduled' booking query.
+                        boolean isActive = true;
 
-                        // Use the full ClientModel constructor
+
                         clients.add(new ClientModel(
                                 clientId,
                                 name != null ? name : "Client",
@@ -180,7 +174,7 @@ public class ClientListFragment extends Fragment implements ClientListAdapter.On
                                 photoUrl,
                                 avatarResId,
                                 isActive,
-                                null // GeoPoint poolLocation (not needed for this view)
+                                null
                         ));
                     }
                     adapter.updateList(clients);
@@ -193,34 +187,23 @@ public class ClientListFragment extends Fragment implements ClientListAdapter.On
                 });
     }
 
-    // --- Navigation ---
     @Override
     public void onClientClick(ClientModel client) {
-        // Log to confirm click is registered
+
         Log.d(TAG, "Client clicked: " + client.getName() + ", ID: " + client.getClientId());
 
-        // 1. Create the target fragment instance, passing the client's ID
+
         Fragment clientProfileFragment = ClientProfileFragment.newInstance(client.getClientId());
 
         if (getActivity() != null) {
-            // Check if the current fragment manager is available and not nested
             if (getFragmentManager() != null) {
-                // If using the child fragment manager (which you shouldn't be here)
-                // FragmentTransaction transaction = getFragmentManager().beginTransaction();
 
-                // Using the activity's support fragment manager is usually correct for main navigation
+
+
                 FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
-
-                // 2. Log transaction details
                 Log.d(TAG, "Starting fragment transaction to ClientProfileFragment.");
-
-                // 3. Replace the current fragment with the new one
-                transaction.replace(R.id.fragment_container, clientProfileFragment); // Assuming R.id.fragment_container is the main container
-
-                // 4. Add the transaction to the back stack so the user can navigate back
+                transaction.replace(R.id.fragment_container, clientProfileFragment);
                 transaction.addToBackStack(null);
-
-                // 5. Commit the transaction
                 transaction.commit();
 
             } else {

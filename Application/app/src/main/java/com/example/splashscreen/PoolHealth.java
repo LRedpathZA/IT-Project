@@ -47,12 +47,11 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
         super.onCreate(savedInstanceState);
         db = FirebaseFirestore.getInstance();
 
-        // Retrieve User ID once
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         }
 
-        // Initialize ViewModel
+
         poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
     }
 
@@ -68,7 +67,7 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
         initViews(view);
         setupListeners();
 
-        // Observe poolId changes from ViewModel
+
         poolViewModel.poolId.observe(getViewLifecycleOwner(), pId -> {
             if (pId != null && !pId.isEmpty()) {
                 loadLatestPoolHealthData(pId);
@@ -78,7 +77,7 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
             }
         });
 
-        // Trigger loading if poolId is already set in ViewModel
+
         String initialPoolId = poolViewModel.poolId.getValue();
         if (initialPoolId != null && !initialPoolId.isEmpty()) {
             loadLatestPoolHealthData(initialPoolId);
@@ -86,12 +85,12 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
     }
 
     private void initViews(View view) {
-        // These TextViews are now REQUIRED for the score display over the gauge
+
         tvHealthScore = view.findViewById(R.id.tv_health_score);
         tvHealthStatus = view.findViewById(R.id.tv_health_status);
         tvLastTestDate = view.findViewById(R.id.tv_last_test_date);
 
-        // 💥 INITIALIZE CircularGaugeView
+
         circularGaugeView = view.findViewById(R.id.gauge_ring_placeholder);
 
         tvPhValue = view.findViewById(R.id.tv_ph_value);
@@ -169,7 +168,7 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
                     if (!queryDocumentSnapshots.isEmpty()) {
                         TestLogModel latestLog = queryDocumentSnapshots.getDocuments().get(0).toObject(TestLogModel.class);
 
-                        // Check if the log is valid (has at least one metric recorded)
+
                         if (latestLog != null && (latestLog.getPh() != 0.0 || latestLog.getChlorine() != 0.0 || latestLog.getAlkalinity() != 0.0 || latestLog.getStabilizer() != 0.0)) {
                             updateUI(latestLog);
                         } else {
@@ -177,34 +176,34 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
                             clearHealthMetrics();
                         }
                     } else {
-                        // Data NOT found (Graceful Handling)
+
                         tvHealthStatus.setText("No Test Data Found");
                         tvHealthScore.setText("0.0");
                         clearHealthMetrics();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    // Firebase access error
+
                     Toast.makeText(getContext(), "Error loading pool health: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     tvHealthStatus.setText("Loading Error");
                     clearHealthMetrics();
                 });
     }
 
-    // Reset all metric views when no data is found
+
     private void clearHealthMetrics() {
-        // Main Display
-        tvHealthScore.setText("0.0"); // 💥 RE-ENABLED: Update TextView
-        tvHealthStatus.setText("NO DATA"); // 💥 RE-ENABLED: Update TextView
-        tvHealthStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.health_critical)); // Set color
+
+        tvHealthScore.setText("0.0");
+        tvHealthStatus.setText("NO DATA");
+        tvHealthStatus.setTextColor(ContextCompat.getColor(requireContext(), R.color.health_critical));
         tvLastTestDate.setText("Last Test: N/A");
 
-        // 💥 Update Custom Circular Gauge View for "No Data" state
+
         if (circularGaugeView != null) {
             circularGaugeView.setHealthData(0.0f, "NO DATA", R.color.health_critical);
         }
 
-        // Metric Blocks
+
         updateMetricBlock(tvPhValue, pbPhHealth, 0.0, 7.4, 7.6, "N/A");
         updateMetricBlock(tvChlorineValue, pbChlorineHealth, 0.0, 1.0, 3.0, "N/A");
         updateMetricBlock(tvAlkalinityValue, pbAlkalinityHealth, 0.0, 80.0, 120.0, "N/A");
@@ -218,12 +217,8 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
 
 
     private void updateUI(TestLogModel data) {
-        // 1. Calculate Health Score
         OverallHealthResult result = calculateOverallHealth(data);
 
-        // 2. Update Main Gauge
-
-        // 💥 Pass data to the Custom Circular Gauge View (for the ring drawing)
         if (circularGaugeView != null) {
             circularGaugeView.setHealthData(
                     (float) result.score,
@@ -232,20 +227,18 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
             );
         }
 
-        // 💥 RE-ENABLED: Update the TextViews placed over the gauge
+
         tvHealthScore.setText(String.format(Locale.getDefault(), "%.1f", result.score));
         tvHealthStatus.setText(result.status);
         tvHealthStatus.setTextColor(ContextCompat.getColor(requireContext(), result.colorResId));
 
-
-        // 💥 Access timestamp via getter
         if (data.getTimestamp() != null) {
             tvLastTestDate.setText(String.format("Last Test: %s", android.text.format.DateFormat.getMediumDateFormat(getContext()).format(data.getTimestamp())));
         } else {
             tvLastTestDate.setText("Last Test: Unknown Date");
         }
 
-        // 3. Update Metric Blocks
+
         updateMetricBlock(tvPhValue, pbPhHealth, data.getPh(), 7.4, 7.6, "%.1f");
         updateMetricBlock(tvChlorineValue, pbChlorineHealth, data.getChlorine(), 1.0, 3.0, "%.1f ppm");
         updateMetricBlock(tvAlkalinityValue, pbAlkalinityHealth, data.getAlkalinity(), 80.0, 120.0, "%.1f ppm");
@@ -311,7 +304,6 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
     }
 
     private void updateMetricBlock(TextView valueView, ProgressBar progressBar, double currentValue, double minOptimal, double maxOptimal, String format) {
-        // Handle "N/A" display when no data is found
         if (format.equals("N/A")) {
             valueView.setText("N/A");
             return;
@@ -329,7 +321,7 @@ public class PoolHealth extends Fragment implements HeaderUpdatable {
         double midOptimal = (minOptimal + maxOptimal) / 2.0;
         double range = (maxOptimal - minOptimal);
 
-        // Max sensible deviation outside range
+
         double maxDeviation = range * 1.5;
 
         double deviation = Math.abs(currentValue - midOptimal);

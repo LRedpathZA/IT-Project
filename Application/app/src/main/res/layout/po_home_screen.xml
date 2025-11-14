@@ -49,12 +49,14 @@
 
             </LinearLayout>
 
-            <ImageView
+            <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/ivProfileIcon"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@drawable/ic_profile_placeholder"
-                android:contentDescription="Profile Icon" />
+                android:contentDescription="Profile Icon"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
     <androidx.core.widget.NestedScrollView

@@ -46,8 +46,8 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
 
     private FirebaseFirestore db;
     private PoolViewModel poolViewModel;
-    private UserViewModel userViewModel; // ⭐ ADDED UserViewModel
-    private String currentUserId; // ⭐ ADDED field to store the current user's ID
+    private UserViewModel userViewModel;
+    private String currentUserId;
     private Calendar selectedDate = Calendar.getInstance();
     private EventAdapter eventAdapter;
     private List<EventModel> eventList = new ArrayList<>();
@@ -61,7 +61,6 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
         super.onCreate(savedInstanceState);
         db = FirebaseFirestore.getInstance();
 
-        // Initialize currentUserId right away using FirebaseAuth
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         }
@@ -95,13 +94,12 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
 
         FloatingActionButton fabAddEvent = view.findViewById(R.id.fab_add_event);
 
-        // Check if user ID is available
+
         if (currentUserId == null) {
             Toast.makeText(getContext(), "User authentication missing. Cannot load events.", Toast.LENGTH_LONG).show();
             return;
         }
 
-        // --- View Initialization (similar to before) ---
         calendarView = view.findViewById(R.id.calendar_view);
         rvEvents = view.findViewById(R.id.rv_events);
         tvNoEvents = view.findViewById(R.id.tv_no_events);
@@ -110,9 +108,9 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
         rvEvents.setLayoutManager(new LinearLayoutManager(getContext()));
         eventAdapter = new EventAdapter(eventList, this);
         rvEvents.setAdapter(eventAdapter);
-        // ------------------------------------------------
 
-        // Observe Pool ID from ViewModel
+
+
         poolViewModel.poolId.observe(getViewLifecycleOwner(), poolId -> {
             if (poolId != null) {
                 HOME_POOL_ID = poolId;
@@ -126,7 +124,7 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
             }
         });
 
-        // Load events when the selected date changes
+
         calendarView.setOnDateChangeListener((view1, year, month, dayOfMonth) -> {
             selectedDate.set(year, month, dayOfMonth);
             loadEventsForSelectedDate(selectedDate);
@@ -142,14 +140,14 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
     // =========================================================================================
 
     private void loadEventsForSelectedDate(Calendar date) {
-        // ⭐ Check for currentUserId in addition to pool ID
+
         if (getContext() == null || HOME_POOL_ID == null || currentUserId == null) return;
 
         SimpleDateFormat headerFormat = new SimpleDateFormat("EEEE, MMMM dd, yyyy", Locale.getDefault());
         String selectedDateString = headerFormat.format(date.getTime());
         tvEventsHeader.setText("Events for " + selectedDateString);
 
-        // 1. Prepare start of day (00:00:00)
+
         Calendar startOfDay = (Calendar) date.clone();
         startOfDay.set(Calendar.HOUR_OF_DAY, 0);
         startOfDay.set(Calendar.MINUTE, 0);
@@ -157,7 +155,7 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
         startOfDay.set(Calendar.MILLISECOND, 0);
         final long startTime = startOfDay.getTimeInMillis();
 
-        // 2. Prepare end of day (23:59:59)
+
         Calendar endOfDay = (Calendar) date.clone();
         endOfDay.set(Calendar.HOUR_OF_DAY, 23);
         endOfDay.set(Calendar.MINUTE, 59);
@@ -165,11 +163,8 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
         endOfDay.set(Calendar.MILLISECOND, 999);
         final long endTime = endOfDay.getTimeInMillis();
 
-        // 3. Firestore Query FIX:
-        // Changed filter from "poolId" to "poolOwnerId" to match the security rule:
-        // allow read: if ... resource.data.poolOwnerId == request.auth.uid
         db.collection("events")
-                .whereEqualTo("poolOwnerId", currentUserId) // ⭐ FIXED: Use poolOwnerId for security rule compliance
+                .whereEqualTo("poolOwnerId", currentUserId)
                 .whereLessThanOrEqualTo("startDate", endTime)
                 .orderBy("startDate", Query.Direction.ASCENDING)
                 .get()
@@ -182,19 +177,13 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
                             EventModel event = document.toObject(EventModel.class);
                             event.id = document.getId();
 
-                            // 4. LOCAL FILTER: Check for overlap (Event ENDS after the start of the selected day)
-                            Long eventEndDate = document.getLong("endDate");
 
-                            // If the event is related to the pool (poolId check is implicit by poolOwnerId filter
-                            // if the user is only an owner of one pool, but let's re-add the poolId check
-                            // for multi-pool support if necessary, though currentUserId is safer)
+                            Long eventEndDate = document.getLong("endDate");
                             if (!document.getString("poolId").equals(HOME_POOL_ID)) {
-                                // This check ensures we only show events for the currently selected pool (HOME_POOL_ID)
-                                // even if the user owns multiple pools.
+
                                 continue;
                             }
 
-                            // 5. Apply date overlap filter
                             if (eventEndDate != null && eventEndDate >= startTime) {
                                 eventList.add(event);
                             } else {
@@ -227,7 +216,7 @@ public class PO_Calendar extends Fragment implements EventAdapter.OnEventClickLi
             if (requestKey.equals(REQUEST_KEY_EVENT_UPDATED)) {
                 Toast.makeText(getContext(), "Events list reloaded.", Toast.LENGTH_SHORT).show();
 
-                // Reload for the currently selected date, which is already stored in selectedDate
+
                 loadEventsForSelectedDate(selectedDate);
             }
         });

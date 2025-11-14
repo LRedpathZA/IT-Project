@@ -1,4 +1,4 @@
-package com.example.splashscreen.data.models; // Adjust package as needed
+package com.example.splashscreen;
 
 import com.google.firebase.firestore.Exclude;
 
@@ -29,7 +29,6 @@ public class Service {
         this.createdAt = createdAt;
     }
 
-    // Getters and Setters
     public String getName() {
         return name;
     }

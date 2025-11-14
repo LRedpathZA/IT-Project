@@ -39,16 +39,16 @@ public class NotificationHelper {
         TextView notificationTitle = customNotificationView.findViewById(R.id.notification_title);
         TextView notificationMessage = customNotificationView.findViewById(R.id.notification_message);
 
-        // Set the content based on the notification type
+
         switch (type) {
             case SUCCESS:
                 notificationTitle.setText(title);
-                icon.setImageResource(R.drawable.launcher_icon); // We need to change this
+                icon.setImageResource(R.drawable.launcher_icon);
                 cardView.setCardBackgroundColor(ContextCompat.getColor(parentView.getContext(), R.color.PrimaryColour)); // And change this
                 break;
             case CONFIRMATION:
                 notificationTitle.setText(title);
-                icon.setImageResource(R.drawable.launcher_icon); // We need to change this
+                icon.setImageResource(R.drawable.launcher_icon);
                 cardView.setCardBackgroundColor(ContextCompat.getColor(parentView.getContext(), R.color.PrimaryColour)); // And change this
                 break;
             case ERROR:
@@ -65,7 +65,6 @@ public class NotificationHelper {
         notificationMessage.setText(message);
 
         ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(
-                // Calculate 80% of the screen's width
                 (int) (parentView.getContext().getResources().getDisplayMetrics().widthPixels * 0.8),
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );

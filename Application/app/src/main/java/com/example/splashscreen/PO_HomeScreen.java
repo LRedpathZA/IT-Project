@@ -307,8 +307,6 @@ public class PO_HomeScreen extends Fragment implements HeaderUpdatable {
                 ivPoolImage = poolCardView.findViewById(R.id.iv_pool_image);
 
                 if (ivPoolImage != null) {
-                    // ⭐ REMOVE: Comment out or remove the hardcoded placeholder
-                    // ivPoolImage.setImageResource(R.drawable.fake_pool);
                 }
             }
 

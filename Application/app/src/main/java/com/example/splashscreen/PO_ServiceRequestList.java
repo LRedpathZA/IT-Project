@@ -41,17 +41,17 @@ public class PO_ServiceRequestList extends Fragment
     private ServiceRequestAdapter adapter;
     private final List<ServiceRequestModel> serviceRequestList = new ArrayList<>();
 
-    // ADDED: Firestore instance for deletion
+
     private FirebaseFirestore db;
 
     public PO_ServiceRequestList() {
-        // Required empty public constructor
+
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        db = FirebaseFirestore.getInstance(); // ADDED: Initialize Firestore
+        db = FirebaseFirestore.getInstance();
     }
 
     @Override
@@ -77,30 +77,27 @@ public class PO_ServiceRequestList extends Fragment
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Initialize UI components
+
         recyclerView = view.findViewById(R.id.recycler_service_requests);
         fabAddRequest = view.findViewById(R.id.fab_add_request);
         layoutEmptyState = view.findViewById(R.id.layout_empty_state);
 
-        // 2. Initialize Adapter and ViewModel
-        // ViewModel is initialized in onViewCreated for fragments not using the factory pattern
+
+
         viewModel = new ViewModelProvider(this).get(ServiceRequestViewModel.class);
         adapter = new ServiceRequestAdapter(getContext(), serviceRequestList, this);
 
-        // 3. Setup RecyclerView
+
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
 
-        // 4. Observe LiveData from ViewModel
+
         observeServiceRequests();
 
-        // 5. Setup FAB listener
+
         fabAddRequest.setOnClickListener(v -> navigateToCreateRequest());
     }
 
-    /**
-     * Subscribes to the real-time stream of service requests from the ViewModel.
-     */
     private void observeServiceRequests() {
         viewModel.getServiceRequests().observe(getViewLifecycleOwner(), requests -> {
             if (requests != null) {
@@ -108,30 +105,24 @@ public class PO_ServiceRequestList extends Fragment
                 serviceRequestList.clear();
                 serviceRequestList.addAll(requests);
                 adapter.notifyDataSetChanged();
-
-                // Toggle empty state visibility
                 updateUiForData(!requests.isEmpty());
             } else {
-                // Handle null/error state (e.g., Firestore permission denial)
+
                 updateUiForData(false);
                 Toast.makeText(getContext(), "Failed to load service requests.", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // --- ServiceRequestAdapter.OnRequestClickListener Implementation ---
 
-    /**
-     * Handles click on the main list item (Card). Navigates to Screen 3: Details.
-     */
+
+
     @Override
     public void onRequestClick(ServiceRequestModel request) {
         navigateToDetailsFragment(request.getRequestId());
     }
 
-    /**
-     * Handles click on the options menu button (three dots).
-     */
+
     @Override
     public void onMenuClick(ServiceRequestModel request, View anchorView) {
         showPopupMenu(request, anchorView);
@@ -139,18 +130,15 @@ public class PO_ServiceRequestList extends Fragment
 
     private void showPopupMenu(ServiceRequestModel request, View anchorView) {
         PopupMenu popup = new PopupMenu(getContext(), anchorView);
-        // Changed to "View Details" to be clearer than "View/Edit" if no edit functionality exists
         popup.getMenu().add(0, 1, 0, "View Details");
         popup.getMenu().add(0, 2, 1, "Delete Request");
 
         popup.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case 1:
-                    // Option 1: View Details (Navigates to the existing details screen)
                     onRequestClick(request);
                     return true;
                 case 2:
-                    // Option 2: Delete Request
                     showDeleteConfirmationDialog(request); // <-- UPDATED to show confirmation
                     return true;
                 default:
@@ -160,9 +148,6 @@ public class PO_ServiceRequestList extends Fragment
         popup.show();
     }
 
-    /**
-     * Shows a confirmation dialog before proceeding with deletion.
-     */
     private void showDeleteConfirmationDialog(ServiceRequestModel request) {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Delete Service Request")
@@ -172,31 +157,19 @@ public class PO_ServiceRequestList extends Fragment
                 .show();
     }
 
-    /**
-     * Performs the deletion of the service request and its sub-collection (quotes).
-     * This requires a complex multi-step or batched deletion process.
-     */
+
     private void deleteServiceRequest(String requestId) {
         if (requestId == null || requestId.isEmpty()) {
             Toast.makeText(getContext(), "Error: Request ID is missing.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // --- Note on Deletion ---
-        // Firestore does not automatically delete sub-collections.
-        // For a proper deletion, you should:
-        // 1. Delete all 'quotes' sub-documents (up to 500 in a batch).
-        // 2. Delete the parent 'service_requests' document.
-        // For simplicity and speed, we will only delete the parent document here.
-        // A Cloud Function is the standard robust solution for deleting sub-collections.
-        // If you rely on security rules to prevent reading orphaned quotes, a Cloud Function is critical.
 
-        // Simpler implementation (deletes only the parent document):
         db.collection("service_requests").document(requestId)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(getContext(), "Service Request deleted successfully! (Quotes may remain as orphans)", Toast.LENGTH_LONG).show();
-                    // LiveData observer will handle the UI update automatically
+
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error deleting service request: " + e.getMessage());

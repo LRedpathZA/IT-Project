@@ -55,7 +55,6 @@ public class PO_Marketplace extends Fragment implements HeaderUpdatable {
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
         btnProfilePic = view.findViewById(R.id.btn_profile);
         userViewModel.userData.observe(getViewLifecycleOwner(), document -> {
-            // This runs instantly whenever the data changes anywhere in the app
             if (getContext() != null) {
                 // 4. Use the reusable Manager to load the latest picture
                 ProfilePictureManager.loadPicture(getContext(), document, btnProfilePic);

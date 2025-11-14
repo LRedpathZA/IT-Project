@@ -41,12 +41,12 @@ public class OTPVerification extends Fragment {
     private TextView resendCodeLink;
     private TextView phoneInfoText;
 
-    // Data passed from SP_SignUp
+
     private String verificationId;
     private String ownerName, businessName, email, password;
 
     public OTPVerification() {
-        // Required empty public constructor
+
     }
 
     @Override
@@ -55,7 +55,6 @@ public class OTPVerification extends Fragment {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Retrieve passed data
         if (getArguments() != null) {
             verificationId = getArguments().getString("VERIFICATION_ID");
             ownerName = getArguments().getString("OWNER_NAME");
@@ -77,7 +76,7 @@ public class OTPVerification extends Fragment {
         resendCodeLink = view.findViewById(R.id.resend_code_link);
         phoneInfoText = view.findViewById(R.id.phone_info_text);
 
-        // ⭐ FIXED: Use the new getter method
+
         String phoneNumber = userViewModel.getCurrentPhone();
         if (phoneNumber != null) {
             phoneInfoText.setText("Please enter the 6-digit code sent to " + phoneNumber + ".");
@@ -89,7 +88,6 @@ public class OTPVerification extends Fragment {
         verifyOtpButton.setOnClickListener(v -> handleVerification());
 
         // TODO: Implement Resend logic here (requires Firebase PhoneAuthProvider setup)
-        // resendCodeLink.setOnClickListener(v -> resendVerificationCode(userViewModel.getCurrentPhone()));
 
         return view;
     }
@@ -105,7 +103,7 @@ public class OTPVerification extends Fragment {
         verifyOtpButton.setEnabled(false);
         verifyOtpButton.setText("Verifying...");
 
-        // Combine the verification ID and the code entered by the user
+
         PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationId, otp);
         signInWithPhoneCredential(credential);
     }
@@ -114,20 +112,19 @@ public class OTPVerification extends Fragment {
         auth.signInWithCredential(credential)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // 1. Phone Auth successful.
+
                         FirebaseUser phoneUser = auth.getCurrentUser();
                         if (phoneUser != null) {
-                            auth.signOut(); // Sign out the temporary phone user
+                            auth.signOut();
                         }
 
-                        // 2. Create the permanent Email/Password user
+
                         auth.createUserWithEmailAndPassword(email, password)
                                 .addOnCompleteListener(emailTask -> {
                                     if (emailTask.isSuccessful()) {
                                         FirebaseUser newUser = auth.getCurrentUser();
                                         if (newUser != null) {
-                                            // 3. Save Business Data
-                                            // ⭐ FIXED: Use the new getter for phone number
+
                                             saveBusinessDataToFirestore(newUser, ownerName, businessName, email, userViewModel.getCurrentPhone());
                                         }
                                     } else {
@@ -139,7 +136,7 @@ public class OTPVerification extends Fragment {
                                     }
                                 });
                     } else {
-                        // Verification failed
+
                         Log.e(TAG, "Phone credential sign-in failed: " + task.getException().getMessage());
                         if (getView() == null) return;
                         NotificationHelper.showNotification(getView(), "Verification Failed", "The code you entered is invalid.", NotificationHelper.NotificationType.ERROR);
@@ -150,7 +147,7 @@ public class OTPVerification extends Fragment {
     }
 
     private void saveBusinessDataToFirestore(FirebaseUser firebaseUser, String ownerName, String businessName, String email, String phone) {
-        // ⭐ FIXED: Use the new getter methods
+
         GeoPoint currentGeoPoint = userViewModel.getTempGeoPoint();
         String currentLocationAddress = userViewModel.getTempLocationAddress();
 
@@ -158,7 +155,7 @@ public class OTPVerification extends Fragment {
             if (getView() == null) return;
             NotificationHelper.showNotification(getView(), "Error", "Location data lost. Please try signing up again.", NotificationHelper.NotificationType.ERROR);
             auth.signOut();
-            // Navigate back to SP_SignUp fragment
+
             if (getActivity() != null) {
                 getActivity().getSupportFragmentManager().popBackStack();
             }
@@ -190,7 +187,7 @@ public class OTPVerification extends Fragment {
                             NotificationHelper.NotificationType.SUCCESS
                     );
 
-                    // Navigate to the main app
+
                     Intent intent = new Intent(getContext(), MainActivity.class);
                     startActivity(intent);
                     if (getActivity() != null) {

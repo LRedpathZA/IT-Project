@@ -100,22 +100,18 @@
                         android:paddingTop="16dp"
                         android:paddingBottom="16dp">
 
-                        <com.google.android.material.card.MaterialCardView
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/iv_profile_picture"
                             android:layout_width="60dp"
                             android:layout_height="60dp"
                             android:layout_gravity="center_horizontal"
-                            android:layout_marginBottom="12dp">
-
-                            <ImageView
-                                android:id="@+id/iv_profile_picture"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:background="@color/white"
-                                android:contentDescription="Business Logo"
-                                android:padding="8dp"
-                                android:scaleType="centerInside"
-                                android:src="@drawable/launcher_icon" />
-                        </com.google.android.material.card.MaterialCardView>
+                            android:layout_marginBottom="12dp"
+                            android:src="@drawable/ic_profile_placeholder"
+                            android:contentDescription="User Profile Picture"
+                            android:scaleType="centerCrop"
+                            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
+                            app:strokeWidth="1dp"
+                            app:strokeColor="@color/white" />
 
                         <LinearLayout
                             android:layout_width="match_parent"

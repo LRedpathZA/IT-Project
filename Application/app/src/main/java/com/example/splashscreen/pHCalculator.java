@@ -62,7 +62,6 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initializeChemicalData();
-        // 💥 INITIALIZE FIREBASE
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
     }
@@ -89,7 +88,6 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
         tvDosageResult = view.findViewById(R.id.tv_dosage_result);
         cvResult = view.findViewById(R.id.cv_result);
         btnCalculate = view.findViewById(R.id.btn_calculate);
-        // btnBack = view.findViewById(R.id.btn_back); // <-- REMOVED
         btnSaveLog = view.findViewById(R.id.btn_save_log);
 
         setupListeners();
@@ -98,12 +96,8 @@ public class pHCalculator extends Fragment implements HeaderUpdatable {
     }
 
     private void setupListeners() {
-        // btnBack.setOnClickListener(v -> getParentFragmentManager().popBackStack()); // <-- REMOVED to fix NPE
         btnCalculate.setOnClickListener(v -> calculateDosage());
-
-        // 💥 Listener for Save Log Button
         btnSaveLog.setOnClickListener(v -> saveLogToFirestore());
-
         actvChemicalType.setOnItemClickListener((parent, view, position, id) -> updateChemicalDetails(actvChemicalType.getText().toString()));
 
         TextWatcher inputWatcher = new TextWatcher() {

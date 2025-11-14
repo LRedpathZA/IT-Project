@@ -82,43 +82,40 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
     private static final String[] CATEGORIES = {"Chemical", "Equipment", "Accessory", "Tool", "Other"};
     private static final String[] UNITS = {"kg", "liters", "tabs", "units", "gallons", "m", "each", "box"};
 
-    // --- Activity Result Launchers ---
+
     private ActivityResultLauncher<Intent> imageChooserLauncher;
 
-    // ⭐ MOVED registration logic to onCreate or onViewCreated for Fragment context
     private ActivityResultLauncher<String[]> requestImagePermissionsLauncher;
 
 
-    // ⭐ NEW: onCreateView to inflate the layout
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.sp_add_product, container, false);
     }
 
-    // ⭐ NEW: onViewCreated to handle view-related setup
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Initialize ViewModel
+
         productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
         currentUserId = FirebaseAuth.getInstance().getUid();
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
-        // ⭐ CHANGED: Get arguments instead of Intent extras
+
         if (getArguments() != null) {
             currentProductId = getArguments().getString(PRODUCT_ID);
         }
 
-        // Initialize Launchers here in the Fragment lifecycle
+
         setupImagePickerLaunchers();
 
-        // Pass the inflated view to initViews
+
         initViews(view);
-        setupToolbar(); // Adjusts Activity's toolbar (if applicable) or Fragment's toolbar
-        setupDatePickers(); // Click listeners are set in setButtonListeners
-        handleArgumentsData(); // ⭐ RENAMED from handleIntentData
+        setupToolbar();
+        setupDatePickers();
+        handleArgumentsData();
         observeCurrentProduct();
         setButtonListeners();
     }
@@ -136,10 +133,8 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
         super.onResume();
         updateActivityHeader();
     }
-    // ⭐ CHANGED: initViews now takes the root View to find elements
-    private void initViews(View view) {
-        // We do not call setSupportActionBar here. Toolbar setup is in setupToolbar.
 
+    private void initViews(View view) {
         etProductName = view.findViewById(R.id.et_product_name);
         etProductCategory = view.findViewById(R.id.et_product_category);
         etProductBrand = view.findViewById(R.id.et_product_brand);
@@ -160,7 +155,7 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
         btnCancel = view.findViewById(R.id.btn_cancel);
     }
 
-    // ⭐ NEW: Separating launcher registration into its own method called in onViewCreated
+
     private void setupImagePickerLaunchers() {
         requestImagePermissionsLauncher =
                 registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
@@ -204,14 +199,7 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
             }
         }
     }
-
-    // ⭐ REMOVED: onSupportNavigateUp is an Activity method
-    // If you need back navigation, you handle it in the Activity's `onOptionsItemSelected`
-    // or by overriding `onBackPressed` in the hosting activity.
-
-    // ⭐ RENAMED: from handleIntentData
     private void handleArgumentsData() {
-        // currentProductId is already fetched in onViewCreated
 
         if (currentProductId != null) {
             // Title setting moved to setupToolbar
@@ -229,11 +217,9 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
     }
 
     private void observeCurrentProduct() {
-        // ⭐ CHANGED: Removed 'this' context from observe, as Fragment's ViewLifecycleOwner is better,
-        // but 'this' (the Fragment itself) is also acceptable for ViewModel observation. Keeping 'this' for simplicity.
+
         productViewModel.currentProduct.observe(getViewLifecycleOwner(), product -> {
             if (product != null) {
-                // Populate fields for editing
                 etProductName.setText(product.getName());
                 etProductCategory.setText(product.getCategory());
                 etProductBrand.setText(product.getBrand());
@@ -253,7 +239,7 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
                 updateDateLabel(etRestockDate, lastRestockTimestamp, "Last Restock Date");
                 updateDateLabel(etExpiryDate, expirationTimestamp, "Expiration Date");
 
-                // Load photo
+
                 currentPhotoUrl = product.getPhotoUrl();
                 if (currentPhotoUrl != null && !currentPhotoUrl.isEmpty()) {
                     loadBitmapFromUrl(currentPhotoUrl);
@@ -265,17 +251,11 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
     private void setButtonListeners() {
         etProductCategory.setOnClickListener(this::showCategorySelectionDialog);
         etProductUnit.setOnClickListener(this::showUnitSelectionDialog);
-
-        // Date Picker Listeners
         etRestockDate.setOnClickListener(v -> showDatePicker(etRestockDate, true));
         etExpiryDate.setOnClickListener(v -> showDatePicker(etExpiryDate, false));
-
-        // Image Selection
         llPlaceholder.setOnClickListener(v -> checkImageStoragePermission());
         ivSelectedPhoto.setOnClickListener(v -> checkImageStoragePermission());
         btnDeletePhoto.setOnClickListener(v -> deleteSelectedPhoto());
-
-        // Save/Add Button
         btnSaveProduct.setOnClickListener(v -> {
             if (currentProductId == null) {
                 handleAddProduct();
@@ -283,16 +263,11 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
                 handleEditProduct(currentProductId);
             }
         });
-
-        // Delete Button (only visible in edit mode)
         btnDeleteProduct.setOnClickListener(v -> showDeleteConfirmationDialog(currentProductId));
-
-        // Cancel Button
-        // ⭐ CHANGED: Replace onBackPressed() with popBackStack()
         btnCancel.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
     }
 
-    // --- Image Handling Logic (Minor context changes) ---
+
 
     private void updateImageView() {
         if (selectedImageUri != null) {
@@ -301,9 +276,8 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
             llPlaceholder.setVisibility(View.GONE);
             btnDeletePhoto.setVisibility(View.VISIBLE);
         } else if (currentPhotoUrl != null && !currentPhotoUrl.isEmpty()) {
-            // This path is usually handled by loadBitmapFromUrl
         } else {
-            // No image selected or URL present
+
             ivSelectedPhoto.setImageDrawable(null);
             ivSelectedPhoto.setVisibility(View.GONE);
             llPlaceholder.setVisibility(View.VISIBLE);
@@ -375,7 +349,7 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
             }
 
             Bitmap finalBitmap = bitmap;
-            // ⭐ CHANGED: Use requireActivity().runOnUiThread
+
             requireActivity().runOnUiThread(() -> {
                 if (finalBitmap != null) {
                     ivSelectedPhoto.setImageBitmap(finalBitmap);
@@ -393,10 +367,9 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
         });
     }
 
-    // --- Dropdown/Selection Logic ---
 
     private void showCategorySelectionDialog(View anchorView) {
-        // ⭐ CHANGED context
+
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("Select Category");
         builder.setItems(CATEGORIES, (dialog, which) -> {
@@ -406,7 +379,6 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
     }
 
     private void showUnitSelectionDialog(View anchorView) {
-        // ⭐ CHANGED context
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("Select Unit");
         builder.setItems(UNITS, (dialog, which) -> {
@@ -416,10 +388,10 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
     }
 
 
-    // --- Date Picker Logic ---
+
 
     private void setupDatePickers() {
-        // Click listeners are set in setButtonListeners now
+
     }
 
     private void showDatePicker(EditText targetEt, boolean isRestock) {
@@ -427,7 +399,6 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
         if (isRestock && lastRestockTimestamp != null) c.setTimeInMillis(lastRestockTimestamp);
         else if (!isRestock && expirationTimestamp != null) c.setTimeInMillis(expirationTimestamp);
 
-        // ⭐ CHANGED context
         DatePickerDialog dialog = new DatePickerDialog(requireContext(),
                 (view, year, month, dayOfMonth) -> {
                     Calendar selectedDate = Calendar.getInstance();
@@ -466,7 +437,7 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
         }
     }
 
-    // --- Validation and CRUD Logic ---
+
 
     private ProductModel getAndValidateInputs() {
         String name = etProductName.getText().toString().trim();
@@ -480,12 +451,10 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
 
 
         if (name.isEmpty() || category.isEmpty() || priceStr.isEmpty() || quantityStr.isEmpty() || unit.isEmpty() || currentUserId == null) {
-            // ⭐ CHANGED context
             Toast.makeText(requireContext(), "Please fill in all required fields (Name, Category, Price, Stock, Unit).", Toast.LENGTH_LONG).show();
             return null;
         }
 
-        // ... (validation logic is fine)
         double price;
         try {
             price = Double.parseDouble(priceStr);
@@ -513,7 +482,6 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
         ProductModel product = new ProductModel();
 
         if (currentUserId == null || currentUserId.isEmpty()) {
-            // ⭐ CHANGED context
             Toast.makeText(requireContext(), "Error: User ID is missing.", Toast.LENGTH_LONG).show();
             return null;
         }
@@ -560,11 +528,11 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
     }
 
     private void startProductImageUpload(ProductModel product, @Nullable String existingProductId) {
-        // ⭐ CHANGED context
+
         ImageUploadManager.uploadImage(requireContext(), selectedImageUri, "product_images", new UploadListener() {
             @Override
             public void onStart() {
-                // ⭐ CHANGED: Use requireActivity().runOnUiThread
+
                 requireActivity().runOnUiThread(() -> {
                     btnSaveProduct.setText("Uploading Photo...");
                     btnSaveProduct.setEnabled(false);
@@ -573,7 +541,7 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
 
             @Override
             public void onProgress(int percent) {
-                // ⭐ CHANGED: Use requireActivity().runOnUiThread
+
                 requireActivity().runOnUiThread(() -> btnSaveProduct.setText(String.format("Uploading (%d%%)", percent)));
             }
 
@@ -590,7 +558,7 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
             @Override
             public void onFailure(String errorMessage) {
                 Log.e(TAG, "Image Upload Failed: " + errorMessage);
-                // ⭐ CHANGED context
+
                 Toast.makeText(requireContext(), "Photo Upload Failed: " + errorMessage + ". Saving product without a photo.", Toast.LENGTH_LONG).show();
 
                 product.setPhotoUrl(existingProductId != null ? currentPhotoUrl : null);
@@ -606,19 +574,16 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
     private void saveProduct(ProductModel product) {
         btnSaveProduct.setText("Saving Product...");
         productViewModel.addProduct(product);
-        // ⭐ CHANGED: Replace finish() with fragment back navigation
         requireActivity().getSupportFragmentManager().popBackStack();
     }
 
     private void updateProduct(ProductModel product) {
         btnSaveProduct.setText("Updating Product...");
         productViewModel.updateProduct(product);
-        // ⭐ CHANGED: Replace finish() with fragment back navigation
         requireActivity().getSupportFragmentManager().popBackStack();
     }
 
     private void showDeleteConfirmationDialog(String productId) {
-        // ⭐ CHANGED context
         new AlertDialog.Builder(requireContext())
                 .setTitle("Delete Product")
                 .setMessage("Are you sure you want to delete this product from your inventory? This cannot be undone.")
@@ -631,7 +596,6 @@ public class SP_AddProduct extends Fragment implements HeaderUpdatable {
         btnDeleteProduct.setEnabled(false);
         btnDeleteProduct.setText("Deleting...");
         productViewModel.deleteProduct(productId);
-        // ⭐ CHANGED: Replace finish() with fragment back navigation
         requireActivity().getSupportFragmentManager().popBackStack();
     }
 

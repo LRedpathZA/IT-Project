@@ -46,7 +46,6 @@ public class SP_ProductList extends Fragment implements SP_ProductAdapter.Produc
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.sp_product_list, container, false);
     }
     @Override
@@ -67,35 +66,29 @@ public class SP_ProductList extends Fragment implements SP_ProductAdapter.Produc
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Initialize Views
+
         rvProductList = view.findViewById(R.id.rv_product_list);
         tvEmptyState = view.findViewById(R.id.tv_empty_state);
         btnAddProduct = view.findViewById(R.id.btn_add_product);
 
-        // 1. Setup ViewModels
+
         productViewModel = new ViewModelProvider(this).get(ProductViewModel.class);
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
 
-        // Get the current authenticated user ID
+
         currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ?
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
 
-        // 2. Setup RecyclerView and Adapter
+
         productAdapter = new SP_ProductAdapter(getContext(), new ArrayList<>(), this);
         rvProductList.setLayoutManager(new LinearLayoutManager(getContext()));
         rvProductList.setAdapter(productAdapter);
-
-        // 3. Set Listeners
         btnAddProduct.setOnClickListener(v -> navigateToAddProduct());
-
-        // 4. Observe LiveData
         observeProducts();
-
-        // 5. Fetch Data
         fetchData();
     }
 
-    // ⭐ New method to encapsulate fetching logic
+
     private void fetchData() {
         if (currentUserId == null) {
             Toast.makeText(getContext(), "Error: User not authenticated.", Toast.LENGTH_LONG).show();
@@ -103,20 +96,14 @@ public class SP_ProductList extends Fragment implements SP_ProductAdapter.Produc
             tvEmptyState.setVisibility(View.VISIBLE);
             return;
         }
-
-        // ⭐ Use the updated ViewModel method
         productViewModel.fetchSPProducts(currentUserId);
     }
 
 
     private void observeProducts() {
-        // ⭐ Observe the updated LiveData name
         productViewModel.spProducts.observe(getViewLifecycleOwner(), products -> {
             if (products != null) {
-                // Update the adapter with the new list
                 productAdapter.updateList(products);
-
-                // Toggle empty state visibility
                 if (products.isEmpty()) {
                     tvEmptyState.setVisibility(View.VISIBLE);
                     rvProductList.setVisibility(View.GONE);
@@ -128,24 +115,20 @@ public class SP_ProductList extends Fragment implements SP_ProductAdapter.Produc
         });
     }
 
-    // --- Navigation ---
+
 
     private void navigateToAddProduct() {
         SP_AddProduct addProductFragment = new SP_AddProduct();
 
         if (getActivity() != null) {
-            // R.id.fragment_container should be the ID of the FrameLayout/container in your host Activity (e.g., MainActivity)
+
             getActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, addProductFragment) // Use the created instance
-                    .addToBackStack(null) // Allows the user to press the back button to return to SP_ProductList
+                    .replace(R.id.fragment_container, addProductFragment)
+                    .addToBackStack(null)
                     .commit();
         }
     }
 
-    /**
-     * Navigates to the SP_AddProduct Fragment in EDIT mode.
-     * @param productId The ID of the product to be edited.
-     */
     public void navigateToEditProduct(String productId) {
 
         Bundle bundle = new Bundle();
@@ -158,9 +141,7 @@ public class SP_ProductList extends Fragment implements SP_ProductAdapter.Produc
 
         getParentFragmentManager()
                 .beginTransaction()
-                // Replace the current fragment with the edit fragment
                 .replace(R.id.fragment_container, editFragment)
-                // Add to the back stack so the user can press the back button to return to the list
                 .addToBackStack(null)
                 .commit();
     }
@@ -176,14 +157,11 @@ public class SP_ProductList extends Fragment implements SP_ProductAdapter.Produc
         showDeleteConfirmationDialog(productId);
     }
 
-    // --- Delete Confirmation Dialog (Matching SP_AddProduct logic) ---
-
     private void showDeleteConfirmationDialog(String productId) {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Delete Product")
                 .setMessage("Are you sure you want to permanently delete this product? This action cannot be undone.")
                 .setPositiveButton("Delete", (dialog, which) -> {
-                    // Perform the delete operation
                     productViewModel.deleteProduct(productId);
                     Toast.makeText(getContext(), "Product deleted.", Toast.LENGTH_SHORT).show();
                 })

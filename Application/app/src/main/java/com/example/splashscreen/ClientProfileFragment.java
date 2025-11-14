@@ -30,21 +30,21 @@ public class ClientProfileFragment extends Fragment implements HeaderUpdatable {
     private static final String TAG = "ClientProfileFragment";
     private static final String ARG_CLIENT_ID = "client_id";
 
-    // Data
+
     private String clientId;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    // Views from XML
+
     private ImageView avatar;
     private TextView name, summary, nextVisitSchedule;
     private MaterialButton btnCall, btnChat;
 
-    // Detail Row Includes (used to find inner TextViews)
+
     private View rowDob, rowLanguage, rowAddress, rowPhone, rowEmergency;
     private View rowPoolType, rowPoolVolume, rowLastService, rowChemicalType;
 
 
-    // --- Factory Method ---
+
 
     public static ClientProfileFragment newInstance(String clientId) {
         ClientProfileFragment fragment = new ClientProfileFragment();
@@ -54,7 +54,7 @@ public class ClientProfileFragment extends Fragment implements HeaderUpdatable {
         return fragment;
     }
 
-    // --- Lifecycle Methods ---
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -74,10 +74,10 @@ public class ClientProfileFragment extends Fragment implements HeaderUpdatable {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Initialize Views
+
         initViews(view);
 
-        // 2. Fetch Data and Populate UI
+
         if (clientId != null) {
             fetchClientData(clientId);
             fetchLatestBooking(clientId);
@@ -92,45 +92,41 @@ public class ClientProfileFragment extends Fragment implements HeaderUpdatable {
         updateActivityHeader();
     }
 
-    // --- HeaderUpdatable Implementation ---
+
     @Override
     public void updateActivityHeader() {
         if (getActivity() instanceof MainActivity) {
-            // Header title will be set dynamically once the name is fetched
+
             ((MainActivity) getActivity()).updateHeader("Client Profile", true, false);
         }
     }
 
 
-    // --- Initialization and Helper Methods ---
+
 
     private void initViews(View view) {
-        // Header Views
+
         avatar = view.findViewById(R.id.iv_client_profile_avatar);
         name = view.findViewById(R.id.tv_client_profile_name);
         summary = view.findViewById(R.id.tv_client_profile_details_summary);
 
-        // Next Visit
+
         nextVisitSchedule = view.findViewById(R.id.tv_next_visit_schedule);
 
-        // Detail Rows (Client Details)
+
         rowDob = view.findViewById(R.id.row_dob);
         rowLanguage = view.findViewById(R.id.row_language);
         rowAddress = view.findViewById(R.id.row_address);
         rowPhone = view.findViewById(R.id.row_phone);
         rowEmergency = view.findViewById(R.id.row_emergency);
 
-        // Detail Rows (Pool Details)
+
         rowPoolType = view.findViewById(R.id.row_pool_type);
         rowPoolVolume = view.findViewById(R.id.row_pool_volume);
         rowLastService = view.findViewById(R.id.row_last_service);
         rowChemicalType = view.findViewById(R.id.row_chemical_type);
-
-        // Action Buttons
         btnCall = view.findViewById(R.id.btn_call);
         btnChat = view.findViewById(R.id.btn_chat);
-
-        // Set Listeners
         btnCall.setOnClickListener(v -> handleCallClick());
         btnChat.setOnClickListener(v -> handleChatClick());
     }
@@ -152,7 +148,6 @@ public class ClientProfileFragment extends Fragment implements HeaderUpdatable {
         }
     }
 
-    // --- Data Fetching ---
 
     private void fetchClientData(String id) {
         db.collection("users").document(id).get()
@@ -161,7 +156,7 @@ public class ClientProfileFragment extends Fragment implements HeaderUpdatable {
                         populateUserDetails(documentSnapshot);
                     } else {
                         Toast.makeText(getContext(), "Client details not found.", Toast.LENGTH_SHORT).show();
-                        // Handle client not found (e.g., go back)
+
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -190,22 +185,22 @@ public class ClientProfileFragment extends Fragment implements HeaderUpdatable {
                 });
     }
 
-    // --- UI Population ---
+
 
     private void populateUserDetails(DocumentSnapshot doc) {
         String username = doc.getString("username");
         String photoUrl = doc.getString("profilePictureUrl");
         Long avatarResId = doc.getLong("profileAvatarResId");
 
-        // --- Header ---
+
         name.setText(username != null ? username : "Unknown Client");
 
-        // Update Activity Header title
+
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).updateHeader(username + "'s Profile", true, false);
         }
 
-        // Load Avatar
+
         if (getContext() != null) {
             if (avatarResId != null && avatarResId > 0) {
                 avatar.setImageResource(avatarResId.intValue());
@@ -216,8 +211,6 @@ public class ClientProfileFragment extends Fragment implements HeaderUpdatable {
             }
         }
 
-        // --- Client Details Rows ---
-        // Placeholder data or assuming fields exist in 'users'
         String gender = doc.getString("gender");
         String dob = doc.getString("dateOfBirth");
         String language = doc.getString("language");
@@ -226,7 +219,7 @@ public class ClientProfileFragment extends Fragment implements HeaderUpdatable {
         String emergencyContact = doc.getString("emergencyContact");
 
         summary.setText(String.format(Locale.getDefault(), "%s · %s",
-                gender != null ? gender : "N/A", "Loading Service...")); // Service will be updated by booking fetch
+                gender != null ? gender : "N/A", "Loading Service..."));
 
         updateDetailRow(rowDob, "Date of Birth", dob);
         updateDetailRow(rowLanguage, "Preferred Language", language);
@@ -234,25 +227,24 @@ public class ClientProfileFragment extends Fragment implements HeaderUpdatable {
         updateDetailRow(rowPhone, "Phone Number", phone);
         updateDetailRow(rowEmergency, "Emergency Contact", emergencyContact);
 
-        // --- Pool Details Rows (Assuming data is also stored in 'users' for now) ---
         String poolType = doc.getString("poolType");
         Long poolVolumeL = doc.getLong("waterCapacityLiters");
         String chemicalType = doc.getString("sanitizerType");
 
         updateDetailRow(rowPoolType, "Pool Type", poolType);
         updateDetailRow(rowPoolVolume, "Pool Volume (L)", poolVolumeL != null ? String.valueOf(poolVolumeL) : "N/A");
-        updateDetailRow(rowLastService, "Last Service Date", "N/A"); // Needs separate query or field
+        updateDetailRow(rowLastService, "Last Service Date", "N/A");
         updateDetailRow(rowChemicalType, "Chemical Type", chemicalType);
     }
 
     private void populateBookingDetails(QueryDocumentSnapshot booking) {
-        // Update summary with the service description
+
         String serviceType = booking.getString("serviceType");
         String gender = summary.getText().toString().split(" · ")[0]; // Keep the fetched gender
         summary.setText(String.format(Locale.getDefault(), "%s · %s",
                 gender, serviceType != null ? serviceType : "N/A"));
 
-        // Update the next visit schedule card
+
         Date startTime = booking.getDate("dateTimeStart");
         Date endTime = booking.getDate("dateTimeEnd");
 
@@ -266,14 +258,14 @@ public class ClientProfileFragment extends Fragment implements HeaderUpdatable {
 
             nextVisitSchedule.setText(dateStr + "\n" + timeRangeStr);
 
-            // Update the "Last Service Date" row with the same date for now (placeholder)
+
             updateDetailRow(rowLastService, "Last Service Date", dateStr);
         } else {
             nextVisitSchedule.setText("Schedule data incomplete.");
         }
     }
 
-    // --- Action Button Handlers ---
+
 
     private void handleCallClick() {
         Toast.makeText(getContext(), "Calling client...", Toast.LENGTH_SHORT).show();

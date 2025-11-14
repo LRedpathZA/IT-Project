@@ -87,12 +87,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void observeUserData() {
         userViewModel.userData.observe(this, document -> {
-            // Update the Header Profile Button
+
             if (btnProfile != null) {
                 ProfilePictureManager.loadPicture(this, document, btnProfile);
             }
 
-            // Update the Drawer Profile Image (if the view has been inflated)
+
             if (navDrawerProfileImage != null) {
                 ProfilePictureManager.loadPicture(this, document, navDrawerProfileImage);
             }
@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
         getLayoutInflater().inflate(drawerLayoutResId, drawerContainer, true);
         MenuItem menuButton = bottomNavigationView.getMenu().findItem(R.id.nav_menu);
 
-        // Set the reference immediately after inflation
+
         navDrawerProfileImage = drawerContainer.findViewById(R.id.nav_profile_image);
 
         // Manually trigger the drawer image update immediately after inflation
@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
             drawerLayout.closeDrawer(GravityCompat.START);
             String title = ((TextView) ((LinearLayout) v).getChildAt(1)).getText().toString();
 
-            // Placeholder logic for actual navigation
+
             if (v.getId() == R.id.btnMessages) {
                 Toast.makeText(this, "Coming Soon: " + title, Toast.LENGTH_SHORT).show();
             } else if (v.getId() == R.id.btnSummary) {
@@ -241,10 +241,10 @@ public class MainActivity extends AppCompatActivity {
                 navigateToFragment(new SP_Profile(), true);
             }
 
-            // Note: The SP drawer XML provided does not include btnSummary or btnRegisterBusiness.
+
         };
 
-        // Attach listeners to all SP drawer buttons (must match the IDs in your XML)
+
         drawerContainer.findViewById(R.id.btnMessages).setOnClickListener(clickListener);
         drawerContainer.findViewById(R.id.btnServiceRequest).setOnClickListener(clickListener);
         drawerContainer.findViewById(R.id.btnBubbles).setOnClickListener(clickListener);
@@ -335,7 +335,6 @@ public class MainActivity extends AppCompatActivity {
             else if (itemId == R.id.nav_inventory) {
                 selectedFragment = new SP_ProductList();
             }
-            // Add other SP bottom nav logic here...
         }
 
         if (selectedFragment != null) {
@@ -352,11 +351,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Replaces the current fragment with a new one.
-     * @param fragment The new fragment to display.
-     * @param addToBackStack True to add the transaction to the back stack (for history), false for main navigation.
-     */
     public void navigateToFragment(Fragment fragment, boolean addToBackStack) {
         replaceFragment(fragment, addToBackStack);
     }

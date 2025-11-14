@@ -34,11 +34,10 @@ public class PO_ServiceRequestDetails extends Fragment
     private String requestId;
     private ServiceRequestModel currentRequest;
 
-    // UI Components for Request Details
     private TextView tvRequestType, tvStatus, tvPoolLocation, tvDescription, tvDates;
     private ImageView ivPhoto;
 
-    // UI Components for Quotes List
+
     private TextView tvQuotesHeader, tvNoQuotesMessage;
     private MaterialButton btnFilterQuotes, btnSortQuotes;
     private RecyclerView recyclerQuotes;
@@ -48,14 +47,9 @@ public class PO_ServiceRequestDetails extends Fragment
     private final List<QuoteModel> quoteList = new ArrayList<>();
 
     public PO_ServiceRequestDetails() {
-        // Required empty public constructor
+
     }
 
-    /**
-     * Factory method to create a new instance of this fragment.
-     * @param requestId The ID of the service request to display.
-     * @return A new instance of fragment PO_ServiceRequestDetails.
-     */
     public static PO_ServiceRequestDetails newInstance(String requestId) {
         PO_ServiceRequestDetails fragment = new PO_ServiceRequestDetails();
         Bundle args = new Bundle();
@@ -75,7 +69,7 @@ public class PO_ServiceRequestDetails extends Fragment
     @Override
     public void updateActivityHeader() {
         if (requireActivity() instanceof MainActivity) {
-            // Set the title for the details screen
+
             ((MainActivity) requireActivity()).updateHeader("Request Details", true, true);
         }
     }
@@ -96,7 +90,7 @@ public class PO_ServiceRequestDetails extends Fragment
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Initialize Request Details UI
+
         tvRequestType = view.findViewById(R.id.tv_detail_request_type);
         tvStatus = view.findViewById(R.id.tv_detail_status);
         tvPoolLocation = view.findViewById(R.id.tv_detail_pool_location);
@@ -104,23 +98,18 @@ public class PO_ServiceRequestDetails extends Fragment
         tvDates = view.findViewById(R.id.tv_detail_dates);
         ivPhoto = view.findViewById(R.id.iv_detail_photo);
 
-        // 2. Initialize Quotes UI
         tvQuotesHeader = view.findViewById(R.id.tv_quotes_header);
         tvNoQuotesMessage = view.findViewById(R.id.tv_no_quotes_message);
         btnFilterQuotes = view.findViewById(R.id.btn_filter_quotes);
         btnSortQuotes = view.findViewById(R.id.btn_sort_quotes);
         recyclerQuotes = view.findViewById(R.id.recycler_quotes);
 
-        // 3. Setup Quotes RecyclerView
         quoteAdapter = new QuoteAdapter(getContext(), quoteList, this);
         recyclerQuotes.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerQuotes.setAdapter(quoteAdapter);
 
-        // 4. Load Data
         loadServiceRequestDetails();
         loadQuotes();
-
-        // 5. Setup Controls
         btnFilterQuotes.setOnClickListener(v -> showFilterMenu());
         btnSortQuotes.setOnClickListener(v -> showSortMenu());
     }
@@ -133,7 +122,7 @@ public class PO_ServiceRequestDetails extends Fragment
             return;
         }
 
-        // FIX 1: Replace TEMPORARY dummy data with actual Firestore fetch logic structure.
+
         FirebaseFirestore.getInstance().collection("service_requests").document(requestId)
                 .addSnapshotListener((snapshot, error) -> {
                     if (error != null) {
@@ -155,11 +144,11 @@ public class PO_ServiceRequestDetails extends Fragment
 
     private void bindServiceRequestDetails(ServiceRequestModel request) {
         tvRequestType.setText(request.getServiceType());
-        tvStatus.setText(request.getStatus()); // Note: Status should be colored/styled as done in the adapter logic
+        tvStatus.setText(request.getStatus());
         tvPoolLocation.setText(String.format("Pool: %s | %s", request.getPoolName(), request.getPoolLocationAddress()));
         tvDescription.setText(request.getDescription());
 
-        // FIX 2: Use user-friendly time ago and expiry formatting
+
         String timeAgo = getTimeAgo(request.getCreatedAt());
         long timeRemaining = request.getExpiryDate() - System.currentTimeMillis();
 
@@ -186,18 +175,18 @@ public class PO_ServiceRequestDetails extends Fragment
     private void loadQuotes() {
         if (requestId == null) return;
 
-        // Initialize ViewModel using the factory to pass the required requestId
+
         QuoteViewModel.QuoteViewModelFactory factory = new QuoteViewModel.QuoteViewModelFactory(requestId);
         quoteViewModel = new ViewModelProvider(this, factory).get(QuoteViewModel.class);
 
         quoteViewModel.getQuotes().observe(getViewLifecycleOwner(), quotes -> {
             if (quotes != null) {
-                // Update the list data
+
                 quoteList.clear();
                 quoteList.addAll(quotes);
                 quoteAdapter.notifyDataSetChanged();
 
-                // Update UI elements based on quote count
+
                 int count = quotes.size();
                 tvQuotesHeader.setText(String.format("Quotes Received (%d)", count));
                 tvNoQuotesMessage.setVisibility(count > 0 ? View.GONE : View.VISIBLE);
@@ -208,7 +197,7 @@ public class PO_ServiceRequestDetails extends Fragment
         });
     }
 
-    // --- Utility Method (Copied from adapter logic for self-containment) ---
+
 
     public static String getTimeAgo(long time) {
         long diff = System.currentTimeMillis() - time;
@@ -218,7 +207,7 @@ public class PO_ServiceRequestDetails extends Fragment
         return TimeUnit.MILLISECONDS.toDays(diff) + " days ago";
     }
 
-    // --- OnQuoteClickListener Implementation ---
+
 
     @Override
     public void onQuoteClick(QuoteModel quote) {
@@ -226,7 +215,7 @@ public class PO_ServiceRequestDetails extends Fragment
         dialog.show(getChildFragmentManager(), "QuoteActionDialog");
     }
 
-    // --- Sorting and Filtering Logic ---
+
 
     private void showFilterMenu() {
         // TODO: Implement a PopupMenu or AlertDialog for filtering options (e.g., Status: New, Accepted, Rejected)

@@ -327,12 +327,10 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
     }
 
 
-    // --- Upcoming Services Listener (Uses real data) ---
 
     private void setupServiceListener(String spId) {
         if (serviceListener != null) serviceListener.remove();
 
-        // Query the 'bookings' collection for services linked to the current SP, ordered by date
         Query serviceQuery = db.collection("bookings")
                 .whereEqualTo("businessId", spId)
                 .whereEqualTo("status", "Scheduled")
@@ -469,7 +467,6 @@ public class SP_HomeScreen extends Fragment implements HeaderUpdatable {
         }
     }
 
-    /** Adapter for the vertical service event list. */
     private static class ServiceEventAdapter extends RecyclerView.Adapter<ServiceEventAdapter.ViewHolder> {
         private List<ServiceBookingModel> items;
         private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());

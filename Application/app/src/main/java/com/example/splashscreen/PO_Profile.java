@@ -37,7 +37,6 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
     private UserViewModel userViewModel;
     private PoolViewModel poolViewModel;
 
-    // Profile UI elements
     private TextView tvUserName;
     private TextView tvDetailEmail;
     private TextView tvDetailPhone;
@@ -47,12 +46,12 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
     private LinearLayout optionSecurityPrivacy;
     private LinearLayout optionHelpCenter;
 
-    // Profile Picture UI elements
+
     private FrameLayout flProfilePhotoContainer;
     private ImageView ivProfilePicture;
     private ImageButton btnEditProfilePhoto, btnBack;
 
-    // Launcher for custom photo selection
+
     private ActivityResultLauncher<Intent> imageChooserLauncher;
 
 
@@ -97,9 +96,6 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
     public void onResume() {
         super.onResume();
         updateActivityHeader();
-
-        // 💥 FIX 1: Removed redundant fetchUserData call from onResume.
-        // The real-time listener is already running from onViewCreated.
     }
 
     @Override
@@ -160,9 +156,6 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
     }
     private void handleBackNavigation() {
         if (getActivity() != null) {
-            // This tells the FragmentManager to go back to the previous fragment.
-            // This correctly handles the navigation when PO_Profile was launched
-            // with replaceFragment(..., true).
             getActivity().getSupportFragmentManager().popBackStack();
         }
     }
@@ -215,11 +208,8 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         String userId = getCurrentUserId();
         if (getContext() == null || userId == null) return;
 
-        // Keep the immediate UI update for best UX while the file is uploading (network).
         ivProfilePicture.setImageURI(uri);
         ivProfilePicture.setScaleType(ImageView.ScaleType.CENTER_CROP);
-
-        // Initiate the external upload logic
         ImageUploadManager.uploadProfileImage(getContext(), uri, new UploadListener() {
             @Override
             public void onStart() {
@@ -228,7 +218,7 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
 
             @Override
             public void onProgress(int percent) {
-                // Handle progress if necessary
+
             }
 
             @Override
@@ -239,7 +229,6 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
             @Override
             public void onFailure(String error) {
                 Toast.makeText(getContext(), "Photo upload failed. Reloading profile: " + error, Toast.LENGTH_LONG).show();
-                // Fallback: Reload the previously saved image/placeholder
                 ProfilePictureManager.loadPicture(getContext(), userViewModel.userData.getValue(), ivProfilePicture);
             }
         });
@@ -251,7 +240,7 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
 
         Toast.makeText(getContext(), "Upload success. Saving URL...", Toast.LENGTH_SHORT).show();
 
-        // This update triggers the real-time listener to update the LiveData cache
+
         userViewModel.updateProfilePictureData(userId, url, 0);
     }
 
@@ -263,17 +252,16 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         userViewModel.userData.observe(getViewLifecycleOwner(), document -> {
             updateUIWithUserData(document);
 
-            // This runs whenever the data changes (either from initial load or real-time update)
+
             if (getContext() != null) {
                 ProfilePictureManager.loadPicture(getContext(), document, ivProfilePicture);
             }
         });
         userViewModel.isLoading.observe(getViewLifecycleOwner(), isLoading -> {
-            // Handle loading state if necessary
+
         });
     }
 
-    // ... (rest of the methods: observePoolData, updateUIWithUserData, logoutUser)
     private void observePoolData() {
         poolViewModel.currentPoolModel.observe(getViewLifecycleOwner(), poolModel -> {
             if (tvDetailLocation != null) {
@@ -291,19 +279,19 @@ public class PO_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
 
     private void updateUIWithUserData(DocumentSnapshot document) {
         if (document != null && document.exists()) {
-            // Name
+
             if (tvUserName != null) {
                 String name = document.getString("name");
                 tvUserName.setText(name != null ? name : "Pool Owner");
             }
 
-            // Email
+
             if (tvDetailEmail != null) {
                 String email = document.getString("email");
                 tvDetailEmail.setText(email != null ? email : "N/A");
             }
 
-            // Phone
+
             if (tvDetailPhone != null) {
                 String phone = document.getString("phone");
                 tvDetailPhone.setText(phone != null ? phone : "N/A");

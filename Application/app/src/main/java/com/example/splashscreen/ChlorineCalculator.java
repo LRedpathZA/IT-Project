@@ -50,11 +50,11 @@ public class ChlorineCalculator extends Fragment implements HeaderUpdatable {
     private String savedDosageUnit = "";
     private String savedChemicalName = "";
 
-    // Constants for calculation
+
     private static final double DEFAULT_TARGET_PPM = 3.0;
 
     public ChlorineCalculator() {
-        // Required empty public constructor
+
     }
 
     @Override
@@ -67,7 +67,7 @@ public class ChlorineCalculator extends Fragment implements HeaderUpdatable {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Inflate the layout: chlorine_calculator.xml
+
         return inflater.inflate(R.layout.chlorine_calculator, container, false);
     }
 
@@ -89,11 +89,11 @@ public class ChlorineCalculator extends Fragment implements HeaderUpdatable {
         updateActivityHeader();
     }
 
-    // --- Header Updatable Implementation ---
+
     @Override
     public void updateActivityHeader() {
         if (getActivity() instanceof MainActivity) {
-            // Update the header title, showing the back button and pool selector
+
             ((MainActivity) getActivity()).updateHeader("Chlorine Calculator", true, true);
         }
     }
@@ -110,14 +110,14 @@ public class ChlorineCalculator extends Fragment implements HeaderUpdatable {
         tvDosageResult = view.findViewById(R.id.tv_dosage_result_chl);
         tvChlorineDetails = view.findViewById(R.id.tv_chlorine_details);
 
-        // Hide result card initially
+
         cvResult.setVisibility(View.GONE);
     }
 
     private void initializeChemicalData() {
         chemicalInfoMap = new HashMap<>();
 
-        // Dosage factors are example rates to achieve a 1.0 ppm increase in 10,000L
+
         chemicalInfoMap.put("Liquid Chlorine (10% Sodium Hypochlorite)", new ChemicalDosageInfo(
                 "Unstabilized, high pH. Dosage rate: ~1000 ml per 10,000L for 1.0 ppm boost.",
                 "Liquid",
@@ -144,7 +144,7 @@ public class ChlorineCalculator extends Fragment implements HeaderUpdatable {
         );
         actvChlorineType.setAdapter(adapter);
 
-        // Set an initial chemical and details
+
         if (chlorineOptions.length > 0) {
             actvChlorineType.setText(chlorineOptions[0], false);
             updateChemicalDetails(chlorineOptions[0]);

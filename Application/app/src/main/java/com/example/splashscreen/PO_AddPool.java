@@ -87,9 +87,9 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
     private Uri selectedImageUri = null;
     private String currentPhotoUrl = null;
     private String currentPoolId;
-    // private FirebaseFunctions mFunctions; // REMOVED: No longer needed
 
-    private ActivityResultLauncher<Intent> imageChooserLauncher; // New launcher for gallery
+
+    private ActivityResultLauncher<Intent> imageChooserLauncher;
 
     private Switch switchIsPublic;
     private final ActivityResultLauncher<String[]> requestImagePermissionsLauncher =
@@ -103,10 +103,9 @@ public class PO_AddPool extends Fragment implements HeaderUpdatable {
                 }
 
                 if (granted) {
-                    // Permission granted, proceed to select image
+
                     launchImageChooserIntent();
                 } else {
-                    // Permission denied
                     if (getContext() != null) {
                         Toast.makeText(getContext(), "Storage permission is required to select photos.", Toast.LENGTH_LONG).show();
                     }

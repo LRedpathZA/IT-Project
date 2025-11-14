@@ -49,7 +49,6 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
 
     private FirebaseFirestore db;
 
-    // ⭐ NEW: Executor for network operations (manual image loading) ⭐
     private final Executor networkExecutor = Executors.newSingleThreadExecutor();
 
     /**
@@ -103,7 +102,6 @@ public class SP_PoolDetailFragment extends Fragment implements HeaderUpdatable {
         btnRequestService.setOnClickListener(v -> handleServiceRequest());
     }
 
-    // ⭐ NEW: Manual image loading utility method ⭐
     private void loadPoolImageFromUrl(String url, ImageView targetImageView) {
         if (url == null || url.isEmpty()) {
             if (targetImageView != null) {

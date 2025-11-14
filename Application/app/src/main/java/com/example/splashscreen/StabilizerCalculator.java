@@ -34,9 +34,9 @@ import java.util.Map;
 
 public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
 
-    // 💥 UPDATED IDs to reference Stabilizer/CYA
+
     private EditText etCurrentCya, etTargetCya, etPoolVolume;
-    private AutoCompleteTextView actvChemicalType; // Removed actvVolumeUnit
+    private AutoCompleteTextView actvChemicalType;
     private TextInputLayout tilChemicalType;
     private TextView tvChemicalDetails, tvDosageResult;
     private CardView cvResult;
@@ -46,7 +46,7 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
     private String poolId;
 
     private static final String UNIT_LITRES = "L";
-    private static final double IDEAL_CYA = 40.0; // Default target
+    private static final double IDEAL_CYA = 40.0;
 
     private Map<String, ChemicalDosageInfo> chemicalInfoMap;
 
@@ -64,7 +64,6 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initializeChemicalData();
-        // 💥 INITIALIZE FIREBASE
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
     }
@@ -72,7 +71,6 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // 💥 Uses the XML for the Stabilizer Calculator
         return inflater.inflate(R.layout.stabilizer_calculator, container, false);
     }
 
@@ -81,8 +79,6 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
         super.onViewCreated(view, savedInstanceState);
 
         poolViewModel = new ViewModelProvider(requireActivity()).get(PoolViewModel.class);
-
-        // 💥 BINDING UPDATED STABILIZER/CYA VIEWS
         etCurrentCya = view.findViewById(R.id.et_current_cya);
         etTargetCya = view.findViewById(R.id.et_target_cya);
         etPoolVolume = view.findViewById(R.id.et_pool_volume);
@@ -101,11 +97,7 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
 
     private void setupListeners() {
         btnCalculate.setOnClickListener(v -> calculateDosage());
-
-        // 💥 Listener for Save Log Button
         btnSaveLog.setOnClickListener(v -> saveLogToFirestore());
-
-        // The CYA dropdown is read-only, so this listener is unnecessary but harmless.
         actvChemicalType.setOnItemClickListener((parent, view, position, id) -> updateChemicalDetails(actvChemicalType.getText().toString()));
 
         TextWatcher inputWatcher = new TextWatcher() {
@@ -140,7 +132,6 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
     }
 
     private void setupSpinners() {
-        // Since only one chemical is typically used to raise CYA, we preset the dropdown.
         String[] chemicalTypes = chemicalInfoMap.keySet().toArray(new String[0]);
         ArrayAdapter<String> chemicalAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, chemicalTypes);
         actvChemicalType.setAdapter(chemicalAdapter);
@@ -152,7 +143,6 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
             if (poolModel != null) {
                 poolId = poolModel.getPoolId();
                 if (poolModel.getWaterCapacityLiters() != null) {
-                    // Pool volume is pre-filled, unit is assumed to be Liters
                     etPoolVolume.setText(String.valueOf(poolModel.getWaterCapacityLiters()));
                 }
                 // Update chemical details on load
@@ -172,8 +162,6 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
         }
         cvResult.setVisibility(View.GONE);
     }
-
-    // 💥 UPDATED CHEMICAL DATA FOR STABILIZER (CYA)
     private void initializeChemicalData() {
         chemicalInfoMap = new HashMap<>();
 
@@ -181,12 +169,12 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
         chemicalInfoMap.put("Cyanuric Acid (CYA Granular)", new ChemicalDosageInfo(
                 "Cyanuric Acid (CYA). Add slowly to the skimmer with the pump running, or pre-dissolve and add directly. It takes 48-72 hours to fully dissolve and register. DO NOT backwash or add fresh water for at least 48 hours after application.",
                 "CYA Increaser (Granular)",
-                100.0 // grams/10,000L to raise CYA by 10 ppm
+                100.0
         ));
     }
 
     private void calculateDosage() {
-        // Reset saved values
+
         savedDosageAmount = 0.0;
         savedDosageUnit = "";
         savedChemicalName = "";
@@ -203,7 +191,6 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
 
         try {
             double currentCya = Double.parseDouble(currentCyaStr);
-            // Default target from XML is 40, but use the EditText value if available
             double targetCya = targetCyaStr.isEmpty() ? IDEAL_CYA : Double.parseDouble(targetCyaStr);
             double volume = Double.parseDouble(volumeStr);
 
@@ -226,10 +213,7 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
                 cvResult.setVisibility(View.VISIBLE);
                 return;
             }
-
-            // Since we only handle increasing CYA, this is a valid state
             if (currentCya < targetCya && !chemicalName.toLowerCase().contains("increaser")) {
-                // This is a safety check, but the dropdown should only contain the increaser
                 Toast.makeText(getContext(), "You must use a CYA Increaser to raise the Stabilizer.", Toast.LENGTH_LONG).show();
                 return;
             }
@@ -244,9 +228,9 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
 
             double dosageRate = info.dosageRate;
             double baseVolume = 10000.0;
-            double baseCyaChange = 10.0; // Dosage rate is for every 10 ppm change
+            double baseCyaChange = 10.0;
 
-            // Dosage Required = (Delta CYA / 10 ppm) * (Volume / 10000L) * Dosage Rate
+
             double dosageRequiredMetric;
 
             dosageRequiredMetric = (requiredCyaChange / baseCyaChange) * (volume / baseVolume) * dosageRate;
@@ -256,13 +240,13 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
             String amountFormat;
             double dosageToDisplay;
 
-            // Stabilizer is always granular, so no 'liquid' check needed, but kept the structure
+
             if (volume > 40000) {
-                dosageToDisplay = dosageRequiredMetric / 1000.0; // Convert g to kg
+                dosageToDisplay = dosageRequiredMetric / 1000.0;
                 finalUnit = "kg";
                 amountFormat = "%.2f";
             } else {
-                dosageToDisplay = dosageRequiredMetric; // Display in g
+                dosageToDisplay = dosageRequiredMetric;
                 finalUnit = "g";
                 amountFormat = "%.0f";
             }
@@ -282,19 +266,11 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
             Toast.makeText(getContext(), "Invalid number input. Please check your values.", Toast.LENGTH_SHORT).show();
         }
     }
-
-
-    // Helper to generate a consistent document ID for the current day's log
     private String generateDailyLogId(String poolId) {
-        // Format the date as YYYY-MM-DD
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         String dateString = sdf.format(new Date());
-
-        // Use a composite key: [poolId]_[date]
         return poolId + "_" + dateString;
     }
-
-    // 💥 UPDATED: Method to save the log to Firestore using MERGE/UPSERT
     private void saveLogToFirestore() {
         if (poolId == null || poolId.isEmpty()) {
             Toast.makeText(getContext(), "Error: No pool selected. Please select or create a pool first.", Toast.LENGTH_LONG).show();
@@ -311,29 +287,19 @@ public class StabilizerCalculator extends Fragment implements HeaderUpdatable {
             double targetCya = etTargetCya.getText().toString().isEmpty() ? IDEAL_CYA : Double.parseDouble(etTargetCya.getText().toString());
             double volume = Double.parseDouble(etPoolVolume.getText().toString());
 
-            // 1. Prepare data (only the fields we want to update/set)
             Map<String, Object> logUpdates = new HashMap<>();
 
-            // Core Metric 💥 UPDATED KEY
             logUpdates.put("stabilizer", currentCya);
 
-            // Dosage/Calculator Metadata 💥 UPDATED KEYS
             logUpdates.put("targetStabilizer", targetCya);
             logUpdates.put("poolVolume", volume);
             logUpdates.put("cyaDosageAmount", savedDosageAmount);
             logUpdates.put("cyaDosageUnit", savedDosageUnit);
             logUpdates.put("cyaChemicalName", savedChemicalName);
-
-            // Explicitly set timestamp
             logUpdates.put("timestamp", new Date());
-
-            // 2. Generate the consistent Document ID
             String dailyLogId = generateDailyLogId(poolId);
-
-            // 3. Perform the MERGE update
             db.collection("pools").document(poolId)
                     .collection("testLogs").document(dailyLogId)
-                    // Use set(logUpdates, SetOptions.merge()) to update only the fields in the map
                     .set(logUpdates, SetOptions.merge())
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(getContext(), "Stabilizer (CYA) Test Log recorded successfully.", Toast.LENGTH_SHORT).show();

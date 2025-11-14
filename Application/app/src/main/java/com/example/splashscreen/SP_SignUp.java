@@ -64,10 +64,9 @@ public class SP_SignUp extends Fragment {
     private boolean isPassword1Visible = false;
     private boolean isPassword2Visible = false;
 
-    // Variable to hold the verification ID required for OTP confirmation (REMNANT - NOT USED IN EMAIL FLOW)
     private String verificationId;
 
-    // Location Permission Launcher
+
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -104,7 +103,6 @@ public class SP_SignUp extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        // ⭐ RECOMMENDED: Only inflate the layout here
         return inflater.inflate(R.layout.sp_signup, container, false);
     }
 
@@ -113,25 +111,17 @@ public class SP_SignUp extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
-
-        // IMPORTANT: Clear previous sign-up data when fragment is created
         userViewModel.setTempGeoPoint(null);
         userViewModel.setTempLocationAddress(null);
         userViewModel.setCurrentPhone(null);
-
-
-        // Input Fields Initialization
         ownerNameEditText = view.findViewById(R.id.ownerNameEditText);
         businessNameEditText = view.findViewById(R.id.businessNameEditText);
         emailEditText = view.findViewById(R.id.emailEditText);
         phoneEditText = view.findViewById(R.id.phoneEditText);
         passwordEditText1 = view.findViewById(R.id.passwordEditText1);
         confirmPasswordEditText = view.findViewById(R.id.confirmPasswordEditText);
-
         passwordToggleIcon1 = view.findViewById(R.id.passwordToggleIcon1);
         passwordToggleIcon2 = view.findViewById(R.id.passwordToggleIcon2);
-
-        // Location UI
         btnFetchLocation = view.findViewById(R.id.btn_fetch_location);
         tvLocationStatus = view.findViewById(R.id.tv_location_status);
         tvLocationAddress = view.findViewById(R.id.tv_location_address);
@@ -141,19 +131,13 @@ public class SP_SignUp extends Fragment {
 
         TextView switchToLogin = view.findViewById(R.id.loginLink);
         switchToLogin.setOnClickListener(v -> {
-            // Assuming AuthenticationActivity has showLoginFragment()
             if (getActivity() instanceof AuthenticationActivity) {
                 ((AuthenticationActivity) requireActivity()).showLoginFragment();
             }
         });
 
-        // Location Fetch Listener
         btnFetchLocation.setOnClickListener(v -> checkLocationPermission());
-
-        // Sign Up Button Listener
         signupButton.setOnClickListener(v -> handleSignUp());
-
-        // Password Toggle Implementation
         passwordEditText1.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         confirmPasswordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
 
@@ -205,8 +189,6 @@ public class SP_SignUp extends Fragment {
                     btnFetchLocation.setEnabled(true);
                     if (location != null) {
                         GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-
-                        // ⭐ LOGGING: Log fetched location
                         Log.d(TAG, "Location Fetched: Lat=" + location.getLatitude() + ", Lng=" + location.getLongitude() + ", Accuracy=" + location.getAccuracy());
 
                         // Store location in ViewModel's temporary field
@@ -236,8 +218,6 @@ public class SP_SignUp extends Fragment {
 
     private void startReverseGeocoding(GeoPoint geoPoint) {
         if (getContext() == null) return;
-
-        // ⭐ LOGGING: Log reverse geocoding request
         Log.d(TAG, "Starting Reverse Geocoding for Lat: " + geoPoint.getLatitude() + ", Lng: " + geoPoint.getLongitude());
 
         geocodeExecutor.execute(() -> {
@@ -264,12 +244,8 @@ public class SP_SignUp extends Fragment {
                         String finalDisplayAddress = (address.getAddressLine(0) != null) ?
                                 address.getAddressLine(0) :
                                 (address.getLocality() != null ? address.getLocality() : "Unknown Area.");
-
-                        // Store address in ViewModel's temporary field
                         userViewModel.setTempLocationAddress(finalDisplayAddress);
                         tvLocationAddress.setText("Address: " + finalDisplayAddress);
-
-                        // ⭐ LOGGING: Log successful reverse geocoding result
                         Log.d(TAG, "Reverse Geocoding Success. Address: " + finalDisplayAddress);
                     } else {
                         tvLocationAddress.setText("Address: Address not found.");
@@ -304,8 +280,6 @@ public class SP_SignUp extends Fragment {
         String phone = phoneEditText.getText().toString().trim();
         String password = passwordEditText1.getText().toString();
         String confirmPassword = confirmPasswordEditText.getText().toString();
-
-        // 1. Validation Checks
         if (ownerName.isEmpty() || businessName.isEmpty() || email.isEmpty() || phone.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             NotificationHelper.showNotification(getView(), "Missing information", "Please fill in all the fields.", NotificationHelper.NotificationType.ERROR);
             return;
@@ -315,74 +289,46 @@ public class SP_SignUp extends Fragment {
             NotificationHelper.showNotification(getView(), "Password Mismatch", "Passwords do not match.", NotificationHelper.NotificationType.ERROR);
             return;
         }
-
-        // Location Check
         if (userViewModel.getTempGeoPoint() == null || userViewModel.getTempLocationAddress() == null) {
             NotificationHelper.showNotification(getView(), "Location Required", "Please tap 'Get Business Location' to set your address.", NotificationHelper.NotificationType.ERROR);
             return;
         }
-
-        // Ensure the phone number is in E.164 format
         String fullPhoneNumber = formatPhoneNumber(phone);
 
         if (fullPhoneNumber == null) {
             NotificationHelper.showNotification(getView(), "Invalid Phone Number", "Please enter a valid phone number, including the country code.", NotificationHelper.NotificationType.ERROR);
             return;
         }
-
-        // Store the E.164 phone number in the ViewModel
         userViewModel.setCurrentPhone(fullPhoneNumber);
-
         signupButton.setEnabled(false);
         signupButton.setText("Registering...");
-
-        // 2. CREATE USER AND INITIATE VERIFICATION
         createFirebaseUserWithEmail(ownerName, businessName, email, password, fullPhoneNumber);
     }
-
-    /**
-     * Helper to format phone number to E.164.
-     */
     private String formatPhoneNumber(String phone) {
-        String cleanPhone = phone.replaceAll("[^0-9]", ""); // Remove all non-digit characters
-
-        // This assumes South African (ZA) country code (+27)
+        String cleanPhone = phone.replaceAll("[^0-9]", "");
         if (cleanPhone.startsWith("0") && cleanPhone.length() >= 10) {
-            // Remove local zero and prepend +27 (e.g., 062... -> +2762...)
+
             return "+27" + cleanPhone.substring(1);
         } else if (cleanPhone.startsWith("27") && cleanPhone.length() >= 11) {
-            // If they entered '276211...' without the '+'
+
             return "+" + cleanPhone;
         } else if (phone.startsWith("+") && cleanPhone.length() >= 11) {
             return phone;
         }
-        // Basic check for international format with country code
         if (phone.startsWith("+") && cleanPhone.length() > 5) {
             return phone;
         }
         return null; // Invalid format
     }
-
-
-    /**
-     * Creates a Firebase user, sends a verification email, signs out the user,
-     * and navigates to the login screen.
-     */
     private void createFirebaseUserWithEmail(String ownerName, String businessName, String email, String password, String phone) {
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser newUser = auth.getCurrentUser();
                         if (newUser != null) {
-
-                            // 1. Send verification email
                             newUser.sendEmailVerification()
                                     .addOnCompleteListener(verificationTask -> {
-
-                                        // 2. Save user data to Firestore
                                         saveBusinessDataToFirestore(newUser, ownerName, businessName, email, phone);
-
-                                        // 3. Inform user and navigate to login
                                         if (getView() == null) return;
 
                                         if (verificationTask.isSuccessful()) {
@@ -403,22 +349,17 @@ public class SP_SignUp extends Fragment {
                                             );
                                         }
 
-                                        // Crucial step: Sign out the new user to force them to log in later and check verification status.
                                         auth.signOut();
-
-                                        // Navigate to the login screen
                                         if (getActivity() instanceof AuthenticationActivity) {
                                             ((AuthenticationActivity) getActivity()).showLoginFragment();
                                         }
                                     });
                         }
                     } else {
-                        // Email/Password creation failed
                         Log.e(TAG, "Email/Password creation failed: " + task.getException().getMessage());
                         if (getView() == null) return;
                         String errorMessage = "Sign up failed: " + task.getException().getMessage();
 
-                        // Check for common errors
                         if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
                             errorMessage = "Invalid email format or weak password (must be 6+ chars).";
                         } else if (task.getException() != null && task.getException().getMessage() != null && task.getException().getMessage().contains("in use")) {
@@ -463,8 +404,6 @@ public class SP_SignUp extends Fragment {
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error saving business data to Firestore: " + e.getMessage());
                     if (getView() == null) return;
-
-                    // Critical clean-up: If Firestore write fails, delete the Firebase Auth user
                     firebaseUser.delete()
                             .addOnCompleteListener(deleteTask -> {
                                 if (deleteTask.isSuccessful()) {

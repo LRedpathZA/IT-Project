@@ -196,7 +196,6 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
 
         try {
             double currentAlk = Double.parseDouble(currentAlkStr);
-            // Default target from XML is 100, but use the EditText value if available
             double targetAlk = targetAlkStr.isEmpty() ? IDEAL_ALKALINITY : Double.parseDouble(targetAlkStr);
             double volume = Double.parseDouble(volumeStr);
 
@@ -210,7 +209,7 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
                 return;
             }
 
-            // TA is considered stable within a +/- 10 ppm range of target (e.g., 90-110 for a target of 100)
+
             if (Math.abs(currentAlk - targetAlk) <= 10.0) {
                 tvDosageResult.setText("No major adjustment required. Alkalinity is stable.");
                 cvResult.setVisibility(View.VISIBLE);
@@ -284,13 +283,12 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
     }
 
 
-    // Helper to generate a consistent document ID for the current day's log
     private String generateDailyLogId(String poolId) {
-        // Format the date as YYYY-MM-DD
+
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         String dateString = sdf.format(new Date());
 
-        // Use a composite key: [poolId]_[date]
+
         return poolId + "_" + dateString;
     }
 
@@ -311,7 +309,6 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
             double targetAlk = etTargetAlkalinity.getText().toString().isEmpty() ? IDEAL_ALKALINITY : Double.parseDouble(etTargetAlkalinity.getText().toString());
             double volume = Double.parseDouble(etPoolVolume.getText().toString());
 
-            //  Prepare data (only the fields we want to update/set)
             Map<String, Object> logUpdates = new HashMap<>();
 
 
@@ -333,7 +330,7 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
 
             db.collection("pools").document(poolId)
                     .collection("testLogs").document(dailyLogId)
-                    // Use set(logUpdates, SetOptions.merge()) to update only the fields in the map
+
                     .set(logUpdates, SetOptions.merge())
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(getContext(), "Alkalinity Test Log recorded successfully.", Toast.LENGTH_SHORT).show();
@@ -347,7 +344,6 @@ public class AlkalinityCalculator extends Fragment implements HeaderUpdatable {
         }
     }
 
-    // Retained from pHCalculator
     private static class ChemicalDosageInfo {
         final String details;
         final String baseType;

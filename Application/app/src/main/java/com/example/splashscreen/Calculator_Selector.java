@@ -67,8 +67,7 @@ public class Calculator_Selector extends Fragment implements HeaderUpdatable {
 //                R.anim.slide_out_right  // Fragment exits (pop)
 //        );
 
-        // Replace the current fragment, add to back stack for back navigation
-        fragmentTransaction.replace(R.id.fragment_container, fragment); // Replace R.id.fragment_container with your actual container ID
+        fragmentTransaction.replace(R.id.fragment_container, fragment);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
     }

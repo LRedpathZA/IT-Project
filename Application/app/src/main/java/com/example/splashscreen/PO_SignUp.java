@@ -32,13 +32,12 @@ public class PO_SignUp extends Fragment {
 
     // View components
     private EditText usernameEditText, passwordEditText, emailEditText;
-    private ImageView passwordToggleIcon; // Declare the ImageView
+    private ImageView passwordToggleIcon;
 
     private Button signupButton;
     private CheckBox termsCheckbox;
     private TextView loginLink, businessLink;
 
-    // State variable to track password visibility
     private boolean isPasswordVisible = false;
 
     public PO_SignUp() {
@@ -69,14 +68,13 @@ public class PO_SignUp extends Fragment {
 
         passwordToggleIcon.setImageResource(R.drawable.hide);
 
-        // 2. Set the click listener on the icon
+
         passwordToggleIcon.setOnClickListener(v -> {
             if (isPasswordVisible) {
-                // Currently visible -> Change to hidden
                 passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 passwordToggleIcon.setImageResource(R.drawable.hide);
             } else {
-                // Currently hidden -> Change to visible
+
                 passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
                 passwordToggleIcon.setImageResource(R.drawable.eye); // Ensure you have an 'ic_visibility' drawable
             }
@@ -88,7 +86,7 @@ public class PO_SignUp extends Fragment {
             isPasswordVisible = !isPasswordVisible;
         });
 
-        // Set up the OnClickListener for the Sign Up button
+
         signupButton.setOnClickListener(v -> {
             String name = usernameEditText.getText().toString().trim();
             String email = emailEditText.getText().toString().trim();
@@ -116,7 +114,7 @@ public class PO_SignUp extends Fragment {
         });
 
         loginLink.setOnClickListener(v -> {
-            // Your navigation code for switching to LoginFragment
+
             getActivity().getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new LoginFragment())
                     .addToBackStack(null)
@@ -124,7 +122,7 @@ public class PO_SignUp extends Fragment {
         });
 
         businessLink.setOnClickListener(v -> {
-            // Your navigation code for switching to SP_SignUp fragment
+
             getActivity().getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new SP_SignUp())
                     .addToBackStack(null)
@@ -145,25 +143,20 @@ public class PO_SignUp extends Fragment {
                                     .addOnCompleteListener(emailTask -> {
                                         if (emailTask.isSuccessful()) {
                                             Log.d("PO_SignUp", "Verification email sent.");
-                                            // 2. ONLY send to Firestore AFTER successful email send (optional, but good)
-                                            //    We will still hold off on starting MainActivity until verification is done.
-                                            saveUserToFirestore(user, name, email, true); // true for pending status
+                                            saveUserToFirestore(user, name, email, true);
 
-                                            // 3. Inform user to check email
+
                                             NotificationHelper.showNotification(
                                                     getView(),
                                                     "Verification Required",
                                                     "Account created! A verification email has been sent to " + email + ". Please check your inbox (and spam folder) to verify your account before logging in.",
                                                     NotificationHelper.NotificationType.SUCCESS
                                             );
-
-                                            // 4. Log out the user immediately so they must log in again (and be checked for verification)
                                             auth.signOut();
                                         } else {
                                             Log.e("PO_SignUp", "Failed to send verification email: " + emailTask.getException().getMessage());
-                                            // Handle failure to send email (maybe delete the account or prompt retry)
-                                            // For simplicity, we just notify the user and sign out.
-                                            saveUserToFirestore(user, name, email, false); // false for error status
+
+                                            saveUserToFirestore(user, name, email, false);
                                             auth.signOut();
                                             NotificationHelper.showNotification(
                                                     getView(),
@@ -192,22 +185,18 @@ public class PO_SignUp extends Fragment {
         user.put("name", name);
         user.put("email", email);
         user.put("role_id", 1);
-        // Add a new field to track if the email has been verified
-        user.put("is_email_verified", firebaseUser.isEmailVerified()); // Will be false initially
+
+        user.put("is_email_verified", firebaseUser.isEmailVerified());
 
         db.collection("users").document(firebaseUser.getUid())
                 .set(user)
                 .addOnSuccessListener(aVoid -> {
                     Log.d("PO_SignUp", "User data saved to Firestore.");
 
-                    // *DO NOT START MAIN ACTIVITY HERE*. User must verify email first.
-                    // The user is logged out in `createUser` and must log in again,
-                    // where the verification status will be checked.
+
                 })
                 .addOnFailureListener(e -> {
                     Log.e("PO_SignUp", "Error saving user to Firestore: " + e.getMessage());
-                    // The account is created in Firebase Auth, but Firestore write failed.
-                    // You might want to consider deleting the Firebase Auth user here to clean up.
                     NotificationHelper.showNotification(
                             getView(),
                             "Database Error",

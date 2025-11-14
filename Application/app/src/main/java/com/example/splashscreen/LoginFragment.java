@@ -75,7 +75,6 @@ public class LoginFragment extends Fragment {
             ((AuthenticationActivity) requireActivity()).showSignupFragment();
         });
 
-        // Set up the OnClickListener for the Login button
         loginButton.setOnClickListener(v -> {
             String email = emailEditText.getText().toString().trim();
             String password = passwordEditText.getText().toString().trim();
@@ -101,22 +100,22 @@ public class LoginFragment extends Fragment {
                     if (task.isSuccessful()) {
                         FirebaseUser user = auth.getCurrentUser();
 
-                        // *** CRITICAL STEP 1: Check Email Verification Status ***
+
                         if (user != null) {
                             checkVerificationStatus(user);
                         } else {
-                            // Should not happen if login is successful, but good for safety
+
                             NotificationHelper.showNotification(
                                     getView(),
                                     "Error",
                                     "User object is null after successful login.",
                                     NotificationHelper.NotificationType.ERROR
                             );
-                            auth.signOut(); // Sign them out
+                            auth.signOut();
                         }
 
                     } else {
-                        // Login failed, show an error message
+
                         NotificationHelper.showNotification(
                                 getView(),
                                 "Login failed",
@@ -127,15 +126,12 @@ public class LoginFragment extends Fragment {
                 });
     }
 
-    /**
-     * Checks if the user's email is verified and navigates accordingly.
-     * @param user The currently logged-in FirebaseUser object.
-     */
+
     private void checkVerificationStatus(FirebaseUser user) {
-        // user.reload() fetches the latest information from the Firebase server
+
         user.reload().addOnCompleteListener(reloadTask -> {
             if (reloadTask.isSuccessful() && user.isEmailVerified()) {
-                // Verification successful: Proceed to the main application
+
                 NotificationHelper.showNotification(
                         getView(),
                         "Login Successful",
@@ -143,35 +139,24 @@ public class LoginFragment extends Fragment {
                         NotificationHelper.NotificationType.SUCCESS
                 );
 
-                // Navigate to the MainActivity
+
                 Intent intent = new Intent(getContext(), MainActivity.class);
                 startActivity(intent);
                 if (getActivity() != null) {
                     getActivity().finish();
                 }
             } else {
-                // Verification NOT successful: Inform user and offer to resend email
+
                 NotificationHelper.showNotification(
                         getView(),
                         "Verification Required",
                         "Please check your email and click the verification link. Click here to resend the verification email.",
                         NotificationHelper.NotificationType.ERROR
                 );
-
-                // IMPORTANT: Sign out the user so they cannot access the app until verified
                 auth.signOut();
-
-                // OPTIONAL: Offer to resend the email directly from the notification (requires implementing custom NotificationHelper action)
-                // For simplicity here, we'll log the instruction to resend the email.
                 Log.d("LoginFragment", "User not verified. Prompt user to resend email.");
 
-                // Example of how to resend the email if a user clicked a 'Resend' button (or a button in your custom notification view)
-                // user.sendEmailVerification()
-                //     .addOnCompleteListener(resendTask -> {
-                //         if (resendTask.isSuccessful()) {
-                //             // Show success message
-                //         }
-                //     });
+
             }
         });
     }

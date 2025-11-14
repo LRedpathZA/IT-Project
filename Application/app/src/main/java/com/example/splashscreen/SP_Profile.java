@@ -62,7 +62,7 @@ public class SP_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize Launcher for custom photo selection
+
         imageChooserLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -84,7 +84,6 @@ public class SP_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         super.onViewCreated(view, savedInstanceState);
         userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
 
-        // UI Initialization
         MaterialButton btnLogout = view.findViewById(R.id.btn_sp_logout);
         btnBack = view.findViewById(R.id.btn_back);
 
@@ -100,9 +99,6 @@ public class SP_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
 
         optionManageProducts = view.findViewById(R.id.option_manage_products);
         optionManageServices = view.findViewById(R.id.option_manage_services);
-        // Add more options as needed: option_account_settings_sp, etc.
-
-        // Click Listeners
         btnBack.setOnClickListener(v -> handleBackNavigation());
         btnLogout.setOnClickListener(v -> logoutUser());
 
@@ -113,7 +109,6 @@ public class SP_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         optionManageProducts.setOnClickListener(v -> Toast.makeText(getContext(), "Manage Products clicked", Toast.LENGTH_SHORT).show());
         optionManageServices.setOnClickListener(v -> Toast.makeText(getContext(), "Manage Services clicked", Toast.LENGTH_SHORT).show());
 
-        // Data Management
         observeUserData();
 
         String userId = getCurrentUserId();
@@ -147,24 +142,21 @@ public class SP_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         }
     }
 
-    // --- Data Logic ---
 
     private void observeUserData() {
         userViewModel.userData.observe(getViewLifecycleOwner(), this::updateUIWithUserData);
         userViewModel.isLoading.observe(getViewLifecycleOwner(), isLoading -> {
-            // Handle loading state
         });
     }
 
     private void updateUIWithUserData(DocumentSnapshot document) {
         if (document != null && document.exists()) {
-            // Assuming SP data is stored under the user document for simplicity
             String businessName = document.getString("businessName");
-            String ownerName = document.getString("name"); // Owner name from user profile
+            String ownerName = document.getString("name");
             String email = document.getString("email");
             String phone = document.getString("phone");
-            String address = document.getString("locationAddress"); // Specific to SP
-            String website = document.getString("website"); // Specific to SP
+            String address = document.getString("locationAddress");
+            String website = document.getString("website");
 
             if (tvBusinessName != null) tvBusinessName.setText(businessName != null ? businessName : "Service Provider");
             if (tvOwnerName != null) tvOwnerName.setText(ownerName != null ? ownerName : "Owner Name");
@@ -173,7 +165,6 @@ public class SP_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
             if (tvDetailLocation != null) tvDetailLocation.setText(address != null ? address : "No Address Set");
             if (tvDetailWebsite != null) tvDetailWebsite.setText(website != null ? website : "Not Set");
 
-            // Load Profile Picture/Business Logo
             if (getContext() != null) {
                 ProfilePictureManager.loadPicture(getContext(), document, ivProfilePicture);
             }
@@ -182,14 +173,12 @@ public class SP_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         }
     }
 
-    // --- Profile Picture Logic ---
 
     private String getCurrentUserId() {
         return FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
     }
 
     private void showAvatarDialog() {
-        // NOTE: AvatarSelectDialogFragment must be available
         AvatarSelectDialogFragment dialog = AvatarSelectDialogFragment.newInstance();
         dialog.show(getChildFragmentManager(), "AvatarSelectDialog");
     }
@@ -211,13 +200,9 @@ public class SP_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
     private void saveBuiltInAvatar(int resId) {
         String userId = getCurrentUserId();
         if (userId == null || getContext() == null) return;
-
         Toast.makeText(getContext(), "Built-in Logo selected. Saving...", Toast.LENGTH_SHORT).show();
-
         ivProfilePicture.setImageResource(resId);
         ivProfilePicture.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-
-        // Updates the profile picture data, which the observer will pick up
         userViewModel.updateProfilePictureData(userId, null, resId);
     }
 
@@ -228,7 +213,6 @@ public class SP_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         ivProfilePicture.setImageURI(uri);
         ivProfilePicture.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-        // Initiate the external upload logic. ImageUploadManager needs to handle the file path appropriately (e.g., /sp_logos/)
         ImageUploadManager.uploadProfileImage(getContext(), uri, new UploadListener() {
             @Override
             public void onStart() {
@@ -258,8 +242,6 @@ public class SP_Profile extends Fragment implements HeaderUpdatable, AvatarSelec
         if (userId == null) return;
 
         Toast.makeText(getContext(), "Upload success. Saving URL...", Toast.LENGTH_SHORT).show();
-
-        // Updates the profile picture data, which the observer will pick up
         userViewModel.updateProfilePictureData(userId, url, 0);
     }
 }

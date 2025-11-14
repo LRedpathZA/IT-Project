@@ -35,7 +35,7 @@ public class QuoteActionDialogFragment extends DialogFragment {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private QuoteModel quote;
 
-    // UI Elements
+
     private TextView tvBusinessName, tvPrice, tvDescription, tvStatusDate;
     private Button btnAccept, btnReject;
 
@@ -80,7 +80,7 @@ public class QuoteActionDialogFragment extends DialogFragment {
             return;
         }
 
-        // 1. Initialize UI
+
         tvBusinessName = view.findViewById(R.id.tv_dialog_business_name);
         tvPrice = view.findViewById(R.id.tv_dialog_price);
         tvDescription = view.findViewById(R.id.tv_dialog_description);
@@ -88,20 +88,17 @@ public class QuoteActionDialogFragment extends DialogFragment {
         btnAccept = view.findViewById(R.id.btn_accept_quote);
         btnReject = view.findViewById(R.id.btn_reject_quote);
 
-        // 2. Bind Data
+
         bindQuoteData();
 
-        // 3. Set Listeners
+
         btnAccept.setOnClickListener(v -> handleQuoteAcceptance());
         btnReject.setOnClickListener(v -> updateQuoteStatus("Rejected"));
     }
 
     private void bindQuoteData() {
-        // Format currency (assuming South African Rand - R)
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "ZA"));
         currencyFormat.setMaximumFractionDigits(2);
-
-        // Format date
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
         String dateString = (quote.getCreatedAt() != null)
                 ? sdf.format(quote.getCreatedAt())
@@ -112,7 +109,7 @@ public class QuoteActionDialogFragment extends DialogFragment {
         tvDescription.setText(quote.getDetailedDescription());
         tvStatusDate.setText(String.format("Status: %s | Quoted: %s", quote.getStatus(), dateString));
 
-        // Disable buttons if already accepted/rejected
+
         if (quote.getStatus().equals("Accepted") || quote.getStatus().equals("Rejected")) {
             btnAccept.setEnabled(false);
             btnReject.setEnabled(false);
@@ -137,41 +134,33 @@ public class QuoteActionDialogFragment extends DialogFragment {
             return;
         }
 
-        // 1. Get references
         DocumentReference serviceRequestRef = db.collection("service_requests").document(serviceRequestId);
         DocumentReference quoteRef = serviceRequestRef.collection("quotes").document(quoteId);
-        DocumentReference bookingRef = db.collection("bookings").document(); // New booking document with auto-ID
-
-        // 2. Create a batch
+        DocumentReference bookingRef = db.collection("bookings").document();
         WriteBatch batch = db.batch();
 
-        // A. Update the specific Quote status to "Accepted"
         batch.update(quoteRef, "status", "Accepted");
 
-        // B. Update the parent Service Request status to "Booked" and include the service provider ID
         batch.update(serviceRequestRef, "status", "Booked");
         batch.update(serviceRequestRef, "acceptedQuoteId", quoteId);
         batch.update(serviceRequestRef, "businessId", spId);
-
-        // C. Create a new Booking/Event (This record confirms the PO-SP client relationship and the service)
         Map<String, Object> bookingData = new HashMap<>();
         bookingData.put("serviceRequestId", serviceRequestId);
         bookingData.put("quoteId", quoteId);
-        bookingData.put("businessId", spId); // SP ID
-        bookingData.put("userId", poId); // PO ID (Matches request.auth.uid for security rule)
+        bookingData.put("businessId", spId);
+        bookingData.put("userId", poId);
         bookingData.put("title", "Service Booking: " + quote.getBusinessName());
         bookingData.put("description", quote.getDetailedDescription());
         bookingData.put("price", quote.getQuotedPrice());
         bookingData.put("status", "Scheduled");
         bookingData.put("createdAt", new Date());
 
-        // Placeholder for service date (IMPORTANT: This should be agreed upon. Here, 7 days out)
         long sevenDaysInMs = TimeUnit.DAYS.toMillis(7);
         bookingData.put("serviceDate", new Date(System.currentTimeMillis() + sevenDaysInMs));
 
         batch.set(bookingRef, bookingData);
 
-        // 3. Commit the batch
+
         batch.commit()
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(getContext(), "Quote Accepted! Service booked. Check your Services tab.", Toast.LENGTH_LONG).show();

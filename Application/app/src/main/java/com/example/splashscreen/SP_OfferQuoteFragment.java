@@ -42,16 +42,14 @@ public class SP_OfferQuoteFragment extends Fragment implements HeaderUpdatable {
     private SP_OfferQuoteViewModel viewModel;
     private UserViewModel userViewModel;
 
-    // UI elements for Request Details
+
     private TextView tvRequestType, tvRequestPool, tvRequestDescription, tvRequestExpiry;
     private Button btnViewLocation;
 
-    // UI elements for Quote Submission
     private TextInputLayout tilPrice, tilDescription;
     private TextInputEditText etPrice, etDescription;
     private Button btnSubmit, btnCancel;
 
-    // UI elements for Document Upload (NEW)
     private FrameLayout flFileContainer;
     private LinearLayout llUploadFilePlaceholder;
     private ImageView ivSelectedDocumentIcon;
